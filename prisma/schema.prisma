@@ -1,0 +1,135 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum CategoryType {
+  WORK
+  SOURCE
+  TEMPLATE
+  BROCHURE
+  ADMIN
+  ETC
+}
+
+enum PostStatus {
+  PUBLISHED
+  DRAFT
+  ARCHIVED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String    // hashed
+  avatar        String?   // Backblaze B2 URL
+  role          UserRole  @default(MEMBER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  posts         Post[]    @relation("PostAuthor")
+  updatedPosts  Post[]    @relation("PostUpdater")
+  notices       Notice[]
+  
+  @@map("users")
+}
+
+model Category {
+  id          String      @id @default(cuid())
+  name        String      // "Penta Design", "CI/BI", "PPT" 등
+  slug        String      @unique // URL-friendly identifier
+  type        CategoryType
+  parentId    String?     // 상위 카테고리 (null이면 최상위)
+  order       Int         @default(0) // 정렬 순서
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  parent      Category?   @relation("CategoryParent", fields: [parentId], references: [id])
+  children    Category[]  @relation("CategoryParent")
+  posts       Post[]
+  
+  @@map("categories")
+}
+
+model Post {
+  id            String      @id @default(cuid())
+  title         String
+  description   String?
+  thumbnailUrl  String?     // 썸네일 이미지 URL (Backblaze B2)
+  fileUrl       String      // 원본 파일 URL (Backblaze B2)
+  fileSize      Int         // 파일 크기 (bytes)
+  fileType      String      // "image/png", "application/zip" 등
+  mimeType      String?     // MIME 타입
+  categoryId    String
+  status        PostStatus  @default(PUBLISHED)
+  isEditable    Boolean     @default(false) // SVG 편집 가능 여부
+  viewCount     Int         @default(0)
+  downloadCount Int         @default(0)
+  
+  authorId      String
+  author        User        @relation("PostAuthor", fields: [authorId], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("PostUpdater", fields: [updatedById], references: [id])
+  
+  category      Category    @relation(fields: [categoryId], references: [id])
+  
+  tags          PostTag[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  @@index([categoryId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  
+  posts     PostTag[]
+  
+  @@map("tags")
+}
+
+model PostTag {
+  id        String   @id @default(cuid())
+  postId    String
+  tagId     String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, tagId])
+  @@map("post_tags")
+}
+
+model Notice {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    // Markdown 지원
+  isImportant Boolean   @default(false)
+  viewCount   Int       @default(0)
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("notices")
+}
+
