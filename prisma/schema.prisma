@@ -33,7 +33,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  password      String    // hashed
+  password      String?   // hashed (Google OAuth 사용자는 null 가능)
   avatar        String?   // Backblaze B2 URL
   role          UserRole  @default(MEMBER)
   createdAt     DateTime  @default(now())

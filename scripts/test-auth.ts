@@ -18,6 +18,10 @@ async function testAuth() {
     console.log('✅ 관리자 계정 확인:', admin.email)
     
     // 비밀번호 검증 테스트
+    if (!admin.password) {
+      console.log('⚠️  관리자 계정에 비밀번호가 설정되어 있지 않습니다.')
+      return
+    }
     const testPassword = 'admin123'
     const isValid = await bcrypt.compare(testPassword, admin.password)
     
@@ -40,6 +44,10 @@ async function testAuth() {
     
     console.log('✅ 회원 계정 확인:', member.email)
     
+    if (!member.password) {
+      console.log('⚠️  회원 계정에 비밀번호가 설정되어 있지 않습니다.')
+      return
+    }
     const memberPassword = 'member123'
     const memberIsValid = await bcrypt.compare(memberPassword, member.password)
     

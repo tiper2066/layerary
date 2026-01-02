@@ -2,10 +2,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
+import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, User, LogIn, LayoutDashboard, Users, Megaphone, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CategoryType } from '@prisma/client'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Category {
   id: string
@@ -23,6 +34,8 @@ interface SidebarProps {
 
 export function Sidebar({ categories, className }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session } = useSession()
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   )
@@ -112,47 +125,237 @@ export function Sidebar({ categories, className }: SidebarProps) {
     )
   }
 
+  const getCategoryLabel = (type: CategoryType) => {
+    switch (type) {
+      case CategoryType.WORK:
+        return 'WORK'
+      case CategoryType.SOURCE:
+        return 'SOURCE'
+      case CategoryType.TEMPLATE:
+        return 'TEMPLATE'
+      case CategoryType.BROCHURE:
+        return 'BROCHURE'
+      case CategoryType.ADMIN:
+        return 'ADMIN'
+      case CategoryType.ETC:
+        return 'Etc.'
+      default:
+        return ''
+    }
+  }
+
   const categoryOrder = [
     CategoryType.WORK,
     CategoryType.SOURCE,
     CategoryType.TEMPLATE,
     CategoryType.BROCHURE,
+    CategoryType.ETC,
     CategoryType.ADMIN,
   ]
+
+  const getInitials = (name?: string | null, email?: string) => {
+    if (name) {
+      return name.substring(0, 2).toUpperCase()
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase()
+    }
+    return 'U'
+  }
 
   return (
     <aside
       className={cn(
-        'w-64 border-r bg-background overflow-y-auto',
+        'w-64 border-r bg-background flex flex-col',
         className
       )}
     >
-      <div className="p-4">
-      <nav className="space-y-2">
-        <Link
-          href="/"
-          className={cn(
-            'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors mb-2',
-            pathname === '/'
-              ? 'bg-primary text-primary-foreground'
-              : 'hover:bg-accent hover:text-accent-foreground'
-          )}
-        >
-          <Home className="h-4 w-4" />
-          <span>홈</span>
+      {/* 상단: LAYERARY 제목 */}
+      <div className="px-6 py-4 border-b">
+        <Link href="/" className="flex items-center">
+          <h1 className="text-xl font-bold">LAYERARY</h1>
+          <span className="text-xs text-muted-foreground ml-2">(로고로 대체 예정)</span>
         </Link>
+      </div>
 
-        {categoryOrder.map((type) => {
-          const cats = groupedCategories[type] || []
-          if (cats.length === 0) return null
+      {/* 메뉴 영역 */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
+          <nav className="space-y-4">
+            <Link
+              href="/"
+              className={cn(
+                'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                pathname === '/'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <Home className="h-4 w-4" />
+              <span>홈</span>
+            </Link>
 
-          return (
-            <div key={type} className="space-y-1">
-              {cats.map((category) => renderCategory(category))}
-            </div>
-          )
-        })}
-      </nav>
+            {categoryOrder.map((type) => {
+              const cats = groupedCategories[type] || []
+              
+              // Etc 카테고리는 하드코딩
+              if (type === CategoryType.ETC) {
+                return (
+                  <div key={type} className="space-y-1">
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {getCategoryLabel(type)}
+                    </div>
+                    <Link
+                      href="https://img-edm-code-generator.vercel.app/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <span className="flex-1">eDM</span>
+                    </Link>
+                  </div>
+                )
+              }
+
+              // ADMIN 카테고리는 특별 메뉴
+              if (type === CategoryType.ADMIN) {
+                if (!session || session.user.role !== 'ADMIN') return null
+                
+                return (
+                  <div key={type} className="space-y-1">
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {getCategoryLabel(type)}
+                    </div>
+                    <Link
+                      href="/admin/dashboard"
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                        pathname.startsWith('/admin/dashboard')
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+                      <span className="flex-1">대시보드</span>
+                    </Link>
+                    <Link
+                      href="/admin/users"
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                        pathname.startsWith('/admin/users')
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <Users className="h-4 w-4 flex-shrink-0" />
+                      <span className="flex-1">사용자 관리</span>
+                    </Link>
+                    <Link
+                      href="/admin/notices"
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                        pathname.startsWith('/admin/notices')
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <Megaphone className="h-4 w-4 flex-shrink-0" />
+                      <span className="flex-1">공지사항 관리</span>
+                    </Link>
+                  </div>
+                )
+              }
+
+              // 일반 카테고리 (WORK, SOURCE, TEMPLATE, BROCHURE)
+              if (cats.length === 0) return null
+
+              return (
+                <div key={type} className="space-y-1">
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {getCategoryLabel(type)}
+                  </div>
+                  {cats.map((category) => renderCategory(category))}
+                </div>
+              )
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* 하단: 사용자 정보 또는 로그인 버튼 */}
+      <div className="border-t p-4 bg-muted/30">
+        {session ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center gap-3 hover:bg-accent rounded-md p-2 -m-2 transition-colors">
+                <Avatar className="h-10 w-10 flex-shrink-0">
+                  <AvatarImage src={undefined} alt={session.user.name || ''} />
+                  <AvatarFallback className="text-xs">
+                    {getInitials(session.user.name, session.user.email)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium truncate">
+                    {session.user.name || '사용자'}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {session.user.email}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {session.user.role === 'ADMIN' ? '관리자' : '회원'}
+                  </p>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" side="top">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {session.user.name || '사용자'}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {session.user.email}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground mt-1">
+                    {session.user.role === 'ADMIN' ? '관리자' : '회원'}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  프로필 설정
+                </Link>
+              </DropdownMenuItem>
+              {session.user.role === 'ADMIN' && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/dashboard" className="flex items-center">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    관리자 대시보드
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={() => signOut({ callbackUrl: '/' })}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                로그아웃
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            onClick={() => router.push('/login')}
+            variant="default"
+            className="w-full"
+          >
+            <LogIn className="h-4 w-4 mr-2" />
+            로그인
+          </Button>
+        )}
       </div>
     </aside>
   )
