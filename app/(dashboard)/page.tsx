@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { prisma } from '@/lib/prisma'
 import { CategoryCard } from '@/components/CategoryCard'
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic'
 
@@ -98,8 +99,24 @@ export default async function HomePage() {
     <div className="space-y-12">
       {/* 카테고리 카드 */}
       <section>
-        <h2 className="text-3xl font-bold mb-8">카테고리</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* <h2 className="text-3xl font-bold mb-8">카테고리</h2> */}
+        <h1 className="tracking-tight flex justify-start items-end w-auto gap-2 pb-4">
+          {/* {session?.user?.name ? `${session.user.name} 님 환영합니다.` : "Penta Design Assets Management System"} */}
+          <Image
+            src="/img/site_logo.svg"
+            alt="Layerary logo"
+            width={160}
+            height={40}
+            className="h-[20px] w-auto"
+            priority
+          />
+          <p className="text-sm font-reqular mb-[-6px]">Brand & Design Resources</p>
+        </h1>
+        <p className="text-muted-foreground w-full">
+          LAYERARY는 펜타시큐리티의 브랜드와 디자인 기준, 그리고 이를 구성하는 것들을 하나의 체계로 관리하는 포털입니다. <br /> 일관된 브랜드 경험을 위해 필요한 기준과 리소스를 정리하고 공유합니다.<br />
+          <span className="text-xs font-regular">LAYERARY is Penta Security’s official portal for managing brand and design standards and assets in one cohesive system. It provides clear guidance and resources to ensure a consistent brand experience.</span>
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
           {categoryCards.map((card) => (
             <CategoryCard key={card.title} {...card} />
           ))}

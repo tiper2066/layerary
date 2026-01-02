@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import "./pretendard.css";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "LAYERARY - 펜타시큐리티 디자인 자산 관리 포털",
+  title: "LAYERARY",
   description: "펜타시큐리티의 디자인 작업물을 리뷰하고 리소스를 검색, 편집, 다운로드할 수 있는 중앙 집중식 플랫폼",
+  icons: {
+    icon: '/img/favicon.png', // public 폴더 안의 파일 경로
+  },
 };
 
 export default function RootLayout({
@@ -16,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={inter.className}>
+    <html lang="ko" suppressHydrationWarning className="font-sans">
+      <body className={`font-sans antialiased min-h-screen bg-background`}>
         <Providers>{children}</Providers></body>
     </html>
   );

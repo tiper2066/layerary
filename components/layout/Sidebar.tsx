@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image';
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
@@ -103,16 +104,16 @@ export function Sidebar({ categories, className }: SidebarProps) {
               ) : (
                 <ChevronRight className="h-4 w-4 flex-shrink-0" />
               )}
-              <IconComponent className="h-4 w-4 flex-shrink-0" />
-              <span className="flex-1">{category.name}</span>
+              {/* <IconComponent className="h-4 w-4 flex-shrink-0" /> */}
+              <span className="flex-1 text-sm">{category.name}</span>
             </button>
           ) : (
             <Link
               href={`/${category.slug}`}
               className="flex items-center flex-1 gap-2"
             >
-              <IconComponent className="h-4 w-4 flex-shrink-0" />
-              <span className="flex-1">{category.name}</span>
+              {/* <IconComponent className="h-4 w-4 flex-shrink-0" /> */}
+              <span className="flex-1 text-sm px-3">{category.name}</span>
             </Link>
           )}
         </div>
@@ -166,21 +167,27 @@ export function Sidebar({ categories, className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'w-64 border-r bg-background flex flex-col',
+        'w-56 bg-background flex flex-col',
         className
       )}
     >
       {/* 상단: LAYERARY 제목 */}
-      <div className="px-6 py-4 border-b">
+      <div className="p-6">
         <Link href="/" className="flex items-center">
-          <h1 className="text-xl font-bold">LAYERARY</h1>
-          <span className="text-xs text-muted-foreground ml-2">(로고로 대체 예정)</span>
+          <Image
+            src="/img/site_logo.svg"
+            alt="Layerary logo"
+            width={160}
+            height={40}
+            className="h-[18px] w-auto"
+            priority
+          />
         </Link>
       </div>
 
       {/* 메뉴 영역 */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
+        <div className="p-4 pt-0">
           <nav className="space-y-4">
             <Link
               href="/"
@@ -192,7 +199,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
               )}
             >
               <Home className="h-4 w-4" />
-              <span>홈</span>
+              <span className='text-sm'>홈</span>
             </Link>
 
             {categoryOrder.map((type) => {
@@ -202,7 +209,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
               if (type === CategoryType.ETC) {
                 return (
                   <div key={type} className="space-y-1">
-                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {getCategoryLabel(type)}
                     </div>
                     <Link
@@ -211,7 +218,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
                     >
-                      <span className="flex-1">eDM</span>
+                      <span className="flex-1 text-sm px-3">eDM</span>
                     </Link>
                   </div>
                 )
@@ -223,7 +230,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                 
                 return (
                   <div key={type} className="space-y-1">
-                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {getCategoryLabel(type)}
                     </div>
                     <Link
@@ -235,8 +242,8 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
-                      <span className="flex-1">대시보드</span>
+                      <LayoutDashboard className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <span className="flex-1 text-sm">대시보드</span>
                     </Link>
                     <Link
                       href="/admin/users"
@@ -247,8 +254,8 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <Users className="h-4 w-4 flex-shrink-0" />
-                      <span className="flex-1">사용자 관리</span>
+                      <Users className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <span className="flex-1 text-sm">사용자 관리</span>
                     </Link>
                     <Link
                       href="/admin/notices"
@@ -259,8 +266,8 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <Megaphone className="h-4 w-4 flex-shrink-0" />
-                      <span className="flex-1">공지사항 관리</span>
+                      <Megaphone className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <span className="flex-1 text-sm">공지사항 관리</span>
                     </Link>
                   </div>
                 )
@@ -269,9 +276,10 @@ export function Sidebar({ categories, className }: SidebarProps) {
               // 일반 카테고리 (WORK, SOURCE, TEMPLATE, BROCHURE)
               if (cats.length === 0) return null
 
+              // 카테고리 텍스트 랜더링 
               return (
                 <div key={type} className="space-y-1">
-                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     {getCategoryLabel(type)}
                   </div>
                   {cats.map((category) => renderCategory(category))}
@@ -283,7 +291,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
       </div>
 
       {/* 하단: 사용자 정보 또는 로그인 버튼 */}
-      <div className="border-t p-4 bg-muted/30">
+      <div className="p-4">
         {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

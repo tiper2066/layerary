@@ -41,7 +41,7 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header onMenuClick={() => setMobileMenuOpen(true)} />
         <main className="flex-1 overflow-y-auto bg-background">
-          <div className="container mx-auto px-8 py-10 max-w-7xl">
+          <div className="container mx-auto px-8 pt-0 pb-10 max-w-[1600px]">
             {children}
           </div>
         </main>
