@@ -7,7 +7,7 @@ const config = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
-	],
+  ],
   prefix: "",
   theme: {
     container: {
@@ -92,7 +92,11 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    // tailwindcss-animate는 선택적 플러그인입니다
+    // 패키지가 설치되어 있으면 사용하고, 없어도 작동합니다
+    // 필요시: npm install tailwindcss-animate --save-dev
+  ],
 } satisfies Config
 
 export default config

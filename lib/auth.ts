@@ -57,6 +57,7 @@ export const authOptions: NextAuthConfig = {
           email: user.email,
           name: user.name,
           role: user.role,
+          image: user.avatar,
         }
       }
     })
@@ -71,12 +72,13 @@ export const authOptions: NextAuthConfig = {
         try {
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email },
+            select: { id: true, role: true, name: true, avatar: true },
           })
 
           if (!existingUser) {
             // 새 사용자 생성 (기본 역할: MEMBER)
             // Google 로그인 사용자는 비밀번호가 없음
-            await prisma.user.create({
+            const newUser = await prisma.user.create({
               data: {
                 email: user.email,
                 name: user.name || (profile as any)?.name || user.email.split('@')[0],
@@ -85,15 +87,17 @@ export const authOptions: NextAuthConfig = {
                 avatar: user.image || null,
               },
             })
+            // user 객체에 ID와 role 추가 (jwt 콜백에서 사용)
+            user.id = newUser.id
+            ;(user as any).role = newUser.role
           } else {
-            // 기존 사용자 업데이트 (이름, 아바타)
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: {
-                name: user.name || existingUser.name,
-                avatar: user.image || existingUser.avatar,
-              },
-            })
+            // 기존 사용자가 있으면 데이터베이스의 정보를 유지 (덮어쓰지 않음)
+            // 사용자가 프로필을 수정한 경우 그 정보를 보존하기 위함
+            // user 객체에 데이터베이스의 정보를 설정 (jwt 콜백에서 사용)
+            user.id = existingUser.id
+            ;(user as any).role = existingUser.role
+            user.name = existingUser.name || user.name
+            user.image = existingUser.avatar || user.image
           }
         } catch (error) {
           console.error('Error creating/updating Google user:', error)
@@ -103,29 +107,31 @@ export const authOptions: NextAuthConfig = {
       return true
     },
     async jwt({ token, user, account }) {
-      // Google 로그인 시 데이터베이스에서 사용자 정보 가져오기
-      if (account?.provider === 'google' && user?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { id: true, role: true },
-        })
-        if (dbUser) {
-          token.id = dbUser.id
-          token.role = dbUser.role
-          token.email = user.email
-        }
-      } else if (user) {
-        // Credentials 로그인
+      // Google 로그인 시 - signIn 콜백에서 user.id와 role을 설정했으므로 사용
+      if (account?.provider === 'google' && user) {
         token.id = user.id
         token.role = (user as any).role
         token.email = user.email
+        token.name = user.name || null
+        token.image = user.image || null
+      } else if (user) {
+        // Credentials 로그인 - authorize에서 반환된 정보 사용
+        token.id = user.id
+        token.role = (user as any).role
+        token.email = user.email
+        token.name = (user as any).name
+        token.image = (user as any).image
       }
+      // 세션 갱신 시에는 토큰에 이미 저장된 정보를 사용
+      // 최신 정보가 필요하면 API 라우트에서 처리
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as UserRole
+        session.user.name = token.name as string | null
+        session.user.image = token.image as string | null
       }
       return session
     },

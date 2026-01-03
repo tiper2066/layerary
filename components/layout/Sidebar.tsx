@@ -1,23 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image';
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, User, LogIn, LayoutDashboard, Users, Megaphone, LogOut } from 'lucide-react'
+import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, LogIn, LayoutDashboard, Users, Megaphone, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CategoryType } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface Category {
   id: string
@@ -37,9 +30,41 @@ export function Sidebar({ categories, className }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
+  const [userName, setUserName] = useState<string | null>(null)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   )
+
+  // 최신 사용자 정보 가져오기
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (session?.user?.id) {
+        try {
+          const response = await fetch('/api/profile/me')
+          if (response.ok) {
+            const data = await response.json()
+            setUserName(data.user.name)
+            setUserAvatar(data.user.avatar)
+          } else {
+            // API 실패 시 세션 정보 사용
+            setUserName(session.user.name || null)
+            setUserAvatar(session.user.image || null)
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error)
+          // 에러 시 세션 정보 사용
+          setUserName(session.user.name || null)
+          setUserAvatar(session.user.image || null)
+        }
+      }
+    }
+
+    fetchUserInfo()
+    
+    // 주기적인 세션 업데이트 제거
+    // 프로필 업데이트는 프로필 페이지에서 저장 시 router.refresh()로 처리
+  }, [session?.user?.id, pathname]) // pathname 변경 시에도 업데이트 (프로필 페이지 이동 시)
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories)
@@ -293,67 +318,45 @@ export function Sidebar({ categories, className }: SidebarProps) {
       {/* 하단: 사용자 정보 또는 로그인 버튼 */}
       <div className="p-4">
         {session ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-3 hover:bg-accent rounded-md p-2 -m-2 transition-colors">
-                <Avatar className="h-10 w-10 flex-shrink-0">
-                  <AvatarImage src={undefined} alt={session.user.name || ''} />
-                  <AvatarFallback className="text-xs">
-                    {getInitials(session.user.name, session.user.email)}
+          <TooltipProvider>
+            <div className="flex items-center gap-2">
+              {/* 좌측: 사용자 아바타와 이름 */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 transition-colors flex-1 min-w-0">
+                <Avatar className="h-6 w-6 flex-shrink-0">
+                  <AvatarImage src={userAvatar || session.user.image || undefined} alt={userName || session.user.name || ''} />
+                  <AvatarFallback className="text-xs bg-white">
+                    {getInitials(userName || session.user.name, session.user.email)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-medium truncate">
-                    {session.user.name || '사용자'}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {session.user.email}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {session.user.role === 'ADMIN' ? '관리자' : '회원'}
-                  </p>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" side="top">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {session.user.name || '사용자'}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {session.user.email}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground mt-1">
-                    {session.user.role === 'ADMIN' ? '관리자' : '회원'}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  프로필 설정
-                </Link>
-              </DropdownMenuItem>
-              {session.user.role === 'ADMIN' && (
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/dashboard" className="flex items-center">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    관리자 대시보드
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-red-600 focus:text-red-600"
-                onClick={() => signOut({ callbackUrl: '/' })}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                로그아웃
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium truncate cursor-default">
+                      {userName || session.user.name || '사용자'}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{userName || session.user.name || '사용자'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            
+            {/* 중간: 프로필 설정 버튼 */}
+            <Link
+              href="/profile"
+              className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
+            >
+              <Settings className="h-4 w-4 text-muted-foreground" />
+            </Link>
+            
+            {/* 우측: 로그아웃 버튼 */}
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
+            >
+              <LogOut className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+          </TooltipProvider>
         ) : (
           <Button
             onClick={() => router.push('/login')}
