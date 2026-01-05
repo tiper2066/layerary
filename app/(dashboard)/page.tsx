@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { prisma } from '@/lib/prisma'
 import { CategoryCard } from '@/components/CategoryCard'
 import { ThemeLogo } from '@/components/ThemeLogo'
+import { NoticesSection } from '@/components/NoticesSection'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,12 +32,9 @@ export default async function HomePage() {
     },
   })
 
-  // 공지사항 (더미 데이터 대신 실제 데이터)
+  // 공지사항 (최근 게시된 3개)
   const notices = await prisma.notice.findMany({
-    take: 5,
-    where: {
-      isImportant: true,
-    },
+    take: 3,
     orderBy: {
       createdAt: 'desc',
     },
@@ -161,49 +159,17 @@ export default async function HomePage() {
         </section>
 
         {/* 공지사항 */}
-        <section>
-          <Card className="py-0 pb-3 gap-3">
-              <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
-                <h3 className="font-semibold">공지 사항</h3>
-              </div>
-            <CardContent className="p-6">
-              {notices.length > 0 ? (
-                <div className="space-y-4">
-                  {notices.map((notice) => (
-                    <Link
-                      key={notice.id}
-                      href={`/notices/${notice.id}`}
-                      className="block p-4 rounded-lg hover:bg-accent transition-colors border-b last:border-b-0"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-medium text-base">{notice.title}</h3>
-                            {notice.isImportant && (
-                              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                중요
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {notice.author.name}
-                          </p>
-                        </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(notice.createdAt).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  등록된 공지사항이 없습니다.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+        <NoticesSection 
+          notices={notices.map(notice => ({
+            id: notice.id,
+            title: notice.title,
+            isImportant: notice.isImportant,
+            createdAt: notice.createdAt.toISOString(),
+            author: {
+              name: notice.author.name,
+            },
+          }))} 
+        />
       </div>
     </div>
   )

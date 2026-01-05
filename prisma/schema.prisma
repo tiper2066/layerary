@@ -125,6 +125,7 @@ model Notice {
   content     String    // Markdown 지원
   isImportant Boolean   @default(false)
   viewCount   Int       @default(0)
+  attachments Json?     // 첨부파일 배열 [{url: string, name: string}]
   authorId    String
   author      User      @relation(fields: [authorId], references: [id])
   createdAt   DateTime  @default(now())

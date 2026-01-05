@@ -279,7 +279,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       )}
                     >
                       <Users className="h-4 w-4 flex-shrink-0 ml-3" />
-                      <span className="flex-1 text-sm">사용자 관리</span>
+                      <span className="flex-1 text-sm">회원 관리</span>
                     </Link>
                     <Link
                       href="/admin/notices"
