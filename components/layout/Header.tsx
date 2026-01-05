@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Menu } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Menu, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -14,6 +16,12 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,6 +29,13 @@ export function Header({ onMenuClick }: HeaderProps) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
     }
   }
+
+  const toggleTheme = () => {
+    const currentTheme = resolvedTheme || theme
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark')
+  }
+
+  const currentTheme = mounted ? (resolvedTheme || theme) : 'light'
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,6 +67,29 @@ export function Header({ onMenuClick }: HeaderProps) {
               />
             </div>
           </form>
+
+          {/* 테마 토글 버튼 */}
+          {mounted && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  aria-label="테마 변경"
+                >
+                  {currentTheme === 'dark' ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{currentTheme === 'dark' ? '라이트 모드로 변경' : '다크 모드로 변경'}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {/* 모바일 검색 버튼 */}
           <Button

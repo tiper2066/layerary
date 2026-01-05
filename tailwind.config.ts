@@ -70,6 +70,12 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Penta 커스텀 색상 추가 (RGB 변수 사용)
+        "penta-indigo": "rgb(var(--penta-indigo-rgb))",
+        "penta-blue": "rgb(var(--penta-blue-rgb))",
+        "penta-sky": "rgb(var(--penta-sky-rgb))",
+        "penta-green": "rgb(var(--penta-green-rgb))",
+        "penta-yellow": "rgb(var(--penta-yellow-rgb))",     
       },
       borderRadius: {
         lg: "var(--radius)",

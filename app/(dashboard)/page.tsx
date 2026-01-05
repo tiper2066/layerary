@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { prisma } from '@/lib/prisma'
 import { CategoryCard } from '@/components/CategoryCard'
-import Image from 'next/image';
+import { ThemeLogo } from '@/components/ThemeLogo'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,33 +63,33 @@ export default async function HomePage() {
   const categoryCards = [
     {
       title: 'WORK',
-      description: '기 제작된 디자인 산출물',
-      iconName: 'Briefcase',
-      color: 'bg-blue-500',
+      description: '디자인 산출물 목록',
+      iconName: 'Wallpaper',
+      color: 'bg-penta-indigo/5 text-penta-indigo',
       href: getFirstCategorySlug(workCategories),
       count: workCategories.length,
     },
     {
       title: 'SOURCE',
-      description: 'CI/BI, ICON, 캐릭터 등',
-      iconName: 'Palette',
-      color: 'bg-purple-500',
+      description: 'CI/BI, ICON 등 벡터 편집',
+      iconName: 'Image',
+      color: 'bg-penta-green/5 text-penta-green',
       href: getFirstCategorySlug(sourceCategories),
       count: sourceCategories.length,
     },
     {
       title: 'TEMPLATE',
-      description: 'PPT, 카드, 바탕화면 등',
+      description: 'PPT, 카드, 바탕화면 등 다운로드',
       iconName: 'FileText',
-      color: 'bg-green-500',
+      color: 'bg-penta-yellow/10 text-penta-yellow',
       href: getFirstCategorySlug(templateCategories),
       count: templateCategories.length,
     },
     {
       title: 'BROCHURE',
-      description: '제품별 브로셔',
+      description: '회사소개서 및 제품 브로셔 다운로드',
       iconName: 'BookOpen',
-      color: 'bg-orange-500',
+      color: 'bg-penta-blue/5 text-penta-blue',
       href: getFirstCategorySlug(brochureCategories),
       count: brochureCategories.length,
     },
@@ -102,9 +102,7 @@ export default async function HomePage() {
         {/* <h2 className="text-3xl font-bold mb-8">카테고리</h2> */}
         <h1 className="tracking-tight flex justify-start items-end w-auto gap-2 pb-4">
           {/* {session?.user?.name ? `${session.user.name} 님 환영합니다.` : "Penta Design Assets Management System"} */}
-          <Image
-            src="/img/site_logo.svg"
-            alt="Layerary logo"
+          <ThemeLogo
             width={160}
             height={40}
             className="h-[20px] w-auto"
@@ -126,8 +124,10 @@ export default async function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
         {/* 최근 게시물 */}
         <section>
-          <h2 className="text-2xl font-bold mb-6">최근 게시물</h2>
-          <Card>
+          <Card className="py-0 pb-3 gap-3">
+            <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
+              <h3 className="font-semibold">최근 게시물</h3>
+            </div>
             <CardContent className="p-6">
               {recentPosts.length > 0 ? (
                 <div className="space-y-4">
@@ -162,8 +162,10 @@ export default async function HomePage() {
 
         {/* 공지사항 */}
         <section>
-          <h2 className="text-2xl font-bold mb-6">공지사항</h2>
-          <Card>
+          <Card className="py-0 pb-3 gap-3">
+              <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
+                <h3 className="font-semibold">공지 사항</h3>
+              </div>
             <CardContent className="p-6">
               {notices.length > 0 ? (
                 <div className="space-y-4">

@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image';
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, LogIn, LayoutDashboard, Users, Megaphone, LogOut } from 'lucide-react'
+import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, LogIn, Gauge, Users, Megaphone, LogOut, SquareArrowOutUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CategoryType } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { ThemeLogo } from '@/components/ThemeLogo'
 
 interface Category {
   id: string
@@ -199,9 +199,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
       {/* 상단: LAYERARY 제목 */}
       <div className="p-6">
         <Link href="/" className="flex items-center">
-          <Image
-            src="/img/site_logo.svg"
-            alt="Layerary logo"
+          <ThemeLogo
             width={160}
             height={40}
             className="h-[18px] w-auto"
@@ -241,9 +239,10 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       href="https://img-edm-code-generator.vercel.app/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                      className="group flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
                     >
-                      <span className="flex-1 text-sm px-3">eDM</span>
+                      <span className="flex-1 text-sm px-3">eDM</span> 
+                      <SquareArrowOutUpRight className="h-4 w-4 flex-shrink-0 ml-3 opacity-0 transition-opacity group-hover:opacity-100" />
                     </Link>
                   </div>
                 )
@@ -267,7 +266,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <LayoutDashboard className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <Gauge className="h-4 w-4 flex-shrink-0 ml-3" />
                       <span className="flex-1 text-sm">대시보드</span>
                     </Link>
                     <Link
@@ -318,45 +317,57 @@ export function Sidebar({ categories, className }: SidebarProps) {
       {/* 하단: 사용자 정보 또는 로그인 버튼 */}
       <div className="p-4">
         {session ? (
-          <TooltipProvider>
-            <div className="flex items-center gap-2">
-              {/* 좌측: 사용자 아바타와 이름 */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 transition-colors flex-1 min-w-0">
-                <Avatar className="h-6 w-6 flex-shrink-0">
-                  <AvatarImage src={userAvatar || session.user.image || undefined} alt={userName || session.user.name || ''} />
-                  <AvatarFallback className="text-xs bg-white">
-                    {getInitials(userName || session.user.name, session.user.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-sm font-medium truncate cursor-default">
-                      {userName || session.user.name || '사용자'}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{userName || session.user.name || '사용자'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            
-            {/* 중간: 프로필 설정 버튼 */}
-            <Link
-              href="/profile"
-              className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
-            >
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </Link>
-            
-            {/* 우측: 로그아웃 버튼 */}
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
-            >
-              <LogOut className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </div>
-          </TooltipProvider>
+          <div className="flex items-center gap-2">
+            {/* 좌측: 사용자 아바타와 이름 */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 transition-colors flex-1 min-w-0">
+              <Avatar className="h-6 w-6 flex-shrink-0">
+                <AvatarImage src={userAvatar || session.user.image || undefined} alt={userName || session.user.name || ''} />
+                <AvatarFallback className="text-xs bg-white">
+                  {getInitials(userName || session.user.name, session.user.email)}
+                </AvatarFallback>
+              </Avatar>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-sm font-medium truncate cursor-default">
+                    {userName || session.user.name || '사용자'}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{userName || session.user.name || '사용자'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          
+          {/* 중간: 프로필 설정 버튼 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/profile"
+                className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
+              >
+                <Settings className="h-4 w-4 text-muted-foreground" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>프로필 설정</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          {/* 우측: 로그아웃 버튼 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
+              >
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>로그아웃</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         ) : (
           <Button
             onClick={() => router.push('/login')}

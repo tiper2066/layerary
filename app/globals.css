@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 
-@theme inline {
+/* @theme inline { */
   /* ----- 커스텀 폰트 ----- */
+  /*
   --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  */
   /* ----- 커스텀 색상 ----- */
+  /*
   --color-penta-indigo: var(--penta-indigo);
   --color-penta-blue: var(--penta-blue);
   --color-penta-sky: var(--penta-sky);
   --color-penta-green: var(--penta-green);
   --color-penta-yellow: var(--penta-yellow);  
-}
+  */
+/* } */
 
 @layer base {
   :root {
@@ -40,10 +44,15 @@
 
     /* 커스텀 색상 변수 추가  */
     --penta-indigo: oklch(43.339% 0.23688 271.897);
+    --penta-indigo-rgb: 50 42 206;
     --penta-blue: oklch(57.717% 0.20517 257.721);
+    --penta-blue-rgb: 12 115 239;
     --penta-sky: oklch(70.008% 0.15988 244.857);
+    --penta-sky-rgb: 45 166 250;
     --penta-green: oklch(80.778% 0.1078 194.531);
+    --penta-green-rgb: 93 214 213;
     --penta-yellow: oklch(86.432% 0.17554 90.632);    
+    --penta-yellow-rgb: 254 204 10;
   }
 
   .dark {
