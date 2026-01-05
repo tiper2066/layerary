@@ -678,3 +678,68 @@ POST   /api/upload/thumbnail   # 썸네일 생성
 
 이 계획서를 기준으로 단계별 개발을 진행하시면 됩니다. 특정 단계나 기능에 대해 더 자세한 설명이 필요하시면 알려주세요.
 
+---
+
+
+개선된 파일 구조 (확장 가능)
+
+1. 데이터베이스 스키마 확장
+
+model Category {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  type        CategoryType
+  pageType    String?     // "gallery" | "editor" | "list" | "custom" - 페이지 타입
+  config      Json?       // 카테고리별 설정 (UI 옵션, 기능 플래그 등)
+  parentId    String?
+  order       Int         @default(0)
+  description String?
+  // ... 기존 필드들
+}
+
+pageType으로 카테고리별 페이지 타입을 지정:
+gallery: 이미지 갤러리 (Penta Design)
+editor: 편집 가능한 페이지 (바탕화면)
+list: 단순 목록
+custom: 커스텀 레이아웃
+
+2. 개선된 파일 구조
+
+app/
+├── (dashboard)/
+│   ├── [slug]/
+│   │   ├── page.tsx                    # 동적 목록 페이지 (카테고리 타입에 따라 분기)
+│   │   ├── [id]/
+│   │   │   ├── page.tsx                # 동적 상세 페이지 (카테고리 타입에 따라 분기)
+│   │   │   └── edit/
+│   │   │       └── page.tsx            # 편집 페이지 (특정 카테고리용)
+│   │   └── layout.tsx                  # 카테고리별 레이아웃 (선택적)
+│   │
+│   └── _category-pages/                # 카테고리별 페이지 컴포넌트
+│       ├── gallery/                    # 갤러리 타입 (WORK - Penta Design)
+│       │   ├── GalleryListPage.tsx
+│       │   └── GalleryDetailPage.tsx
+│       ├── editor/                     # 편집 타입 (TEMPLATE - 바탕화면)
+│       │   ├── EditorListPage.tsx
+│       │   ├── EditorDetailPage.tsx
+│       │   └── EditorEditPage.tsx
+│       └── list/                        # 기본 목록 타입
+│           ├── ListPage.tsx
+│           └── DetailPage.tsx
+
+components/
+├── category-pages/                     # 카테고리별 페이지 컴포넌트
+│   ├── GalleryCategory/                # 갤러리 타입 컴포넌트
+│   │   ├── GalleryList.tsx
+│   │   ├── GalleryCard.tsx
+│   │   ├── GalleryDetail.tsx
+│   │   └── ImageGallery.tsx
+│   ├── EditorCategory/                 # 편집 타입 컴포넌트
+│   │   ├── EditorList.tsx
+│   │   ├── EditorCard.tsx
+│   │   ├── EditorDetail.tsx
+│   │   └── ImageEditor.tsx            # 이미지 편집 기능
+│   └── BaseCategory/                   # 기본 타입 컴포넌트
+│       ├── BaseList.tsx
+│       └── BaseDetail.tsx
