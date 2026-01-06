@@ -120,7 +120,7 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   }
 
   return (
-    <div className="container mx-auto px-8 py-6 max-w-[1600px]">
+    <div className="w-full px-0 py-0">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{category.name}</h1>
         {isAdmin && (

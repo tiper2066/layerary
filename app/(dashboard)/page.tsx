@@ -16,9 +16,9 @@ export default async function HomePage() {
   const templateCategories = await getCategoriesByType(CategoryType.TEMPLATE)
   const brochureCategories = await getCategoriesByType(CategoryType.BROCHURE)
 
-  // 최근 게시물 (더미 데이터 대신 실제 데이터)
+  // 최근 게시물 (최근 게시된 3개)
   const recentPosts = await prisma.post.findMany({
-    take: 6,
+    take: 3,
     orderBy: {
       createdAt: 'desc',
     },
@@ -93,8 +93,40 @@ export default async function HomePage() {
     },
   ]
 
+  // 카테고리 타입에 따른 배경색 매핑
+  const getCategoryTypeBadgeColor = (type: CategoryType) => {
+    switch (type) {
+      case CategoryType.WORK:
+        return 'bg-penta-indigo/5 text-penta-indigo'
+      case CategoryType.SOURCE:
+        return 'bg-penta-green/5 text-penta-green'
+      case CategoryType.TEMPLATE:
+        return 'bg-penta-yellow/10 text-penta-yellow'
+      case CategoryType.BROCHURE:
+        return 'bg-penta-blue/5 text-penta-blue'
+      default:
+        return 'bg-muted text-muted-foreground'
+    }
+  }
+
+  // 카테고리 타입에 따른 라벨
+  const getCategoryTypeLabel = (type: CategoryType) => {
+    switch (type) {
+      case CategoryType.WORK:
+        return 'WORK'
+      case CategoryType.SOURCE:
+        return 'SOURCE'
+      case CategoryType.TEMPLATE:
+        return 'TEMPLATE'
+      case CategoryType.BROCHURE:
+        return 'BROCHURE'
+      default:
+        return type
+    }
+  }
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-6">
       {/* 카테고리 카드 */}
       <section>
         {/* <h2 className="text-3xl font-bold mb-8">카테고리</h2> */}
@@ -133,14 +165,16 @@ export default async function HomePage() {
                     <Link
                       key={post.id}
                       href={`/${post.category.slug}/${post.id}`}
-                      className="block p-4 rounded-lg hover:bg-accent transition-colors border-b last:border-b-0"
+                      className="block p-4 rounded-lg hover:bg-accent transition-colors last:border-b-0"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-base mb-2">{post.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {post.category.name} · {post.author.name}
-                          </p>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                          {post.category.type && post.category.type !== CategoryType.ADMIN && post.category.type !== CategoryType.ETC && (
+                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryTypeBadgeColor(post.category.type)}`}>
+                              {getCategoryTypeLabel(post.category.type)}
+                            </span>
+                          )}
+                          <h3 className="font-medium text-base">{post.title}</h3>
                         </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(post.createdAt).toLocaleDateString('ko-KR')}

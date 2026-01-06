@@ -162,7 +162,7 @@ export async function uploadImageWithThumbnail(
 }
 
 /**
- * 파일 삭제
+ * 파일 삭제 (fileId 사용)
  */
 export async function deleteFile(fileId: string): Promise<void> {
   await authorize()
@@ -170,6 +170,61 @@ export async function deleteFile(fileId: string): Promise<void> {
   await b2.deleteFileVersion({
     fileId,
     fileName: '', // B2 API 요구사항
+  })
+}
+
+/**
+ * 파일 URL로 파일 삭제
+ */
+export async function deleteFileByUrl(fileUrl: string): Promise<void> {
+  await authorize()
+
+  const bucketName = process.env.B2_BUCKET_NAME!
+  if (!bucketName) {
+    throw new Error('B2_BUCKET_NAME이 설정되지 않았습니다.')
+  }
+
+  // B2 파일 URL에서 파일 경로 추출
+  let filePath = ''
+  if (fileUrl.includes('/file/')) {
+    // B2 네이티브 URL 형식
+    const match = fileUrl.match(/\/file\/[^\/]+\/(.+)$/)
+    if (match) {
+      filePath = match[1]
+    }
+  } else {
+    // S3 호환 URL 형식
+    const urlObj = new URL(fileUrl)
+    const pathParts = urlObj.pathname.split('/').filter(Boolean)
+    if (pathParts.length > 1) {
+      // 첫 번째는 버킷 이름, 나머지는 파일 경로
+      filePath = pathParts.slice(1).join('/')
+    }
+  }
+
+  if (!filePath) {
+    throw new Error('파일 경로를 추출할 수 없습니다.')
+  }
+
+  // 파일명으로 파일 버전 목록 조회하여 fileId 찾기
+  const fileVersions = await b2.listFileVersions({
+    bucketId: process.env.B2_BUCKET_ID!,
+    startFileName: filePath,
+    maxFileCount: 100, // 충분한 수의 파일 버전 조회
+  })
+
+  // 정확히 일치하는 파일 찾기 (가장 최신 버전)
+  const file = fileVersions.data.files?.find((f: any) => f.fileName === filePath)
+  
+  if (!file) {
+    console.warn(`File not found in B2: ${filePath}`)
+    return // 파일이 없으면 무시하고 계속 진행
+  }
+
+  // fileId로 파일 삭제
+  await b2.deleteFileVersion({
+    fileId: file.fileId,
+    fileName: file.fileName,
   })
 }
 

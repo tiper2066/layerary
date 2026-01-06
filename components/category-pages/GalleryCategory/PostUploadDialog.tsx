@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -41,12 +41,24 @@ interface PostImage {
   order: number
 }
 
+interface Post {
+  id: string
+  title: string
+  subtitle?: string | null
+  concept?: string | null
+  tool?: string | null
+  images?: PostImage[] | null | any
+  tags?: Array<{ tag: { id: string; name: string; slug: string } }>
+}
+
 interface PostUploadDialogProps {
   open: boolean
   onClose: () => void
   categorySlug: string
   categoryId: string
   onSuccess: () => void
+  postId?: string // 수정 모드일 때 게시물 ID
+  post?: Post // 수정 모드일 때 게시물 데이터
 }
 
 export function PostUploadDialog({
@@ -55,10 +67,16 @@ export function PostUploadDialog({
   categorySlug,
   categoryId,
   onSuccess,
+  postId,
+  post,
 }: PostUploadDialogProps) {
+  const isEditMode = !!postId && !!post
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [existingImages, setExistingImages] = useState<PostImage[]>([])
+  const [originalImages, setOriginalImages] = useState<PostImage[]>([]) // 원본 이미지 보관
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const isSubmittingRef = useRef(false) // 중복 제출 방지
 
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
@@ -71,6 +89,59 @@ export function PostUploadDialog({
     },
   })
 
+  // 다이얼로그가 열릴 때 플래그 리셋
+  useEffect(() => {
+    if (open) {
+      isSubmittingRef.current = false
+    }
+  }, [open])
+
+  // 수정 모드일 때 기존 데이터로 폼 초기화
+  useEffect(() => {
+    if (isEditMode && post) {
+      // images 배열 추출
+      let images: PostImage[] = []
+      if (post.images) {
+        if (Array.isArray(post.images)) {
+          images = post.images as PostImage[]
+        } else if (typeof post.images === 'string') {
+          try {
+            images = JSON.parse(post.images)
+          } catch {
+            images = []
+          }
+        } else {
+          images = Array.isArray(post.images) ? post.images : []
+        }
+      }
+      setExistingImages(images)
+      setOriginalImages(images) // 원본 이미지도 저장
+
+      // 태그를 쉼표로 구분된 문자열로 변환
+      const tagsString = post.tags
+        ? post.tags.map(({ tag }) => tag.name).join(', ')
+        : ''
+
+      form.reset({
+        title: post.title || '',
+        subtitle: post.subtitle || '',
+        concept: post.concept || '',
+        tool: post.tool || '',
+        tags: tagsString,
+      })
+    } else {
+      form.reset({
+        title: '',
+        subtitle: '',
+        concept: '',
+        tool: '',
+        tags: '',
+      })
+      setExistingImages([])
+      setSelectedFiles([])
+    }
+  }, [isEditMode, post, form])
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFiles(Array.from(e.target.files))
@@ -81,35 +152,61 @@ export function PostUploadDialog({
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const handleRemoveExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const onSubmit = async (values: PostFormValues) => {
-    if (selectedFiles.length === 0) {
+    // 중복 제출 방지
+    if (isSubmittingRef.current) {
+      console.warn('이미 제출 중입니다.')
+      return
+    }
+
+    // 수정 모드가 아니고 새 파일이 없으면 에러
+    if (!isEditMode && selectedFiles.length === 0) {
       alert('최소 1개의 이미지를 선택해주세요.')
       return
     }
 
+    // 수정 모드인데 기존 이미지도 없고 새 파일도 없으면 에러
+    if (isEditMode && existingImages.length === 0 && selectedFiles.length === 0) {
+      alert('최소 1개의 이미지가 필요합니다.')
+      return
+    }
+
     try {
+      isSubmittingRef.current = true
       setSubmitting(true)
       setUploading(true)
 
-      // 선택된 파일들을 한 번에 업로드
-      const formData = new FormData()
-      selectedFiles.forEach((file) => {
-        formData.append('files', file)
-      })
-      formData.append('categorySlug', categorySlug)
+      let finalImages: PostImage[] = []
 
-      const uploadResponse = await fetch('/api/posts/upload', {
-        method: 'POST',
-        body: formData,
-      })
+      // 새 파일이 있으면 업로드
+      if (selectedFiles.length > 0) {
+        const formData = new FormData()
+        selectedFiles.forEach((file) => {
+          formData.append('files', file)
+        })
+        formData.append('categorySlug', categorySlug)
 
-      const uploadResponseData = await uploadResponse.json()
+        const uploadResponse = await fetch('/api/posts/upload', {
+          method: 'POST',
+          body: formData,
+        })
 
-      if (!uploadResponse.ok) {
-        throw new Error(uploadResponseData.error || '파일 업로드에 실패했습니다.')
+        const uploadResponseData = await uploadResponse.json()
+
+        if (!uploadResponse.ok) {
+          throw new Error(uploadResponseData.error || '파일 업로드에 실패했습니다.')
+        }
+
+        finalImages = uploadResponseData.images
+      } else if (isEditMode) {
+        // 수정 모드이고 새 파일이 없으면 기존 이미지 사용
+        finalImages = existingImages
       }
 
-      const uploadedImages = uploadResponseData.images
       setUploading(false)
 
       // 태그 문자열을 배열로 변환
@@ -120,44 +217,72 @@ export function PostUploadDialog({
             .filter((tag) => tag.length > 0)
         : []
 
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: values.title,
-          subtitle: values.subtitle || null,
-          categoryId,
-          images: uploadedImages,
-          concept: values.concept || null,
-          tool: values.tool || null,
-          tags,
-        }),
-      })
+      if (isEditMode) {
+        // 수정 모드: PUT 요청
+        const response = await fetch(`/api/posts/${postId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: values.title,
+            subtitle: values.subtitle || null,
+            images: finalImages,
+            concept: values.concept || null,
+            tool: values.tool || null,
+            tags,
+          }),
+        })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || '게시물 생성에 실패했습니다.')
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || '게시물 수정에 실패했습니다.')
+        }
+      } else {
+        // 생성 모드: POST 요청
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: values.title,
+            subtitle: values.subtitle || null,
+            categoryId,
+            images: finalImages,
+            concept: values.concept || null,
+            tool: values.tool || null,
+            tags,
+          }),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || '게시물 생성에 실패했습니다.')
+        }
       }
 
       // 성공 시 폼 초기화
       form.reset()
       setSelectedFiles([])
+      setExistingImages([])
       onSuccess()
       onClose()
     } catch (error: any) {
-      console.error('Error creating post:', error)
-      alert(error.message || '게시물 생성에 실패했습니다.')
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} post:`, error)
+      alert(error.message || `게시물 ${isEditMode ? '수정' : '생성'}에 실패했습니다.`)
     } finally {
       setSubmitting(false)
       setUploading(false)
+      isSubmittingRef.current = false // 제출 완료 후 플래그 리셋
     }
   }
 
   const handleClose = () => {
     form.reset()
     setSelectedFiles([])
+    setExistingImages(originalImages) // 원본 이미지로 복원
+    isSubmittingRef.current = false // 플래그 리셋
     onClose()
   }
 
@@ -165,9 +290,11 @@ export function PostUploadDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>게시물 추가</DialogTitle>
+          <DialogTitle>{isEditMode ? '게시물 수정' : '게시물 추가'}</DialogTitle>
           <DialogDescription>
-            새로운 게시물을 등록합니다. 이미지를 업로드하고 정보를 입력해주세요.
+            {isEditMode
+              ? '게시물 정보를 수정합니다. 이미지를 변경하거나 정보를 업데이트할 수 있습니다.'
+              : '새로운 게시물을 등록합니다. 이미지를 업로드하고 정보를 입력해주세요.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -251,7 +378,9 @@ export function PostUploadDialog({
 
             {/* 이미지 업로드 섹션 */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">이미지 *</label>
+              <label className="text-sm font-medium">
+                이미지 {!isEditMode && '*'}
+              </label>
               <Input
                 type="file"
                 multiple
@@ -260,9 +389,48 @@ export function PostUploadDialog({
                 disabled={uploading || submitting}
               />
 
+              {/* 기존 이미지 목록 (수정 모드) */}
+              {isEditMode && existingImages.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">기존 이미지:</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {existingImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className="relative aspect-square border rounded-md overflow-hidden bg-muted group"
+                      >
+                        <img
+                          src={image.url.startsWith('http') && image.url.includes('backblazeb2.com')
+                            ? `/api/posts/images?url=${encodeURIComponent(image.url)}`
+                            : image.url}
+                          alt={image.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleRemoveExistingImage(index)}
+                          disabled={uploading || submitting}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    이미지에 마우스를 올리면 삭제 버튼이 표시됩니다. 새 이미지를 선택하면 기존 이미지에 추가됩니다.
+                  </p>
+                </div>
+              )}
+
               {/* 선택된 파일 목록 */}
               {selectedFiles.length > 0 && (
                 <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    {isEditMode ? '새로 추가할 이미지:' : '선택된 이미지:'}
+                  </p>
                   {selectedFiles.map((file, index) => (
                     <div
                       key={index}

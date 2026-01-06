@@ -5,6 +5,17 @@ import { useRouter } from 'next/navigation'
 import { ImageGallery } from '@/components/category-pages/GalleryCategory/ImageGallery'
 import { PostInfo } from '@/components/category-pages/GalleryCategory/PostInfo'
 import { PostNavigation } from '@/components/category-pages/GalleryCategory/PostNavigation'
+import { PostUploadDialog } from '@/components/category-pages/GalleryCategory/PostUploadDialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
@@ -65,6 +76,9 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
   const [nextPost, setNextPost] = useState<NavigationPost | null>(null)
   const [allPosts, setAllPosts] = useState<NavigationPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // 게시물 상세 조회
   useEffect(() => {
@@ -107,6 +121,54 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
   const handleClose = () => {
     router.push(`/${category.slug}`)
+  }
+
+  const handleEdit = () => {
+    setEditDialogOpen(true)
+  }
+
+  const handleDelete = () => {
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true)
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || '게시물 삭제에 실패했습니다.')
+      }
+
+      // 삭제 성공 시 목록으로 이동
+      router.push(`/${category.slug}`)
+    } catch (error: any) {
+      console.error('Error deleting post:', error)
+      alert(error.message || '게시물 삭제에 실패했습니다.')
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+    }
+  }
+
+  const handleEditSuccess = () => {
+    // 게시물 정보 새로고침
+    const fetchPost = async () => {
+      try {
+        const postResponse = await fetch(`/api/posts/${postId}`)
+        if (postResponse.ok) {
+          const postData = await postResponse.json()
+          setPost(postData.post)
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error)
+      }
+    }
+    fetchPost()
+    setEditDialogOpen(false)
   }
 
   if (loading) {
@@ -172,7 +234,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
         {/* 우측: 상세 정보 */}
         <div className="w-[28rem] flex flex-col">
           <div className="flex-1 overflow-y-auto p-6">
-            <PostInfo post={post} />
+            <PostInfo post={post} onEdit={handleEdit} onDelete={handleDelete} />
           </div>
         </div>
 
@@ -183,6 +245,41 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
           onNavigate={handleNavigate}
         />
       </div>
+
+      {/* 수정 다이얼로그 */}
+      {post && (
+        <PostUploadDialog
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          categorySlug={category.slug}
+          categoryId={category.id}
+          postId={postId}
+          post={post}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>게시물 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              정말로 이 게시물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? '삭제 중...' : '삭제'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

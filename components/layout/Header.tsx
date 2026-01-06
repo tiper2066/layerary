@@ -39,9 +39,9 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-8 max-w-[1600px]">
+      <div className="flex h-16 items-center justify-between px-8 w-full">
         {/* 좌측: 메뉴 버튼 (모바일만 표시) */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 -ml-3">
           <Button
             variant="ghost"
             size="icon"
@@ -53,9 +53,9 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         {/* 우측: 검색 바 및 사용자 메뉴 */}
-        <div className="flex items-center gap-4 flex-1 justify-end">
+        <div className="flex items-center gap-1 flex-1 justify-end -mr-2">
           {/* 검색 바 */}
-          <form onSubmit={handleSearch} className="hidden md:flex max-w-md w-full">
+          <form onSubmit={handleSearch} className="hidden md:flex max-w-md w-1/4 min-w-[220px]">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -63,7 +63,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 placeholder="전체 리소스 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 rounded-full"
               />
             </div>
           </form>

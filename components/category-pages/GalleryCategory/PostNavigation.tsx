@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -128,12 +127,10 @@ export function PostNavigation({
               )}
             >
               {post.thumbnailUrl ? (
-                <Image
+                <img
                   src={getThumbnailSrc(post.thumbnailUrl) || '/placeholder.png'}
                   alt={post.title}
-                  fill
-                  className="object-cover"
-                  unoptimized={post.thumbnailUrl.startsWith('http')}
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">

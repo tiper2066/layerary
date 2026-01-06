@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { ZoomIn } from 'lucide-react'
 
@@ -80,13 +79,10 @@ export function ImageGallery({ images }: ImageGalleryProps) {
               )}
               onClick={() => setExpandedIndex(isExpanded ? null : index)}
             >
-              <Image
+              <img
                 src={getImageSrc(image.url)}
                 alt={image.name || `Image ${index + 1}`}
-                width={isExpanded ? 0 : 600}
-                height={0}
                 className="w-full h-auto object-contain"
-                unoptimized={image.url.startsWith('http')}
                 style={{ cursor: 'zoom-in' }}
               />
               {/* 호버 시 돋보기 아이콘 표시 */}
