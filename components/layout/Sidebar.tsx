@@ -110,13 +110,14 @@ export function Sidebar({ categories, className }: SidebarProps) {
     const IconComponent = getCategoryIcon(category.type)
 
     return (
+      // ********** 실제 사이드 메뉴 아이템 부분 
       <div key={category.id}>
         <div
           className={cn(
             'flex items-center gap-2 px-3 py-2.5 transition-colors', // 메뉴 활성화 상태 
             isActive
-              ? 'text-[var(--penta-indigo)]'
-              : 'hover:bg-accent hover:text-accent-foreground',
+              ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
+              : 'hover:bg-accent hover:text-accent-foreground rounded-md',
             level > 0 && 'ml-4'
           )}
         >
@@ -248,9 +249,9 @@ export function Sidebar({ categories, className }: SidebarProps) {
                     <Link
                       href="/admin/dashboard"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 transition-colors',
+                        'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/dashboard')
-                          ? 'text-[var(--penta-indigo)]'
+                          ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
@@ -260,9 +261,9 @@ export function Sidebar({ categories, className }: SidebarProps) {
                     <Link
                       href="/admin/users"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 transition-colors',
+                        'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/users')
-                          ? 'text-[var(--penta-indigo)]'
+                          ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
@@ -272,9 +273,9 @@ export function Sidebar({ categories, className }: SidebarProps) {
                     <Link
                       href="/admin/notices"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 transition-colors',
+                        'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/notices')
-                          ? 'text-[var(--penta-indigo)]'
+                          ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >

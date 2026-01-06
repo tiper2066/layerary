@@ -80,9 +80,9 @@ export default function DashboardPage() {
         {/* WORK */}
         <Card className='hover:shadow-md hover:border-penta-indigo transition-all duration-200 bg-penta-indigo/5'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">WORK</CardTitle>
-            <div className="bg-penta-indigo/5 p-2 rounded-full">
-              <Wallpaper className="h-4 w-4 text-penta-indigo" />
+            <CardTitle className="text-lg font-medium">WORK</CardTitle>
+            <div className="bg-penta-indigo/5 p-3 rounded-full">
+              <Wallpaper className="h-6 w-6 text-penta-indigo" />
             </div>
           </CardHeader>
           <CardContent>
@@ -93,9 +93,9 @@ export default function DashboardPage() {
         {/* SOURCE */}
         <Card className='hover:shadow-md hover:border-penta-green transition-all duration-200 bg-penta-green/5'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SOURCE</CardTitle>
-            <div className="bg-penta-green/5 p-2 rounded-full">
-              <Image className="h-4 w-4 text-penta-green" />
+            <CardTitle className="text-lg font-medium">SOURCE</CardTitle>
+            <div className="bg-penta-green/5 p-3 rounded-full">
+              <Image className="h-6 w-6 text-penta-green" />
             </div>
           </CardHeader>
           <CardContent>
@@ -106,9 +106,9 @@ export default function DashboardPage() {
         {/* TEMPLATE */}
         <Card className='hover:shadow-md hover:border-penta-yellow transition-all duration-200 bg-penta-yellow/10'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">TEMPLATE</CardTitle>
-            <div className="bg-penta-yellow/10 p-2 rounded-full">
-              <FileTextIcon className="h-4 w-4 text-penta-yellow" />
+            <CardTitle className="text-lg font-medium">TEMPLATE</CardTitle>
+            <div className="bg-penta-yellow/10 p-3 rounded-full">
+              <FileTextIcon className="h-6 w-6 text-penta-yellow" />
             </div>
           </CardHeader>
           <CardContent>
@@ -119,9 +119,9 @@ export default function DashboardPage() {
         {/* BROCHURE */}
         <Card className='hover:shadow-md hover:border-penta-blue transition-all duration-200 bg-penta-blue/5'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">BROCHURE</CardTitle>
-            <div className="bg-penta-blue/5 p-2 rounded-full">
-              <BookOpen className="h-4 w-4 text-penta-blue" />
+            <CardTitle className="text-lg font-medium">BROCHURE</CardTitle>
+            <div className="bg-penta-blue/5 p-3 rounded-full">
+              <BookOpen className="h-6 w-6 text-penta-blue" />
             </div>
           </CardHeader>
           <CardContent>
@@ -136,12 +136,12 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">전체 게시물</CardTitle>
-            <div className="bg-muted-foreground/5 p-2 rounded-full">
-              <HardDrive className="h-8 w-8 text-muted-foreground" />
+            <div className="bg-muted-foreground/5 p-4 rounded-full">
+              <HardDrive className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPosts.toLocaleString()}</div>
+            <div className="text-4xl font-bold">{stats.totalPosts.toLocaleString()}</div>
             <CardDescription className="mt-1">
               공지사항 제외
             </CardDescription>
@@ -152,12 +152,12 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">전체 이미지</CardTitle>
-            <div className="bg-muted-foreground/5 p-2 rounded-full">
-              <Images className="h-8 w-8 text-muted-foreground" />
+            <div className="bg-muted-foreground/5 p-4 rounded-full">
+              <Images className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalImages.toLocaleString()}</div>
+            <div className="text-4xl font-bold">{stats.totalImages.toLocaleString()}</div>
             <CardDescription className="mt-1">
               첨부된 이미지 총 개수
             </CardDescription>

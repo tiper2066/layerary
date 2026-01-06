@@ -144,10 +144,10 @@ export default function UsersPage() {
               <TableRow>
                 <TableHead>사용자</TableHead>
                 <TableHead>이메일</TableHead>
-                <TableHead>역할</TableHead>
-                <TableHead>게시물 수</TableHead>
-                <TableHead>공지사항 수</TableHead>
-                <TableHead>가입일</TableHead>
+                <TableHead className='text-center'>역할</TableHead>
+                <TableHead className='text-center'>게시물 수</TableHead>
+                <TableHead className='text-center'>공지사항 수</TableHead>
+                <TableHead className='text-center'>가입일</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -189,7 +189,7 @@ export default function UsersPage() {
                             handleRoleChange(user.id, value as UserRole)
                           }
                         >
-                          <SelectTrigger className="w-[120px]">
+                          <SelectTrigger className="w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -199,9 +199,9 @@ export default function UsersPage() {
                         </Select>
                       )}
                     </TableCell>
-                    <TableCell>{user._count.posts}</TableCell>
-                    <TableCell>{user._count.notices}</TableCell>
-                    <TableCell>{formatDate(user.createdAt)}</TableCell>
+                    <TableCell className='text-center'>{user._count.posts}</TableCell>
+                    <TableCell className='text-center'>{user._count.notices}</TableCell>
+                    <TableCell className='text-center'>{formatDate(user.createdAt)}</TableCell>
                   </TableRow>
                 ))
               )}
