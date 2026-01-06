@@ -63,6 +63,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
   const [post, setPost] = useState<Post | null>(null)
   const [prevPost, setPrevPost] = useState<NavigationPost | null>(null)
   const [nextPost, setNextPost] = useState<NavigationPost | null>(null)
+  const [allPosts, setAllPosts] = useState<NavigationPost[]>([])
   const [loading, setLoading] = useState(true)
 
   // 게시물 상세 조회
@@ -86,6 +87,9 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
           const navData = await navResponse.json()
           setPrevPost(navData.prevPost)
           setNextPost(navData.nextPost)
+          if (navData.allPosts) {
+            setAllPosts(navData.allPosts)
+          }
         }
       } catch (error) {
         console.error('Error fetching post:', error)
@@ -107,7 +111,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
   if (loading) {
     return (
-      <div className="fixed inset-0 top-16 left-56 bg-background flex items-center justify-center">
+      <div className="fixed inset-0 top-0 left-56 bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
@@ -115,7 +119,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
   if (!post) {
     return (
-      <div className="fixed inset-0 top-16 left-56 bg-background flex items-center justify-center">
+      <div className="fixed inset-0 top-0 left-56 bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">게시물을 찾을 수 없습니다.</p>
           <Button onClick={handleClose}>목록으로 돌아가기</Button>
@@ -146,9 +150,9 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
   const images = getImages()
 
   return (
-    <div className="fixed inset-0 top-16 left-56 bg-background overflow-hidden flex flex-col">
+    <div className="fixed inset-0 top-0 left-56 bg-background overflow-hidden flex flex-col">
       {/* 닫기 버튼 */}
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-4 right-[35rem] z-10">
         <Button
           variant="ghost"
           size="icon"
@@ -161,23 +165,23 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
       <div className="flex h-full">
         {/* 좌측: 이미지 갤러리 */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-neutral-50">
           <ImageGallery images={images} />
         </div>
 
-        {/* 우측: 상세 정보 + 네비게이션 */}
-        <div className="w-96 flex flex-col border-l">
+        {/* 우측: 상세 정보 */}
+        <div className="w-[28rem] flex flex-col">
           <div className="flex-1 overflow-y-auto p-6">
             <PostInfo post={post} />
           </div>
-
-          {/* 우측 끝: 네비게이션 */}
-          <PostNavigation
-            prevPost={prevPost}
-            nextPost={nextPost}
-            onNavigate={handleNavigate}
-          />
         </div>
+
+        {/* 우측 끝: 네비게이션 썸네일 */}
+        <PostNavigation
+          allPosts={allPosts}
+          currentPostId={postId}
+          onNavigate={handleNavigate}
+        />
       </div>
     </div>
   )

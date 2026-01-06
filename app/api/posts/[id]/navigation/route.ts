@@ -86,6 +86,23 @@ export async function GET(
       },
     })
 
+    // 전체 게시물 목록 조회 (썸네일 네비게이션용)
+    const allPosts = await prisma.post.findMany({
+      where: {
+        categoryId,
+        status: 'PUBLISHED',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        thumbnailUrl: true,
+        images: true,
+      },
+    })
+
     // 썸네일 URL 추출 (images 배열의 첫 번째 또는 thumbnailUrl)
     const getThumbnailUrl = (post: any) => {
       if (!post) return null
@@ -94,6 +111,13 @@ export async function GET(
       }
       return post.thumbnailUrl
     }
+
+    // 전체 게시물 목록을 썸네일 정보로 변환
+    const allPostsWithThumbnails = allPosts.map((post) => ({
+      id: post.id,
+      title: post.title,
+      thumbnailUrl: getThumbnailUrl(post),
+    }))
 
     return NextResponse.json({
       prevPost: prevPost
@@ -110,6 +134,8 @@ export async function GET(
             thumbnailUrl: getThumbnailUrl(nextPost),
           }
         : null,
+      allPosts: allPostsWithThumbnails,
+      currentPostId: id,
     })
   } catch (error: any) {
     if (error instanceof z.ZodError) {

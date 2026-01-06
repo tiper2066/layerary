@@ -1,5 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+
 interface Tag {
   id: string
   name: string
@@ -27,6 +29,9 @@ interface PostInfoProps {
 }
 
 export function PostInfo({ post }: PostInfoProps) {
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.role === 'ADMIN'
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
       year: 'numeric',
@@ -39,24 +44,24 @@ export function PostInfo({ post }: PostInfoProps) {
     <div className="space-y-6">
       {/* 제목 및 부제목 */}
       <div>
-        <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
+        <h1 className="text-lg font-bold mb-2">{post.title}</h1>
         {post.subtitle && (
-          <p className="text-muted-foreground">{post.subtitle}</p>
+          <p className="text-foreground">{post.subtitle}</p>
         )}
       </div>
 
       {/* 메타 정보 */}
-      <div className="space-y-3 text-sm">
+      <div className="space-y-6 text-sm pb-6">
         {post.concept && (
           <div>
-            <span className="font-medium text-muted-foreground">CONCEPT</span>
+            <span className="text-[10px] font-medium text-muted-foreground">CONCEPT</span>
             <p className="mt-1">{post.concept}</p>
           </div>
         )}
 
         {post.tool && (
           <div>
-            <span className="font-medium text-muted-foreground">TOOL</span>
+            <span className="text-[10px] font-medium text-muted-foreground">TOOL</span>
             <p className="mt-1">{post.tool}</p>
           </div>
         )}
@@ -71,15 +76,12 @@ export function PostInfo({ post }: PostInfoProps) {
 
       {/* 태그 */}
       {post.tags && post.tags.length > 0 && (
-        <div>
-          <span className="text-sm font-medium text-muted-foreground mb-2 block">
-            TAGS
-          </span>
+        <div className="border-t pt-[50px]">
           <div className="flex flex-wrap gap-2">
             {post.tags.map(({ tag }) => (
               <span
                 key={tag.id}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-regular bg-gray-100 text-primary/60"
               >
                 {tag.name}
               </span>
@@ -88,14 +90,16 @@ export function PostInfo({ post }: PostInfoProps) {
         </div>
       )}
 
-      {/* 추가 정보 */}
-      <div className="pt-4 border-t space-y-2 text-xs text-muted-foreground">
-        <div>
-          작성자: {post.author?.name || post.author?.email || '알 수 없음'}
+      {/* 추가 정보 (관리자만 표시) */}
+      {isAdmin && (
+        <div className="pt-[50px] space-y-2 text-xs text-muted-foreground">
+          <div>
+            작성자: {post.author?.name || post.author?.email || '알 수 없음'}
+          </div>
+          <div>작성일: {formatDate(post.createdAt)}</div>
+          <div>조회수: {post.viewCount}</div>
         </div>
-        <div>작성일: {formatDate(post.createdAt)}</div>
-        <div>조회수: {post.viewCount}</div>
-      </div>
+      )}
     </div>
   )
 }

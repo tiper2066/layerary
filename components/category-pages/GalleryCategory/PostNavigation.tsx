@@ -13,14 +13,14 @@ interface NavigationPost {
 }
 
 interface PostNavigationProps {
-  prevPost: NavigationPost | null
-  nextPost: NavigationPost | null
+  allPosts: NavigationPost[]
+  currentPostId: string
   onNavigate: (postId: string) => void
 }
 
 export function PostNavigation({
-  prevPost,
-  nextPost,
+  allPosts,
+  currentPostId,
   onNavigate,
 }: PostNavigationProps) {
   const [scrollPosition, setScrollPosition] = useState(0)
@@ -28,21 +28,26 @@ export function PostNavigation({
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const nextButtonRef = useRef<HTMLButtonElement>(null)
 
+  // 현재 게시물 인덱스 찾기
+  const currentIndex = allPosts.findIndex((post) => post.id === currentPostId)
+  const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null
+  const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null
+
   // 키보드 네비게이션 (상/하 방향키)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp' && prevPost) {
         e.preventDefault()
-        prevButtonRef.current?.click()
+        onNavigate(prevPost.id)
       } else if (e.key === 'ArrowDown' && nextPost) {
         e.preventDefault()
-        nextButtonRef.current?.click()
+        onNavigate(nextPost.id)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [prevPost, nextPost])
+  }, [prevPost, nextPost, onNavigate])
 
   // 스크롤 위치 추적
   useEffect(() => {
@@ -83,12 +88,12 @@ export function PostNavigation({
     return url
   }
 
-  if (!prevPost && !nextPost) {
+  if (allPosts.length === 0) {
     return null
   }
 
   return (
-    <div className="w-24 h-full flex flex-col border-l bg-background">
+    <div className="w-24 h-full flex flex-col bg-neutral-50">
       {/* 스크롤 업 버튼 */}
       {canScrollUp && (
         <Button
@@ -104,63 +109,44 @@ export function PostNavigation({
       {/* 썸네일 목록 */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto space-y-2 p-2"
+        className="flex-1 overflow-y-auto space-y-2 p-4"
       >
-        {prevPost && (
-          <button
-            ref={prevButtonRef}
-            onClick={() => onNavigate(prevPost.id)}
-            className={cn(
-              'w-full aspect-square relative rounded-md overflow-hidden border-2 border-transparent hover:border-primary transition-colors group'
-            )}
-          >
-            {prevPost.thumbnailUrl ? (
-              <Image
-                src={getThumbnailSrc(prevPost.thumbnailUrl) || '/placeholder.png'}
-                alt={prevPost.title}
-                fill
-                className="object-cover"
-                unoptimized={prevPost.thumbnailUrl.startsWith('http')}
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                No Image
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-            <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/60 text-white text-[10px] line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              {prevPost.title}
-            </div>
-          </button>
-        )}
+        {allPosts.map((post, index) => {
+          const isActive = post.id === currentPostId
+          const buttonRef = index === currentIndex - 1 ? prevButtonRef : index === currentIndex + 1 ? nextButtonRef : null
 
-        {nextPost && (
-          <button
-            ref={nextButtonRef}
-            onClick={() => onNavigate(nextPost.id)}
-            className={cn(
-              'w-full aspect-square relative rounded-md overflow-hidden border-2 border-transparent hover:border-primary transition-colors group'
-            )}
-          >
-            {nextPost.thumbnailUrl ? (
-              <Image
-                src={getThumbnailSrc(nextPost.thumbnailUrl) || '/placeholder.png'}
-                alt={nextPost.title}
-                fill
-                className="object-cover"
-                unoptimized={nextPost.thumbnailUrl.startsWith('http')}
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                No Image
+          return (
+            <button
+              key={post.id}
+              ref={buttonRef}
+              onClick={() => onNavigate(post.id)}
+              className={cn(
+                'w-full aspect-square relative rounded-md overflow-hidden border-2 transition-colors group',
+                isActive
+                  ? 'border-primary'
+                  : 'border-transparent hover:border-primary'
+              )}
+            >
+              {post.thumbnailUrl ? (
+                <Image
+                  src={getThumbnailSrc(post.thumbnailUrl) || '/placeholder.png'}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  unoptimized={post.thumbnailUrl.startsWith('http')}
+                />
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                  No Image
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+              <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/60 text-white text-[10px] line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {post.title}
               </div>
-            )}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-            <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/60 text-white text-[10px] line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              {nextPost.title}
-            </div>
-          </button>
-        )}
+            </button>
+          )
+        })}
       </div>
 
       {/* 스크롤 다운 버튼 */}

@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 interface PostImage {
@@ -91,27 +90,29 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
 
   return (
     <div
-      className="w-[314px] cursor-pointer group"
+      className="w-[285px] cursor-pointer group flex-shrink-0"
       onClick={handleClick}
     >
-      <div className="relative w-full overflow-hidden rounded-lg bg-muted aspect-auto mb-2">
-        <Image
+      <div className="relative w-full overflow-hidden rounded-lg bg-muted">
+        <img
           src={getImageSrc()}
           alt={post.title}
-          width={314}
-          height={0}
-          className="w-full h-auto object-cover transition-transform group-hover:scale-105"
-          unoptimized={imageUrl.startsWith('http')}
+          className="w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50"
         />
+        {/* 호버 시 어두운 오버레이 */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300" />
+        {/* 호버 시 좌측 하단에 제목과 부제목 표시 */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <h3 className="font-medium text-sm text-white line-clamp-2 drop-shadow-lg">
+            {post.title}
+          </h3>
+          {post.subtitle && (
+            <p className="text-xs text-white/90 mt-1 line-clamp-1 drop-shadow-lg">
+              {post.subtitle}
+            </p>
+          )}
+        </div>
       </div>
-      <h3 className="font-medium text-sm mt-2 line-clamp-2 group-hover:text-primary transition-colors">
-        {post.title}
-      </h3>
-      {post.subtitle && (
-        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-          {post.subtitle}
-        </p>
-      )}
     </div>
   )
 }

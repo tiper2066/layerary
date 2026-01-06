@@ -67,12 +67,12 @@ export function ImageGallery({ images }: ImageGalleryProps) {
   }
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-4 p-6 flex flex-col items-center">
       {sortedImages.map((image, index) => {
         const isExpanded = expandedIndex === index
 
         return (
-          <div key={index} className="relative group">
+          <div key={index} className="relative group w-full flex justify-center">
             <div
               className={cn(
                 'relative transition-all duration-300 cursor-zoom-in',

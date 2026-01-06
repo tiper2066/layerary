@@ -105,16 +105,17 @@ export function Sidebar({ categories, className }: SidebarProps) {
   const renderCategory = (category: Category, level: number = 0) => {
     const hasChildren = category.children && category.children.length > 0
     const isExpanded = expandedCategories.has(category.id)
-    const isActive = pathname === `/${category.slug}` || pathname.startsWith(`/${category.slug}/`)
+    // pathname이 '/'일 때는 활성화되지 않도록 설정
+    const isActive = pathname !== '/' && (pathname === `/${category.slug}` || pathname.startsWith(`/${category.slug}/`))
     const IconComponent = getCategoryIcon(category.type)
 
     return (
       <div key={category.id}>
         <div
           className={cn(
-            'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+            'flex items-center gap-2 px-3 py-2.5 transition-colors', // 메뉴 활성화 상태 
             isActive
-              ? 'bg-primary text-primary-foreground'
+              ? 'text-[var(--penta-indigo)]'
               : 'hover:bg-accent hover:text-accent-foreground',
             level > 0 && 'ml-4'
           )}
@@ -212,19 +213,6 @@ export function Sidebar({ categories, className }: SidebarProps) {
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 pt-0">
           <nav className="space-y-4">
-            <Link
-              href="/"
-              className={cn(
-                'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
-                pathname === '/'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <Home className="h-4 w-4" />
-              <span className='text-sm'>홈</span>
-            </Link>
-
             {categoryOrder.map((type) => {
               const cats = groupedCategories[type] || []
               
@@ -260,9 +248,9 @@ export function Sidebar({ categories, className }: SidebarProps) {
                     <Link
                       href="/admin/dashboard"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                        'flex items-center gap-2 px-3 py-2.5 transition-colors',
                         pathname.startsWith('/admin/dashboard')
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'text-[var(--penta-indigo)]'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
@@ -272,9 +260,9 @@ export function Sidebar({ categories, className }: SidebarProps) {
                     <Link
                       href="/admin/users"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                        'flex items-center gap-2 px-3 py-2.5 transition-colors',
                         pathname.startsWith('/admin/users')
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'text-[var(--penta-indigo)]'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
@@ -284,9 +272,9 @@ export function Sidebar({ categories, className }: SidebarProps) {
                     <Link
                       href="/admin/notices"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors',
+                        'flex items-center gap-2 px-3 py-2.5 transition-colors',
                         pathname.startsWith('/admin/notices')
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'text-[var(--penta-indigo)]'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                     >

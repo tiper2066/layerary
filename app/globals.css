@@ -2,23 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-/* @theme inline { */
-  /* ----- 커스텀 폰트 ----- */
-  /*
-  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  */
-  /* ----- 커스텀 색상 ----- */
-  /*
-  --color-penta-indigo: var(--penta-indigo);
-  --color-penta-blue: var(--penta-blue);
-  --color-penta-sky: var(--penta-sky);
-  --color-penta-green: var(--penta-green);
-  --color-penta-yellow: var(--penta-yellow);  
-  */
-/* } */
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -94,5 +77,19 @@
   [role='button'] {
     cursor: pointer !important;
   }  
+}
+
+/* Pinterest 스타일 Masonry 레이아웃 */
+.masonry-container {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.masonry-column {
+  flex: 0 0 285px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -22,6 +23,10 @@ interface MainLayoutProps {
 
 export function MainLayout({ children, categories }: MainLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+  
+  // 상세 페이지인지 확인 (예: /penta-design/abc123 형식)
+  const isDetailPage = pathname && /^\/[^/]+\/[^/]+$/.test(pathname)
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -39,7 +44,7 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <Header onMenuClick={() => setMobileMenuOpen(true)} />
+        {!isDetailPage && <Header onMenuClick={() => setMobileMenuOpen(true)} />}
         <main className="flex-1 overflow-y-auto bg-background">
           <div className="container mx-auto px-8 pt-0 pb-10 max-w-[1600px]">
             {children}
