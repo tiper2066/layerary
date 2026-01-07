@@ -95,7 +95,7 @@ export default function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">SOURCE</CardTitle>
             <div className="bg-penta-green/5 dark:bg-penta-green/10 p-3 rounded-full">
-              <Image className="h-6 w-6 text-penta-green" aria-label="SOURCE 카테고리 아이콘" />
+              <Image className="h-6 w-6 text-penta-green" aria-label="SOURCE 카테고리 아이콘" />ㅐ
             </div>
           </CardHeader>
           <CardContent>
