@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { downloadFile } from '@/lib/b2'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   try {
     await requireAdmin()
