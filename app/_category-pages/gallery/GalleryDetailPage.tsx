@@ -16,9 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 
 interface Category {
   id: string
@@ -79,6 +80,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false) // 모바일 정보 패널 열림 상태
 
   // 게시물 상세 조회
   useEffect(() => {
@@ -173,7 +175,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
   if (loading) {
     return (
-      <div className="fixed inset-0 top-0 left-56 bg-background flex items-center justify-center">
+      <div className="fixed inset-0 top-0 left-0 md:left-56 bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
@@ -181,7 +183,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
   if (!post) {
     return (
-      <div className="fixed inset-0 top-0 left-56 bg-background flex items-center justify-center">
+      <div className="fixed inset-0 top-0 left-0 md:left-56 bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">게시물을 찾을 수 없습니다.</p>
           <Button onClick={handleClose}>목록으로 돌아가기</Button>
@@ -212,9 +214,9 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
   const images = getImages()
 
   return (
-    <div className="fixed inset-0 top-0 left-56 bg-background overflow-hidden flex flex-col">
-      {/* 닫기 버튼 */}
-      <div className="absolute top-4 right-[35rem] z-10">
+    <div className="fixed inset-0 top-0 left-0 md:left-56 bg-background overflow-hidden flex flex-col">
+      {/* 데스크톱: 닫기 버튼 */}
+      <div className="hidden md:block absolute top-4 right-[35rem] z-10">
         <Button
           variant="ghost"
           size="icon"
@@ -225,26 +227,67 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
         </Button>
       </div>
 
-      <div className="flex h-full">
+      {/* 모바일: 정보 패널 토글 버튼 및 닫기 버튼 */}
+      <div className="md:hidden absolute top-4 left-6 z-10 flex justify-between w-[calc(100%-50px)] gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setInfoPanelOpen(true)}
+          className="bg-background/80 dark:bg-gray-700 backdrop-blur-sm"
+        >
+          <Info className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClose}
+          className="bg-background/80 dark:bg-gray-700 backdrop-blur-sm"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="flex h-full flex-col md:flex-row">
         {/* 좌측: 이미지 갤러리 */}
-        <div className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900">
+        <div className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900 md:pb-0 pb-24">
           <ImageGallery images={images} />
         </div>
 
-        {/* 우측: 상세 정보 */}
-        <div className="w-[28rem] flex flex-col">
+        {/* 데스크톱: 우측 상세 정보 */}
+        <div className="hidden md:flex w-[28rem] flex-col">
           <div className="flex-1 overflow-y-auto p-6">
             <PostInfo post={post} onEdit={handleEdit} onDelete={handleDelete} />
           </div>
         </div>
 
-        {/* 우측 끝: 네비게이션 썸네일 */}
-        <PostNavigation
-          allPosts={allPosts}
-          currentPostId={postId}
-          onNavigate={handleNavigate}
-        />
+        {/* 데스크톱: 우측 끝 네비게이션 썸네일 */}
+        <div className="hidden md:block">
+          <PostNavigation
+            allPosts={allPosts}
+            currentPostId={postId}
+            onNavigate={handleNavigate}
+            horizontal={false}
+          />
+        </div>
+
+        {/* 모바일: 하단 네비게이션 썸네일 */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-20">
+          <PostNavigation
+            allPosts={allPosts}
+            currentPostId={postId}
+            onNavigate={handleNavigate}
+            horizontal={true}
+          />
+        </div>
       </div>
+
+      {/* 모바일: 하단 슬라이딩 정보 패널 */}
+      <Sheet open={infoPanelOpen} onOpenChange={setInfoPanelOpen}>
+        <SheetContent side="bottom" className="h-[70vh] overflow-y-auto">
+          <SheetTitle className="sr-only">게시물 정보</SheetTitle>
+          <PostInfo post={post} onEdit={handleEdit} onDelete={handleDelete} />
+        </SheetContent>
+      </Sheet>
 
       {/* 수정 다이얼로그 */}
       {post && (

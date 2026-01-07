@@ -66,7 +66,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
   }
 
   return (
-    <div className="space-y-4 p-6 flex flex-col items-center">
+    <div className="space-y-4 pt-20 pr-6 pb-6 pl-6 md:pt-6 flex flex-col items-center">
       {sortedImages.map((image, index) => {
         const isExpanded = expandedIndex === index
 
@@ -85,24 +85,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                 className="w-full h-auto object-contain"
                 style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
               />
-              {/* 호버 시 돋보기 아이콘 표시 */}
-              {/* {!isExpanded && (
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
-                </div>
-              )} */}
             </div>
-            {/* {isExpanded && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setExpandedIndex(null)
-                }}
-                className="mt-2 text-sm text-muted-foreground hover:text-foreground"
-              >
-                축소
-              </button>
-            )} */}
           </div>
         )
       })}

@@ -45,7 +45,7 @@ export function PostInfo({ post, onEdit, onDelete }: PostInfoProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6 md:pt-0">
       {/* 제목 및 부제목 */}
       <div>
         <div className="flex items-start justify-between gap-4 mb-2">

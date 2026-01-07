@@ -93,3 +93,13 @@
   gap: 10px;
 }
 
+/* 모바일 수평 네비게이션 스크롤바 숨기기 */
+.horizontal-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-nav-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
