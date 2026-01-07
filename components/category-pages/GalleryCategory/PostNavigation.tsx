@@ -161,6 +161,8 @@ export function PostNavigation({
                     src={getThumbnailSrc(post.thumbnailUrl) || '/placeholder.png'}
                     alt={post.title}
                     className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 ) : (
                   <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
@@ -232,6 +234,8 @@ export function PostNavigation({
                   src={getThumbnailSrc(post.thumbnailUrl) || '/placeholder.png'}
                   alt={post.title}
                   className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">

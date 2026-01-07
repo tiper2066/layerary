@@ -88,8 +88,12 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
       try {
         setLoading(true)
         const [postResponse, navResponse] = await Promise.all([
-          fetch(`/api/posts/${postId}`),
-          fetch(`/api/posts/${postId}/navigation?categorySlug=${category.slug}`),
+          fetch(`/api/posts/${postId}`, {
+            next: { revalidate: 60 }, // Next.js 캐싱
+          }),
+          fetch(`/api/posts/${postId}/navigation?categorySlug=${category.slug}`, {
+            next: { revalidate: 60 },
+          }),
         ])
 
         if (!postResponse.ok) {

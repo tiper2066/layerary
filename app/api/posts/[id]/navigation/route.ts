@@ -119,24 +119,31 @@ export async function GET(
       thumbnailUrl: getThumbnailUrl(post),
     }))
 
-    return NextResponse.json({
-      prevPost: prevPost
-        ? {
-            id: prevPost.id,
-            title: prevPost.title,
-            thumbnailUrl: getThumbnailUrl(prevPost),
-          }
-        : null,
-      nextPost: nextPost
-        ? {
-            id: nextPost.id,
-            title: nextPost.title,
-            thumbnailUrl: getThumbnailUrl(nextPost),
-          }
-        : null,
-      allPosts: allPostsWithThumbnails,
-      currentPostId: id,
-    })
+    return NextResponse.json(
+      {
+        prevPost: prevPost
+          ? {
+              id: prevPost.id,
+              title: prevPost.title,
+              thumbnailUrl: getThumbnailUrl(prevPost),
+            }
+          : null,
+        nextPost: nextPost
+          ? {
+              id: nextPost.id,
+              title: nextPost.title,
+              thumbnailUrl: getThumbnailUrl(nextPost),
+            }
+          : null,
+        allPosts: allPostsWithThumbnails,
+        currentPostId: id,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    )
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -84,6 +84,8 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                 alt={image.name || `Image ${index + 1}`}
                 className="w-full h-auto object-contain"
                 style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
               />
             </div>
           </div>

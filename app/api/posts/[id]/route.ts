@@ -68,20 +68,15 @@ export async function GET(
       )
     }
 
-    // 조회수 증가 (PUBLISHED 상태일 때만)
+    // 조회수 증가 (PUBLISHED 상태일 때만) - 재조회 없이 직접 업데이트
     if (post.status === 'PUBLISHED') {
-      await prisma.post.update({
+      const updatedPost = await prisma.post.update({
         where: { id },
         data: {
           viewCount: {
             increment: 1,
           },
         },
-      })
-
-      // 증가된 조회수 포함하여 반환
-      const updatedPost = await prisma.post.findUnique({
-        where: { id },
         include: {
           category: {
             select: {
@@ -115,10 +110,24 @@ export async function GET(
         },
       })
 
-      return NextResponse.json({ post: updatedPost })
+      return NextResponse.json(
+        { post: updatedPost },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        }
+      )
     }
 
-    return NextResponse.json({ post })
+    return NextResponse.json(
+      { post },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    )
   } catch (error) {
     console.error('Get post error:', error)
     return NextResponse.json(

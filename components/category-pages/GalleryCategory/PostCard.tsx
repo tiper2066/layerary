@@ -98,6 +98,8 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
           src={getImageSrc()}
           alt={post.title}
           className="w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50"
+          loading="lazy"
+          decoding="async"
         />
         {/* 호버 시 어두운 오버레이 */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300" />

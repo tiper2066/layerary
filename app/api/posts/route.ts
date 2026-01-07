@@ -100,15 +100,22 @@ export async function GET(request: Request) {
 
     const hasMore = skip + posts.length < total
 
-    return NextResponse.json({
-      posts,
-      pagination: {
-        page: validatedQuery.page,
-        limit: validatedQuery.limit,
-        total,
-        hasMore,
+    return NextResponse.json(
+      {
+        posts,
+        pagination: {
+          page: validatedQuery.page,
+          limit: validatedQuery.limit,
+          total,
+          hasMore,
+        },
       },
-    })
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300',
+        },
+      }
+    )
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -71,7 +71,10 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
       try {
         setLoading(true)
         const response = await fetch(
-          `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20`
+          `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20`,
+          {
+            next: { revalidate: 30 }, // Next.js 캐싱
+          }
         )
 
         if (!response.ok) {

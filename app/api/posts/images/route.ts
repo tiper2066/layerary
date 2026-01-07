@@ -22,8 +22,9 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable', // 1년 캐싱
+        'Cache-Control': 'public, max-age=31536000, immutable, s-maxage=31536000', // 1년 캐싱 (CDN 포함)
         'Content-Length': fileBuffer.length.toString(),
+        'ETag': `"${Buffer.from(imageUrl).toString('base64').slice(0, 32)}"`, // ETag 추가로 브라우저 캐싱 개선
       },
     })
   } catch (error: any) {
