@@ -74,8 +74,8 @@ export function ImageGallery({ images }: ImageGalleryProps) {
           <div key={index} className="relative group w-full flex justify-center">
             <div
               className={cn(
-                'relative transition-all duration-300 cursor-zoom-in',
-                isExpanded ? 'w-full' : 'w-[600px]'
+                'relative transition-all duration-300',
+                isExpanded ? 'cursor-zoom-out w-full' : 'cursor-zoom-in w-[600px]'
               )}
               onClick={() => setExpandedIndex(isExpanded ? null : index)}
             >
@@ -83,16 +83,16 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                 src={getImageSrc(image.url)}
                 alt={image.name || `Image ${index + 1}`}
                 className="w-full h-auto object-contain"
-                style={{ cursor: 'zoom-in' }}
+                style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
               />
               {/* 호버 시 돋보기 아이콘 표시 */}
-              {!isExpanded && (
+              {/* {!isExpanded && (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
                 </div>
-              )}
+              )} */}
             </div>
-            {isExpanded && (
+            {/* {isExpanded && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -102,7 +102,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
               >
                 축소
               </button>
-            )}
+            )} */}
           </div>
         )
       })}

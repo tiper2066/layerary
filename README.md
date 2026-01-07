@@ -72,6 +72,10 @@ layerary/
 └── design_resources/      # 디자인 리소스 (보존됨)
 ```
 
+## 보안 설정
+
+Supabase 보안 이슈 해결을 위한 설정 가이드는 `docs/SUPABASE_SECURITY_SETUP.md` 파일을 참고하세요.
+
 ## 개발 계획
 
 상세한 개발 계획은 `design_resources/detailed_dev_plan.md` 파일을 참고하세요.

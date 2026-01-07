@@ -109,6 +109,14 @@ export function Sidebar({ categories, className }: SidebarProps) {
     const isActive = pathname !== '/' && (pathname === `/${category.slug}` || pathname.startsWith(`/${category.slug}/`))
     const IconComponent = getCategoryIcon(category.type)
 
+    // 로그아웃 상태에서 메뉴 클릭 시 로그인 페이지로 이동
+    const handleCategoryClick = (e: React.MouseEvent) => {
+      if (!session) {
+        e.preventDefault()
+        router.push('/login')
+      }
+    }
+
     return (
       // ********** 실제 사이드 메뉴 아이템 부분 
       <div key={category.id}>
@@ -123,7 +131,13 @@ export function Sidebar({ categories, className }: SidebarProps) {
         >
           {hasChildren ? (
             <button
-              onClick={() => toggleCategory(category.id)}
+              onClick={() => {
+                if (!session) {
+                  router.push('/login')
+                  return
+                }
+                toggleCategory(category.id)
+              }}
               className="flex items-center flex-1 gap-2 text-left"
             >
               {isExpanded ? (
@@ -138,6 +152,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
             <Link
               href={`/${category.slug}`}
               className="flex items-center flex-1 gap-2"
+              onClick={handleCategoryClick}
             >
               {/* <IconComponent className="h-4 w-4 flex-shrink-0" /> */}
               <span className="flex-1 text-sm px-3">{category.name}</span>
@@ -241,6 +256,14 @@ export function Sidebar({ categories, className }: SidebarProps) {
               if (type === CategoryType.ADMIN) {
                 if (!session || session.user.role !== 'ADMIN') return null
                 
+                // 로그아웃 상태에서 ADMIN 메뉴 클릭 시 로그인 페이지로 이동
+                const handleAdminMenuClick = (e: React.MouseEvent) => {
+                  if (!session) {
+                    e.preventDefault()
+                    router.push('/login')
+                  }
+                }
+                
                 return (
                   <div key={type} className="space-y-1">
                     <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -254,6 +277,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
+                      onClick={handleAdminMenuClick}
                     >
                       <Gauge className="h-4 w-4 flex-shrink-0 ml-3" />
                       <span className="flex-1 text-sm">대시보드</span>
@@ -266,6 +290,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
+                      onClick={handleAdminMenuClick}
                     >
                       <Users className="h-4 w-4 flex-shrink-0 ml-3" />
                       <span className="flex-1 text-sm">회원 관리</span>
@@ -278,6 +303,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                           ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
+                      onClick={handleAdminMenuClick}
                     >
                       <Megaphone className="h-4 w-4 flex-shrink-0 ml-3" />
                       <span className="flex-1 text-sm">공지사항 관리</span>
