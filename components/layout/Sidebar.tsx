@@ -65,7 +65,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
     
     // 주기적인 세션 업데이트 제거
     // 프로필 업데이트는 프로필 페이지에서 저장 시 router.refresh()로 처리
-  }, [session?.user?.id, pathname]) // pathname 변경 시에도 업데이트 (프로필 페이지 이동 시)
+  }, [session?.user?.id, session?.user?.image, session?.user?.name, pathname]) // pathname 변경 시에도 업데이트 (프로필 페이지 이동 시)
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories)

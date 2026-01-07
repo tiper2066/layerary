@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
 const attachmentSchema = z.object({
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
         title: validatedData.title,
         content: validatedData.content,
         isImportant: validatedData.isImportant,
-        attachments: validatedData.attachments || null,
+        attachments: validatedData.attachments ?? Prisma.JsonNull,
         authorId: admin.id,
       },
       include: {

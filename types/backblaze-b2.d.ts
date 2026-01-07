@@ -17,6 +17,16 @@ declare module 'backblaze-b2' {
       fileId: string
       fileName: string
     }): Promise<any>
+    listFileVersions(params: {
+      bucketId: string
+      startFileName?: string
+      maxFileCount?: number
+    }): Promise<any>
+    downloadFileByName(params: {
+      bucketName: string
+      fileName: string
+      responseType?: string
+    }): Promise<any>
   }
   export = B2
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth-helpers'
-import { CategoryType } from '@prisma/client'
+import { CategoryType, Prisma } from '@prisma/client'
 
 export async function GET() {
   try {
@@ -30,7 +30,7 @@ export async function GET() {
           },
         },
         images: {
-          not: null,
+          not: Prisma.JsonNull,
         },
       },
       select: {

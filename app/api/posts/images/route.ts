@@ -15,8 +15,8 @@ export async function GET(request: Request) {
 
     const { fileBuffer, contentType } = await downloadFile(imageUrl)
 
-    // 이미지 응답 생성
-    return new NextResponse(fileBuffer, {
+    // 이미지 응답 생성 (Buffer를 Uint8Array로 변환)
+    return new Response(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
         'Content-Type': contentType,

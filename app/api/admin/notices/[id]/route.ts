@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
 const attachmentSchema = z.object({
@@ -37,9 +38,15 @@ export async function PATCH(
       )
     }
 
+    // Prisma Json 필드에 null을 설정하려면 Prisma.JsonNull 사용
+    const updateData: any = { ...validatedData }
+    if (updateData.attachments === null) {
+      updateData.attachments = Prisma.JsonNull
+    }
+
     const updatedNotice = await prisma.notice.update({
       where: { id },
-      data: validatedData,
+      data: updateData,
       include: {
         author: {
           select: {

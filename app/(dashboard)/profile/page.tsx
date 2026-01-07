@@ -547,7 +547,7 @@ export default function ProfilePage() {
           <DialogHeader>
             <DialogTitle>비밀번호 제거</DialogTitle>
             <DialogDescription>
-              구글 계정으로만 로그인 가능. 비밀번호를 제거하려면 "현재 비밀번호"를 입력해주세요.
+              구글 계정으로만 로그인 가능. 비밀번호를 제거하려면 &quot;현재 비밀번호&quot;를 입력해주세요.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
