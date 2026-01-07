@@ -227,7 +227,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
 
       <div className="flex h-full">
         {/* 좌측: 이미지 갤러리 */}
-        <div className="flex-1 overflow-y-auto bg-neutral-50">
+        <div className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900">
           <ImageGallery images={images} />
         </div>
 

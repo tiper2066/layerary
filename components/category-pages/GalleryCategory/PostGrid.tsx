@@ -118,7 +118,7 @@ export function PostGrid({ posts, categorySlug, loading, onPostClick }: PostGrid
         }}
         decisionData={columns}
       >
-        <div ref={containerRef} className="masonry-container">
+        <div ref={containerRef} className="masonry-container justify-center md:justify-start">
           {columns.map((column, columnIndex) => (
             <div key={columnIndex} className="masonry-column">
               {column.map((post) => (

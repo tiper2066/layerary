@@ -38,7 +38,16 @@ export function Header({ onMenuClick }: HeaderProps) {
   const currentTheme = mounted ? (resolvedTheme || theme) : 'light'
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header 
+      className="fixed md:absolute top-0 left-0 md:left-56 right-0 z-50"
+      style={{
+        backgroundColor: currentTheme === 'dark' 
+          ? 'rgba(13, 13, 13, 0.6)' // dark mode 배경 (대략적인 값)
+          : 'rgba(255, 255, 255, 0.6)', // light mode 배경
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }}
+    >
       <div className="flex h-16 items-center justify-between px-8 w-full">
         {/* 좌측: 메뉴 버튼 (모바일만 표시) */}
         <div className="flex items-center gap-4 -ml-3">

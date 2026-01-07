@@ -24,9 +24,10 @@ interface Category {
 interface SidebarProps {
   categories: Category[]
   className?: string
+  onLinkClick?: () => void
 }
 
-export function Sidebar({ categories, className }: SidebarProps) {
+export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
@@ -110,10 +111,15 @@ export function Sidebar({ categories, className }: SidebarProps) {
     const IconComponent = getCategoryIcon(category.type)
 
     // 로그아웃 상태에서 메뉴 클릭 시 로그인 페이지로 이동
+    // 모바일에서 사이드바 닫기
     const handleCategoryClick = (e: React.MouseEvent) => {
       if (!session) {
         e.preventDefault()
         router.push('/login')
+      }
+      // 모바일에서 링크 클릭 시 사이드바 닫기
+      if (onLinkClick) {
+        onLinkClick()
       }
     }
 
@@ -124,7 +130,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
           className={cn(
             'flex items-center gap-2 px-3 py-2.5 transition-colors', // 메뉴 활성화 상태 
             isActive
-              ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
+              ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
               : 'hover:bg-accent hover:text-accent-foreground rounded-md',
             level > 0 && 'ml-4'
           )}
@@ -134,6 +140,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
               onClick={() => {
                 if (!session) {
                   router.push('/login')
+                  if (onLinkClick) onLinkClick()
                   return
                 }
                 toggleCategory(category.id)
@@ -215,7 +222,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
     >
       {/* 상단: LAYERARY 제목 */}
       <div className="p-6">
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center" onClick={onLinkClick}>
           <ThemeLogo
             width={160}
             height={40}
@@ -244,6 +251,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                      onClick={onLinkClick}
                     >
                       <span className="flex-1 text-sm px-3">eDM</span> 
                       <SquareArrowOutUpRight className="h-4 w-4 flex-shrink-0 ml-3 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -257,10 +265,15 @@ export function Sidebar({ categories, className }: SidebarProps) {
                 if (!session || session.user.role !== 'ADMIN') return null
                 
                 // 로그아웃 상태에서 ADMIN 메뉴 클릭 시 로그인 페이지로 이동
+                // 모바일에서 사이드바 닫기
                 const handleAdminMenuClick = (e: React.MouseEvent) => {
                   if (!session) {
                     e.preventDefault()
                     router.push('/login')
+                  }
+                  // 모바일에서 링크 클릭 시 사이드바 닫기
+                  if (onLinkClick) {
+                    onLinkClick()
                   }
                 }
                 
@@ -274,7 +287,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/dashboard')
-                          ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
+                          ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                       onClick={handleAdminMenuClick}
@@ -287,7 +300,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/users')
-                          ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
+                          ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                       onClick={handleAdminMenuClick}
@@ -300,7 +313,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/notices')
-                          ? 'text-[var(--penta-indigo)] bg-accent rounded-md'
+                          ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                       onClick={handleAdminMenuClick}
@@ -359,6 +372,7 @@ export function Sidebar({ categories, className }: SidebarProps) {
               <Link
                 href="/profile"
                 className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
+                onClick={onLinkClick}
               >
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </Link>

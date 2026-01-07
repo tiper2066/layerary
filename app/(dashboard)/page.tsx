@@ -63,7 +63,7 @@ export default async function HomePage() {
       title: 'WORK',
       description: '디자인 산출물 목록',
       iconName: 'Wallpaper',
-      color: 'bg-penta-indigo/5 text-penta-indigo',
+      color: 'bg-penta-indigo/5 dark:bg-penta-indigo/30 text-penta-indigo',
       href: getFirstCategorySlug(workCategories),
       count: workCategories.length,
     },
@@ -71,7 +71,7 @@ export default async function HomePage() {
       title: 'SOURCE',
       description: 'CI/BI, ICON 등 벡터 편집',
       iconName: 'Image',
-      color: 'bg-penta-green/5 text-penta-green',
+      color: 'bg-penta-green/5 dark:bg-penta-green/20 text-penta-green',
       href: getFirstCategorySlug(sourceCategories),
       count: sourceCategories.length,
     },
@@ -79,7 +79,7 @@ export default async function HomePage() {
       title: 'TEMPLATE',
       description: 'PPT, 카드, 바탕화면 등 다운로드',
       iconName: 'FileText',
-      color: 'bg-penta-yellow/10 text-penta-yellow',
+      color: 'bg-penta-yellow/10 dark:bg-penta-yellow/20 text-penta-yellow',
       href: getFirstCategorySlug(templateCategories),
       count: templateCategories.length,
     },
@@ -87,7 +87,7 @@ export default async function HomePage() {
       title: 'BROCHURE',
       description: '회사소개서 및 제품 브로셔 다운로드',
       iconName: 'BookOpen',
-      color: 'bg-penta-blue/5 text-penta-blue',
+      color: 'bg-penta-blue/5 dark:bg-penta-blue/30 text-penta-blue',
       href: getFirstCategorySlug(brochureCategories),
       count: brochureCategories.length,
     },
@@ -97,15 +97,15 @@ export default async function HomePage() {
   const getCategoryTypeBadgeColor = (type: CategoryType) => {
     switch (type) {
       case CategoryType.WORK:
-        return 'bg-penta-indigo/5 text-penta-indigo'
+        return 'bg-penta-indigo/5 dark:bg-penta-indigo/30 text-penta-indigo'
       case CategoryType.SOURCE:
-        return 'bg-penta-green/5 text-penta-green'
+        return 'bg-penta-green/5 dark:bg-penta-green/30 text-penta-green'
       case CategoryType.TEMPLATE:
-        return 'bg-penta-yellow/10 text-penta-yellow'
+        return 'bg-penta-yellow/10 dark:bg-penta-yellow/30 text-penta-yellow'
       case CategoryType.BROCHURE:
-        return 'bg-penta-blue/5 text-penta-blue'
+        return 'bg-penta-blue/5 dark:bg-penta-blue/30 text-penta-blue'
       default:
-        return 'bg-muted text-muted-foreground'
+        return 'bg-muted dark:bg-muted/30 text-muted-foreground'
     }
   }
 

@@ -81,7 +81,7 @@ export default function DashboardPage() {
         <Card className='hover:shadow-md hover:border-penta-indigo transition-all duration-200 bg-penta-indigo/5'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">WORK</CardTitle>
-            <div className="bg-penta-indigo/5 p-3 rounded-full">
+            <div className="bg-penta-indigo/5 dark:bg-penta-indigo/30 p-3 rounded-full">
               <Wallpaper className="h-6 w-6 text-penta-indigo" />
             </div>
           </CardHeader>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
         <Card className='hover:shadow-md hover:border-penta-green transition-all duration-200 bg-penta-green/5'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">SOURCE</CardTitle>
-            <div className="bg-penta-green/5 p-3 rounded-full">
+            <div className="bg-penta-green/5 dark:bg-penta-green/10 p-3 rounded-full">
               <Image className="h-6 w-6 text-penta-green" />
             </div>
           </CardHeader>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         <Card className='hover:shadow-md hover:border-penta-blue transition-all duration-200 bg-penta-blue/5'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">BROCHURE</CardTitle>
-            <div className="bg-penta-blue/5 p-3 rounded-full">
+            <div className="bg-penta-blue/5 dark:bg-penta-blue/20 p-3 rounded-full">
               <BookOpen className="h-6 w-6 text-penta-blue" />
             </div>
           </CardHeader>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">전체 게시물</CardTitle>
-            <div className="bg-muted-foreground/5 p-4 rounded-full">
+            <div className="bg-muted-foreground/5 dark:bg-muted-foreground/15 p-4 rounded-full">
               <HardDrive className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
             </div>
           </CardHeader>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">전체 이미지</CardTitle>
-            <div className="bg-muted-foreground/5 p-4 rounded-full">
+            <div className="bg-muted-foreground/5 dark:bg-muted-foreground/15 p-4 rounded-full">
               <Images className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
             </div>
           </CardHeader>

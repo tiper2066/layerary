@@ -110,7 +110,7 @@ export function PostInfo({ post, onEdit, onDelete }: PostInfoProps) {
             {post.tags.map(({ tag }) => (
               <span
                 key={tag.id}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-regular bg-gray-100 text-primary/60"
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-regular bg-gray-100 dark:bg-gray-700 text-primary/60 dark:text-gray-300"
               >
                 {tag.name}
               </span>
