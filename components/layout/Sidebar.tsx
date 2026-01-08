@@ -223,17 +223,14 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
         callbackUrl: '/',
         redirect: false 
       })
-      // 즉시 홈으로 리다이렉트 (세션은 이미 제거됨)
-      router.push('/')
-      router.refresh()
+      // 즉시 전체 페이지 리로드하여 홈으로 이동 (이전 페이지가 보이지 않도록)
+      window.location.href = '/'
     } catch (error) {
       console.error('Logout error:', error)
       // 에러가 발생해도 홈으로 리다이렉트
-      router.push('/')
-      router.refresh()
-    } finally {
-      setIsLoggingOut(false)
+      window.location.href = '/'
     }
+    // window.location.href는 페이지를 완전히 리로드하므로 finally는 실행되지 않을 수 있음
   }
 
   return (

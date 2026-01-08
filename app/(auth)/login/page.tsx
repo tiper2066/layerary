@@ -40,13 +40,13 @@ function LoginForm() {
 
       if (result?.error) {
         setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+        setIsLoading(false)
       } else {
-        router.push('/')
-        router.refresh()
+        // 즉시 전체 페이지 리로드하여 홈으로 이동
+        window.location.href = '/'
       }
     } catch (err) {
       setError('로그인 중 오류가 발생했습니다.')
-    } finally {
       setIsLoading(false)
     }
   }

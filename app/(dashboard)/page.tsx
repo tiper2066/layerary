@@ -10,42 +10,47 @@ import { NoticesSection } from '@/components/NoticesSection'
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  // 4개 메인 카테고리 가져오기
-  const workCategories = await getCategoriesByType(CategoryType.WORK)
-  const sourceCategories = await getCategoriesByType(CategoryType.SOURCE)
-  const templateCategories = await getCategoriesByType(CategoryType.TEMPLATE)
-  const brochureCategories = await getCategoriesByType(CategoryType.BROCHURE)
-
-  // 최근 게시물 (최근 게시된 3개)
-  const recentPosts = await prisma.post.findMany({
-    take: 3,
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      category: true,
-      author: {
-        select: {
-          name: true,
+  // 병렬로 데이터 가져오기 (성능 최적화)
+  const [
+    workCategories,
+    sourceCategories,
+    templateCategories,
+    brochureCategories,
+    recentPosts,
+    notices,
+  ] = await Promise.all([
+    getCategoriesByType(CategoryType.WORK),
+    getCategoriesByType(CategoryType.SOURCE),
+    getCategoriesByType(CategoryType.TEMPLATE),
+    getCategoriesByType(CategoryType.BROCHURE),
+    prisma.post.findMany({
+      take: 3,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        category: true,
+        author: {
+          select: {
+            name: true,
+          },
         },
       },
-    },
-  })
-
-  // 공지사항 (최근 게시된 3개)
-  const notices = await prisma.notice.findMany({
-    take: 3,
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      author: {
-        select: {
-          name: true,
+    }),
+    prisma.notice.findMany({
+      take: 3,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+          },
         },
       },
-    },
-  })
+    }),
+  ])
 
   const getFirstCategorySlug = (categories: typeof workCategories) => {
     if (categories.length > 0) {
