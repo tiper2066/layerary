@@ -126,10 +126,10 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
 
     return (
       // ********** 실제 사이드 메뉴 아이템 부분 
-      <div key={category.id}>
+      <div key={category.id} className='pl-2 pr-4'>
         <div
           className={cn(
-            'flex items-center gap-2 px-3 py-2.5 transition-colors', // 메뉴 활성화 상태 
+            'flex items-center gap-2 px-3 py-1.5 transition-colors', // 메뉴 활성화 상태 
             isActive
               ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
               : 'hover:bg-accent hover:text-accent-foreground rounded-md',
@@ -153,7 +153,6 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
               ) : (
                 <ChevronRight className="h-4 w-4 flex-shrink-0" />
               )}
-              {/* <IconComponent className="h-4 w-4 flex-shrink-0" /> */}
               <span className="flex-1 text-sm">{category.name}</span>
             </button>
           ) : (
@@ -162,7 +161,6 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
               className="flex items-center flex-1 gap-2"
               onClick={handleCategoryClick}
             >
-              {/* <IconComponent className="h-4 w-4 flex-shrink-0" /> */}
               <span className="flex-1 text-sm px-3">{category.name}</span>
             </Link>
           )}
@@ -267,7 +265,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
               // Etc 카테고리는 하드코딩
               if (type === CategoryType.ETC) {
                 return (
-                  <div key={type} className="space-y-1">
+                  <div key={type} className="space-y-1 pr-4">
                     <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {getCategoryLabel(type)}
                     </div>
@@ -275,7 +273,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                       href="https://img-edm-code-generator.vercel.app/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                      className="group flex items-center gap-2 px-3 py-1.5 ml-3 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
                       onClick={onLinkClick}
                     >
                       <span className="flex-1 text-sm px-3">eDM</span> 
@@ -303,14 +301,14 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                 }
                 
                 return (
-                  <div key={type} className="space-y-1">
+                  <div key={type} className="space-y-1 pr-4">
                     <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {getCategoryLabel(type)}
                     </div>
                     <Link
                       href="/admin/dashboard"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
+                        'flex items-center gap-2 px-3 py-1.5 ml-3 transition-colors rounded-md',
                         pathname.startsWith('/admin/dashboard')
                           ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
@@ -323,7 +321,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                     <Link
                       href="/admin/users"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
+                        'flex items-center gap-2 px-3 py-1.5 ml-3 transition-colors rounded-md',
                         pathname.startsWith('/admin/users')
                           ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
@@ -336,7 +334,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                     <Link
                       href="/admin/notices"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 transition-colors rounded-md',
+                        'flex items-center gap-2 px-3 py-1.5 ml-3 transition-colors rounded-md',
                         pathname.startsWith('/admin/notices')
                           ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
