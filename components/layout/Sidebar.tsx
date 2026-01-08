@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, LogIn, Gauge, Users, Megaphone, LogOut, SquareArrowOutUpRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Home, Briefcase, Palette, FileText, BookOpen, Settings, LogIn, Gauge, Users, Megaphone, LogOut, SquareArrowOutUpRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CategoryType } from '@prisma/client'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   )
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // 최신 사용자 정보 가져오기
   useEffect(() => {
@@ -213,6 +214,30 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
     return 'U'
   }
 
+  // 로그아웃 핸들러
+  const handleSignOut = async () => {
+    if (isLoggingOut) return // 이미 로그아웃 중이면 무시
+    
+    setIsLoggingOut(true)
+    try {
+      // redirect: false로 설정하여 클라이언트에서 먼저 세션 제거
+      await signOut({ 
+        callbackUrl: '/',
+        redirect: false 
+      })
+      // 즉시 홈으로 리다이렉트 (세션은 이미 제거됨)
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Logout error:', error)
+      // 에러가 발생해도 홈으로 리다이렉트
+      router.push('/')
+      router.refresh()
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
   return (
     <aside
       className={cn(
@@ -386,14 +411,19 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0"
+                onClick={handleSignOut}
+                disabled={isLoggingOut}
+                className="p-2 rounded-md hover:bg-accent transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <LogOut className="h-4 w-4 text-muted-foreground" />
+                {isLoggingOut ? (
+                  <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4 text-muted-foreground" />
+                )}
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>로그아웃</p>
+              <p>{isLoggingOut ? '로그아웃 중...' : '로그아웃'}</p>
             </TooltipContent>
           </Tooltip>
         </div>
