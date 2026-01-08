@@ -137,7 +137,12 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
     setDeleteDialogOpen(true)
   }
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (e?: React.MouseEvent) => {
+    // 기본 동작 방지 (다이얼로그 자동 닫힘 방지)
+    if (e) {
+      e.preventDefault()
+    }
+    
     try {
       setDeleting(true)
       const response = await fetch(`/api/posts/${postId}`, {
@@ -149,14 +154,17 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
         throw new Error(error.error || '게시물 삭제에 실패했습니다.')
       }
 
-      // 삭제 성공 시 목록으로 이동
-      router.push(`/${category.slug}`)
+      // 삭제 성공 시 팝업 닫기 및 로딩 상태 해제
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+      
+      // 목록으로 이동 (캐시 무효화를 위해 쿼리 파라미터 추가)
+      router.push(`/${category.slug}?refresh=${Date.now()}`)
+      router.refresh() // 서버 컴포넌트 재렌더링
     } catch (error: any) {
       console.error('Error deleting post:', error)
       alert(error.message || '게시물 삭제에 실패했습니다.')
-    } finally {
-      setDeleting(false)
-      setDeleteDialogOpen(false)
+      setDeleting(false) // 에러 시 로딩 상태 해제
     }
   }
 
@@ -307,7 +315,17 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
       )}
 
       {/* 삭제 확인 다이얼로그 */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog 
+        open={deleteDialogOpen} 
+        onOpenChange={(open) => {
+          // deleting 상태일 때는 다이얼로그가 닫히지 않도록 방지
+          if (open) {
+            setDeleteDialogOpen(true)
+          } else if (!deleting) {
+            setDeleteDialogOpen(false)
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>게시물 삭제</AlertDialogTitle>
@@ -318,11 +336,22 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDelete}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                confirmDelete(e)
+              }}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {deleting ? '삭제 중...' : '삭제'}
+              {deleting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  삭제 중...
+                </span>
+              ) : (
+                '삭제'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

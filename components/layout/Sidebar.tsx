@@ -334,7 +334,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                     <Link
                       href="/admin/notices"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 ml-3 transition-colors rounded-md',
+                        'flex items-center gap-2 px-3 py-1.5  transition-colors rounded-md',
                         pathname.startsWith('/admin/notices')
                           ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'

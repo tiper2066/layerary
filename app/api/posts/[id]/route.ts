@@ -337,10 +337,10 @@ export async function DELETE(
       const { deleteFileByUrl } = await import('@/lib/b2')
       
       // images 배열 파싱
-      let images: Array<{ url: string; name: string; order: number }> = []
+      let images: Array<{ url: string; thumbnailUrl?: string; name: string; order: number }> = []
       if (post.images) {
         if (Array.isArray(post.images)) {
-          images = post.images as Array<{ url: string; name: string; order: number }>
+          images = post.images as Array<{ url: string; thumbnailUrl?: string; name: string; order: number }>
         } else if (typeof post.images === 'string') {
           try {
             images = JSON.parse(post.images)
@@ -350,10 +350,20 @@ export async function DELETE(
         }
       }
 
-      // 각 이미지 파일 삭제
+      // 각 이미지 파일 삭제 (원본 및 썸네일)
       for (const image of images) {
         try {
+          // 원본 이미지 삭제
           await deleteFileByUrl(image.url)
+          
+          // 썸네일 이미지가 있으면 삭제
+          if (image.thumbnailUrl) {
+            try {
+              await deleteFileByUrl(image.thumbnailUrl)
+            } catch (thumbnailError: any) {
+              console.error(`Failed to delete B2 thumbnail ${image.thumbnailUrl}:`, thumbnailError.message)
+            }
+          }
         } catch (fileError: any) {
           // 파일 삭제 실패는 로그만 남기고 계속 진행
           console.error(`Failed to delete B2 file ${image.url}:`, fileError.message)

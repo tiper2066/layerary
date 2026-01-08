@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { PostGrid } from '@/components/category-pages/GalleryCategory/PostGrid'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
@@ -34,6 +34,7 @@ interface Post {
 
 export function GalleryListPage({ category }: GalleryListPageProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: session } = useSession()
   const isAdmin = session?.user?.role === 'ADMIN'
 
@@ -67,14 +68,14 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
 
   // 게시물 목록 조회
   const fetchPosts = useCallback(
-    async (pageNum: number, append: boolean = false) => {
+    async (pageNum: number, append: boolean = false, forceRefresh: boolean = false) => {
       try {
         setLoading(true)
-        // API Route의 Cache-Control 헤더로 브라우저 캐싱 활용
+        // 새로고침이 필요한 경우 캐시 무시
         const response = await fetch(
-          `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20`,
+          `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20${forceRefresh ? `&_t=${Date.now()}` : ''}`,
           {
-            cache: 'default', // 브라우저 기본 캐싱 동작 사용
+            cache: forceRefresh ? 'no-store' : 'default', // 강제 새로고침 시 캐시 무시
           }
         )
 
@@ -105,6 +106,19 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
     fetchPosts(1, false)
   }, [fetchPosts])
 
+  // 새로고침 파라미터 감지 (삭제 후 목록으로 돌아올 때)
+  useEffect(() => {
+    const refreshParam = searchParams.get('refresh')
+    if (refreshParam) {
+      // 새로고침 파라미터가 있으면 강제 새로고침
+      setPage(1)
+      setHasMore(true)
+      fetchPosts(1, false, true)
+      // URL에서 refresh 파라미터 제거 (히스토리 정리)
+      router.replace(`/${category.slug}`, { scroll: false })
+    }
+  }, [searchParams, fetchPosts, category.slug, router])
+
   // 페이지 변경 시 추가 로드
   useEffect(() => {
     if (page > 1) {
@@ -117,10 +131,10 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   }
 
   const handleUploadSuccess = () => {
-    // 업로드 성공 시 목록 새로고침
+    // 업로드 성공 시 목록 강제 새로고침 (캐시 무시)
     setPage(1)
     setHasMore(true)
-    fetchPosts(1, false)
+    fetchPosts(1, false, true) // forceRefresh: true 추가
   }
 
   return (
