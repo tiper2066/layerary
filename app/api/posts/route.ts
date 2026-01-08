@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { z } from 'zod'
+import { getCategoryBySlug } from '@/lib/categories'
+
+export const dynamic = 'force-dynamic'
 
 const querySchema = z.object({
   categorySlug: z.string().optional(),
@@ -43,9 +46,8 @@ export async function GET(request: Request) {
     }
 
     if (validatedQuery.categorySlug) {
-      const category = await prisma.category.findUnique({
-        where: { slug: validatedQuery.categorySlug },
-      })
+      // 캐싱된 카테고리 조회 함수 사용
+      const category = await getCategoryBySlug(validatedQuery.categorySlug)
 
       if (!category) {
         return NextResponse.json(
@@ -112,7 +114,9 @@ export async function GET(request: Request) {
       },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          'CDN-Cache-Control': 'public, s-maxage=60',
+          'Vercel-CDN-Cache-Control': 'public, s-maxage=60',
         },
       }
     )

@@ -70,10 +70,11 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
     async (pageNum: number, append: boolean = false) => {
       try {
         setLoading(true)
+        // API Route의 Cache-Control 헤더로 브라우저 캐싱 활용
         const response = await fetch(
           `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20`,
           {
-            next: { revalidate: 30 }, // Next.js 캐싱
+            cache: 'default', // 브라우저 기본 캐싱 동작 사용
           }
         )
 
