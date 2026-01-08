@@ -38,3 +38,5 @@ next-env.d.ts
 # prisma
 /prisma/migrations
 
+# design resources (디자인 리소스)
+/design_resources
