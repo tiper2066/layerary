@@ -89,10 +89,10 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
         setLoading(true)
         const [postResponse, navResponse] = await Promise.all([
           fetch(`/api/posts/${postId}`, {
-            next: { revalidate: 60 }, // Next.js 캐싱
+            cache: 'default', // 브라우저 캐싱 활용
           }),
           fetch(`/api/posts/${postId}/navigation?categorySlug=${category.slug}`, {
-            next: { revalidate: 60 },
+            cache: 'default', // 브라우저 캐싱 활용
           }),
         ])
 

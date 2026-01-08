@@ -86,6 +86,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                 style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
+                fetchPriority={index === 0 ? 'high' : 'auto'}
               />
             </div>
           </div>

@@ -70,7 +70,55 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
     return post.thumbnailUrl || post.fileUrl || '/placeholder.png'
   }
 
+  // Backblaze B2 URL인 경우 프록시를 통해 제공
+  const getImageSrc = (url: string) => {
+    if (url.startsWith('http') && url.includes('backblazeb2.com')) {
+      return `/api/posts/images?url=${encodeURIComponent(url)}`
+    }
+    return url
+  }
+
+  // 게시물의 모든 이미지 가져오기
+  const getAllImages = (): PostImage[] => {
+    let images: PostImage[] = []
+    
+    if (post.images) {
+      if (Array.isArray(post.images)) {
+        images = post.images as PostImage[]
+      } else if (typeof post.images === 'string') {
+        try {
+          const parsed = JSON.parse(post.images)
+          images = Array.isArray(parsed) ? parsed : []
+        } catch {
+          images = []
+        }
+      } else if (typeof post.images === 'object' && post.images !== null) {
+        const parsed = post.images as any
+        if (Array.isArray(parsed)) {
+          images = parsed
+        }
+      }
+    }
+
+    if (images.length > 0) {
+      return [...images].sort((a, b) => (a.order || 0) - (b.order || 0))
+    }
+    
+    return []
+  }
+
   const handleClick = () => {
+    // 게시물의 모든 이미지 프리로드
+    const allImages = getAllImages()
+    if (allImages.length > 0) {
+      allImages.forEach((image) => {
+        const img = new Image()
+        const imageUrl = getImageSrc(image.url)
+        img.src = imageUrl
+      })
+    }
+    
+    // 네비게이션
     if (onClick) {
       onClick(post.id)
     } else if (categorySlug) {
@@ -80,14 +128,6 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
 
   const imageUrl = getFirstImageUrl()
 
-  // Backblaze B2 URL인 경우 프록시를 통해 제공
-  const getImageSrc = () => {
-    if (imageUrl.startsWith('http') && imageUrl.includes('backblazeb2.com')) {
-      return `/api/posts/images?url=${encodeURIComponent(imageUrl)}`
-    }
-    return imageUrl
-  }
-
   return (
     <div
       className="w-[285px] cursor-pointer group flex-shrink-0"
@@ -95,7 +135,7 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
     >
       <div className="relative w-full overflow-hidden rounded-lg bg-muted">
         <img
-          src={getImageSrc()}
+          src={getImageSrc(imageUrl)}
           alt={post.title}
           className="w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50"
           loading="lazy"
