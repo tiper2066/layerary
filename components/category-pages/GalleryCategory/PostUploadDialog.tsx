@@ -37,6 +37,8 @@ type PostFormValues = z.infer<typeof postSchema>
 
 interface PostImage {
   url: string
+  thumbnailUrl?: string
+  blurDataURL?: string
   name: string
   order: number
 }
@@ -182,26 +184,100 @@ export function PostUploadDialog({
 
       let finalImages: PostImage[] = []
 
-      // 새 파일이 있으면 업로드
+      // 새 파일이 있으면 Presigned URL 방식으로 업로드
       if (selectedFiles.length > 0) {
-        const formData = new FormData()
-        selectedFiles.forEach((file) => {
-          formData.append('files', file)
-        })
-        formData.append('categorySlug', categorySlug)
+        // 1. Presigned URL 요청 (파일 메타데이터만 전송, 작은 데이터)
+        const fileMetadata = selectedFiles.map(file => ({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        }))
 
-        const uploadResponse = await fetch('/api/posts/upload', {
+        const presignedResponse = await fetch('/api/posts/upload-presigned', {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            files: fileMetadata,
+            categorySlug: categorySlug,
+          }),
         })
 
-        const uploadResponseData = await uploadResponse.json()
-
-        if (!uploadResponse.ok) {
-          throw new Error(uploadResponseData.error || '파일 업로드에 실패했습니다.')
+        if (!presignedResponse.ok) {
+          const error = await presignedResponse.json()
+          throw new Error(error.error || '업로드 URL 생성에 실패했습니다.')
         }
 
-        finalImages = uploadResponseData.images
+        const { presignedUrls } = await presignedResponse.json()
+
+        // 2. 클라이언트에서 직접 B2로 업로드 (Vercel 서버를 거치지 않음)
+        const uploadedImages: PostImage[] = []
+        
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i]
+          const presigned = presignedUrls[i]
+
+          // B2에 직접 업로드
+          const uploadResponse = await fetch(presigned.uploadUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': presigned.authorizationToken,
+              'X-Bz-File-Name': encodeURIComponent(presigned.fileName),
+              'Content-Type': file.type,
+              'X-Bz-Content-Sha1': 'do_not_verify', // SHA1 검증 생략
+            },
+            body: file, // File 객체를 직접 전송
+          })
+
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text()
+            let errorMessage = `파일 업로드 실패 (${file.name})`
+            try {
+              const errorJson = JSON.parse(errorText)
+              errorMessage = errorJson.message || errorMessage
+            } catch {
+              errorMessage = `${errorMessage}: ${errorText}`
+            }
+            throw new Error(errorMessage)
+          }
+
+          // 서버에서 받은 fileUrl 사용
+          uploadedImages.push({
+            url: presigned.fileUrl,
+            name: presigned.originalName,
+            order: i,
+          })
+
+          // 3. 이미지인 경우 썸네일 생성 요청 (서버에서 처리)
+          if (file.type.startsWith('image/')) {
+            try {
+              const thumbnailResponse = await fetch('/api/posts/generate-thumbnail', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  fileUrl: presigned.fileUrl,
+                  fileName: presigned.fileName,
+                }),
+              })
+
+              if (thumbnailResponse.ok) {
+                const { thumbnailUrl, blurDataURL } = await thumbnailResponse.json()
+                uploadedImages[i].thumbnailUrl = thumbnailUrl
+                uploadedImages[i].blurDataURL = blurDataURL
+              } else {
+                console.warn('Thumbnail generation failed for', file.name)
+              }
+            } catch (thumbnailError) {
+              console.error('Thumbnail generation error:', thumbnailError)
+              // 썸네일 생성 실패해도 계속 진행
+            }
+          }
+        }
+
+        finalImages = uploadedImages
       } else if (isEditMode) {
         // 수정 모드이고 새 파일이 없으면 기존 이미지 사용
         finalImages = existingImages

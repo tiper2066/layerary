@@ -11,7 +11,9 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "b2:setup-cors": "tsx scripts/setup-b2-cors.ts",
+    "b2:check-cors": "tsx scripts/check-b2-cors.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -60,6 +62,7 @@
     "@types/react": "18.3.27",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "dotenv": "^17.2.3",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.39",

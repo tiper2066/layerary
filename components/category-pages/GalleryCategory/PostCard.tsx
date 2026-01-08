@@ -66,18 +66,28 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
       // order로 정렬
       const sortedImages = [...images].sort((a, b) => (a.order || 0) - (b.order || 0))
       const firstImage = sortedImages[0]
-      if (firstImage) {
+      if (firstImage && firstImage.url) {
         return {
           url: firstImage.url,
-          thumbnailUrl: firstImage.thumbnailUrl,
-          blurDataURL: firstImage.blurDataURL,
+          thumbnailUrl: firstImage.thumbnailUrl, // 기존 이미지는 없을 수 있음
+          blurDataURL: firstImage.blurDataURL, // 기존 이미지는 없을 수 있음
         }
       }
     }
     
     // fallback: post의 thumbnailUrl 또는 fileUrl 사용
+    const fallbackUrl = post.thumbnailUrl || post.fileUrl
+    if (fallbackUrl) {
+      return {
+        url: fallbackUrl,
+        thumbnailUrl: undefined,
+        blurDataURL: undefined,
+      }
+    }
+    
+    // 최종 fallback
     return {
-      url: post.thumbnailUrl || post.fileUrl || '/placeholder.png',
+      url: '/placeholder.png',
       thumbnailUrl: undefined,
       blurDataURL: undefined,
     }
@@ -85,6 +95,9 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
 
   // Backblaze B2 URL인 경우 프록시를 통해 제공
   const getImageSrc = (url: string) => {
+    if (!url || url === '/placeholder.png') {
+      return '/placeholder.png'
+    }
     if (url.startsWith('http') && url.includes('backblazeb2.com')) {
       return `/api/posts/images?url=${encodeURIComponent(url)}`
     }
@@ -140,8 +153,8 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   }
 
   const imageInfo = getFirstImageInfo()
-  // 썸네일이 있으면 썸네일 사용, 없으면 원본 사용
-  const displayImageUrl = imageInfo.thumbnailUrl || imageInfo.url
+  // 썸네일이 있으면 썸네일 사용, 없으면 원본 사용 (기존 이미지 호환)
+  const displayImageUrl = imageInfo.thumbnailUrl || imageInfo.url || '/placeholder.png'
   const blurDataURL = imageInfo.blurDataURL
 
   // 이미지 URL이 변경되면 로드 상태 리셋

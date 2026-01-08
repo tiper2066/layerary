@@ -331,3 +331,64 @@ export function generateSafeFileName(originalName: string): string {
   return `${nameWithoutExt}_${timestamp}_${randomString}.${extension}`
 }
 
+/**
+ * 클라이언트에서 직접 업로드할 수 있는 Presigned URL 생성
+ * 파일 URL도 함께 생성하여 반환
+ */
+export async function getPresignedUploadUrl(
+  fileName: string,
+  contentType: string
+): Promise<{
+  uploadUrl: string
+  authorizationToken: string
+  fileName: string
+  fileUrl: string
+}> {
+  await authorize()
+
+  const bucketId = process.env.B2_BUCKET_ID!
+  const bucketName = process.env.B2_BUCKET_NAME!
+  
+  if (!bucketId || !bucketName) {
+    throw new Error('B2_BUCKET_ID 또는 B2_BUCKET_NAME이 설정되지 않았습니다.')
+  }
+
+  // 업로드 URL 가져오기
+  const uploadUrl = await b2.getUploadUrl({
+    bucketId,
+  })
+
+  if (!uploadUrl.data.uploadUrl || !uploadUrl.data.authorizationToken) {
+    throw new Error('B2 업로드 URL을 가져오는데 실패했습니다.')
+  }
+
+  // 파일 URL 생성 (서버에서 생성하여 반환)
+  let endpoint = process.env.B2_ENDPOINT
+  if (!endpoint) {
+    // 업로드 URL에서 엔드포인트 추출
+    const uploadUrlStr = uploadUrl.data.uploadUrl
+    const match = uploadUrlStr.match(/https:\/\/([^\/]+)/)
+    if (match) {
+      endpoint = `https://${match[1]}`
+    } else {
+      throw new Error('B2 엔드포인트를 결정할 수 없습니다. B2_ENDPOINT를 설정해주세요.')
+    }
+  }
+
+  endpoint = endpoint.replace(/\/$/, '')
+  
+  let fileUrl: string
+  if (endpoint.includes('s3.') || endpoint.includes('s3-')) {
+    fileUrl = `${endpoint}/${bucketName}/${fileName}`
+  } else {
+    fileUrl = `${endpoint}/file/${bucketName}/${fileName}`
+  }
+
+  return {
+    uploadUrl: uploadUrl.data.uploadUrl,
+    authorizationToken: uploadUrl.data.authorizationToken,
+    fileName: fileName,
+    fileUrl: fileUrl,
+  }
+}
+

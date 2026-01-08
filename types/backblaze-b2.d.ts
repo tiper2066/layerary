@@ -27,6 +27,19 @@ declare module 'backblaze-b2' {
       fileName: string
       responseType?: string
     }): Promise<any>
+    listBuckets(): Promise<any>
+    updateBucket(params: {
+      bucketId: string
+      bucketType?: string
+      corsRules?: Array<{
+        corsRuleName: string
+        allowedOrigins: string[]
+        allowedOperations: string[]
+        allowedHeaders: string[]
+        exposeHeaders?: string[]
+        maxAgeSeconds?: number
+      }>
+    }): Promise<any>
   }
   export = B2
 }
