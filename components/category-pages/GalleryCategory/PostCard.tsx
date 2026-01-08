@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface PostImage {
@@ -30,6 +30,7 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   const router = useRouter()
 
   const [imageLoaded, setImageLoaded] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   // 첫 번째 이미지 정보 추출 (썸네일 우선)
   const getFirstImageInfo = () => {
@@ -69,8 +70,8 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
       if (firstImage && firstImage.url) {
         return {
           url: firstImage.url,
-          thumbnailUrl: firstImage.thumbnailUrl, // 기존 이미지는 없을 수 있음
-          blurDataURL: firstImage.blurDataURL, // 기존 이미지는 없을 수 있음
+          thumbnailUrl: firstImage.thumbnailUrl,
+          blurDataURL: firstImage.blurDataURL,
         }
       }
     }
@@ -157,9 +158,16 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   const displayImageUrl = imageInfo.thumbnailUrl || imageInfo.url || '/placeholder.png'
   const blurDataURL = imageInfo.blurDataURL
 
-  // 이미지 URL이 변경되면 로드 상태 리셋
+  // 이미지 URL이 변경되면 로드 상태 리셋하고 이미 로드된 이미지인지 확인
   useEffect(() => {
     setImageLoaded(false)
+    
+    // 이미지가 이미 로드되어 있는지 확인 (캐시된 이미지)
+    if (imgRef.current) {
+      if (imgRef.current.complete && imgRef.current.naturalHeight !== 0) {
+        setImageLoaded(true)
+      }
+    }
   }, [displayImageUrl])
 
   return (
@@ -183,6 +191,8 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
         )}
         {/* 메인 이미지 */}
         <img
+          ref={imgRef}
+          key={displayImageUrl} // 이미지 URL 변경 시 재로드 보장
           src={getImageSrc(displayImageUrl)}
           alt={post.title}
           className={`w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50 ${
@@ -190,7 +200,12 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
           }`}
           loading="lazy"
           decoding="async"
-          onLoad={() => setImageLoaded(true)}
+          onLoad={() => {
+            setImageLoaded(true)
+          }}
+          onError={() => {
+            setImageLoaded(true)
+          }}
         />
         {/* 호버 시 어두운 오버레이 */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300" />

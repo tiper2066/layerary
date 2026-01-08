@@ -121,13 +121,24 @@ export function PostGrid({ posts, categorySlug, loading, onPostClick }: PostGrid
         <div ref={containerRef} className="masonry-container justify-center md:justify-start">
           {columns.map((column, columnIndex) => (
             <div key={columnIndex} className="masonry-column">
-              {column.map((post) => (
-                <Flipped key={post.id} flipId={post.id}>
-                  <div>
-                    <PostCard post={post} categorySlug={categorySlug} onClick={onPostClick} />
-                  </div>
-                </Flipped>
-              ))}
+              {column.map((post) => {
+                // 이미지 URL을 포함한 고유 key 생성 (이미지 변경 시 재렌더링 보장)
+                const imageUrl = post.thumbnailUrl || post.fileUrl || ''
+                const postKey = `${post.id}-${imageUrl}`
+                
+                return (
+                  <Flipped key={post.id} flipId={post.id}>
+                    <div>
+                      <PostCard 
+                        key={postKey} // 이미지 URL 변경 시 재렌더링
+                        post={post} 
+                        categorySlug={categorySlug} 
+                        onClick={onPostClick} 
+                      />
+                    </div>
+                  </Flipped>
+                )
+              })}
             </div>
           ))}
         </div>

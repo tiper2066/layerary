@@ -135,6 +135,7 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
     setPage(1)
     setHasMore(true)
     fetchPosts(1, false, true) // forceRefresh: true 추가
+    router.refresh() // 서버 컴포넌트 재렌더링
   }
 
   return (

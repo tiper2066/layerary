@@ -87,13 +87,7 @@ async function setupCORS() {
         corsRuleName: 'allow-uploads',
         allowedOrigins: allowedOriginsArray,
         allowedOperations: ['b2_upload_file'],
-        allowedHeaders: [
-          'Authorization',
-          'X-Bz-File-Name',
-          'Content-Type',
-          'X-Bz-Content-Sha1',
-          'X-Bz-Content-Type',
-        ],
+        allowedHeaders: ['*'], // 와일드카드 사용 - 모든 헤더 허용
         exposeHeaders: [
           'x-bz-file-id',
           'x-bz-file-name',
@@ -109,46 +103,90 @@ async function setupCORS() {
 
     // 버킷 업데이트
     console.log('\n버킷 CORS 규칙 업데이트 중...')
-    console.log('참고: bucketType은 유지하고 corsRules만 업데이트합니다.')
+    console.log('참고: bucketType을 명시적으로 포함하여 CORS 규칙을 업데이트합니다.')
     
-    // B2 API는 bucketType을 명시하지 않으면 기존 값을 유지합니다
-    // 하지만 일부 버전에서는 필수일 수 있으므로 환경 변수에서 가져온 값 사용
+    // bucketType을 명시적으로 포함 (같은 타입을 유지하면서 CORS 규칙 업데이트)
+    // Private 버킷이므로 allPrivate로 명시 (타입 변경이 아니므로 결제 이력 불필요)
     const updateParams: any = {
       bucketId: bucketId,
+      bucketType: 'allPrivate', // Private 버킷이므로 allPrivate 명시
       corsRules: corsRules,
     }
     
-    // bucketType이 환경 변수에 설정되어 있으면 포함
-    // 하지만 updateBucket 호출 시 bucketType을 생략하면 기존 값 유지
-    // 401 에러가 발생할 수 있으므로 bucketType은 생략하고 corsRules만 업데이트 시도
+    console.log('\n📤 전송할 파라미터:')
+    console.log(JSON.stringify(updateParams, null, 2))
+    
     try {
-      await b2.updateBucket(updateParams)
+      // B2 SDK가 corsRules를 제대로 처리하지 않을 수 있으므로
+      // B2 API를 직접 호출하는 방식으로 시도
+      const authData = await b2.authorize()
+      const apiUrl = authData.data.apiUrl
+      const authorizationToken = authData.data.authorizationToken
       
-      console.log('\n✅ CORS 규칙이 성공적으로 업데이트되었습니다!')
+      console.log('\n🔄 B2 API를 직접 호출하여 CORS 규칙을 설정합니다...')
+      
+      // B2 API 직접 호출 (Node.js 내장 fetch 사용)
+      const directApiResponse = await fetch(`${apiUrl}/b2api/v2/b2_update_bucket`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authorizationToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accountId: authData.data.accountId,
+          bucketId: bucketId,
+          bucketType: 'allPrivate',
+          corsRules: corsRules,
+        }),
+      })
+      
+      if (!directApiResponse.ok) {
+        const errorText = await directApiResponse.text()
+        throw new Error(`B2 API 호출 실패: ${directApiResponse.status} ${errorText}`)
+      }
+      
+      const directApiData = await directApiResponse.json()
+      const updateResult = { data: directApiData }
+      
+      // 응답에서 실제 설정된 CORS 규칙 확인
+      console.log('\n📋 B2 API 응답:')
+      if (updateResult.data) {
+        console.log(JSON.stringify(updateResult.data, null, 2))
+        
+        // corsRules가 응답에 포함되어 있으면 출력
+        if (updateResult.data.corsRules) {
+          if (updateResult.data.corsRules.length === 0) {
+            console.log('\n⚠️  경고: CORS 규칙이 빈 배열로 반환되었습니다!')
+            console.log('   이는 CORS 규칙이 실제로 설정되지 않았을 수 있습니다.')
+            console.log('   B2 API가 corsRules만으로는 업데이트를 적용하지 않을 수 있습니다.')
+            console.log('\n💡 해결 방법:')
+            console.log('   1. B2 웹 콘솔에서 직접 CORS 규칙을 설정해보세요.')
+            console.log('   2. 또는 bucketType을 명시적으로 포함하여 다시 시도해보세요.')
+            console.log('      (단, Private 버킷을 Public으로 변경하려면 결제 이력이 필요합니다)')
+          } else {
+            console.log('\n✅ 실제 설정된 CORS 규칙:')
+            console.log(JSON.stringify(updateResult.data.corsRules, null, 2))
+            console.log('\n✅ CORS 규칙이 성공적으로 업데이트되었습니다!')
+          }
+        } else {
+          console.log('\n⚠️  경고: 응답에 corsRules 필드가 없습니다.')
+        }
+      }
+      
       console.log('\n⚠️  변경 사항이 적용되는 데 약 10분 정도 소요될 수 있습니다.')
       console.log('\n설정된 허용 출처:')
       allowedOriginsArray.forEach((origin) => {
         console.log(`  - ${origin}`)
       })
     } catch (updateError: any) {
-      // updateBucket 호출 실패 시 bucketType을 포함하여 재시도
-      console.log('\n⚠️  bucketType 없이 업데이트 실패, bucketType 포함하여 재시도...')
-      if (process.env.B2_BUCKET_TYPE) {
-        updateParams.bucketType = bucketType
-        try {
-          await b2.updateBucket(updateParams)
-          console.log('\n✅ CORS 규칙이 성공적으로 업데이트되었습니다!')
-          console.log('\n⚠️  변경 사항이 적용되는 데 약 10분 정도 소요될 수 있습니다.')
-          console.log('\n설정된 허용 출처:')
-          allowedOriginsArray.forEach((origin) => {
-            console.log(`  - ${origin}`)
-          })
-        } catch (retryError: any) {
-          throw retryError
-        }
+      // 에러 발생 시 상세 정보 출력
+      console.error('\n❌ CORS 규칙 업데이트 실패:')
+      if (updateError.response?.data) {
+        console.error('응답 데이터:', JSON.stringify(updateError.response.data, null, 2))
       } else {
-        throw updateError
+        console.error('에러 메시지:', updateError.message)
       }
+      throw updateError
     }
   } catch (error: any) {
     console.error('\n❌ CORS 설정 중 오류 발생:')
