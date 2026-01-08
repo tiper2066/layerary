@@ -5,6 +5,8 @@ import { z } from 'zod'
 
 const imageSchema = z.object({
   url: z.string().url(),
+  thumbnailUrl: z.string().url().optional(),
+  blurDataURL: z.string().optional(),
   name: z.string(),
   order: z.number().int().nonnegative(),
 })

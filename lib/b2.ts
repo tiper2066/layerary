@@ -135,29 +135,62 @@ export async function uploadImageWithThumbnail(
   file: Buffer,
   fileName: string,
   contentType: string,
-  thumbnailSize: number = 300
-): Promise<{ fileUrl: string; thumbnailUrl: string }> {
+  thumbnailSize: number = 400
+): Promise<{ fileUrl: string; thumbnailUrl: string; blurDataURL?: string }> {
   // 원본 이미지 업로드
   const originalResult = await uploadFile(file, fileName, contentType)
 
-  // 썸네일 생성
+  // 썸네일 생성 (JPEG로 변환하여 용량 최적화)
   const thumbnail = await sharp(file)
     .resize(thumbnailSize, thumbnailSize, {
       fit: 'inside',
       withoutEnlargement: true,
     })
+    .jpeg({ quality: 85 }) // JPEG로 변환하여 용량 최적화
     .toBuffer()
 
-  const thumbnailFileName = `thumbnails/${fileName}`
+  const thumbnailFileName = `thumbnails/${fileName.replace(/\.[^/.]+$/, '.jpg')}`
   const thumbnailResult = await uploadFile(
     thumbnail,
     thumbnailFileName,
-    contentType
+    'image/jpeg'
   )
+
+  // Blur 데이터 URL 생성 (20px 크기)
+  const blurImage = await sharp(file)
+    .resize(20, 20, { fit: 'inside' })
+    .blur(10)
+    .jpeg({ quality: 50 })
+    .toBuffer()
+  
+  const blurDataURL = `data:image/jpeg;base64,${blurImage.toString('base64')}`
 
   return {
     fileUrl: originalResult.fileUrl,
     thumbnailUrl: thumbnailResult.fileUrl,
+    blurDataURL,
+  }
+}
+
+/**
+ * Blur 데이터 URL 생성 (기존 이미지용)
+ */
+export async function generateBlurDataURL(
+  file: Buffer,
+  size: number = 20
+): Promise<string> {
+  try {
+    const blurImage = await sharp(file)
+      .resize(size, size, { fit: 'inside' })
+      .blur(10)
+      .jpeg({ quality: 50 })
+      .toBuffer()
+    
+    return `data:image/jpeg;base64,${blurImage.toString('base64')}`
+  } catch (error) {
+    console.error('Error generating blur data URL:', error)
+    // 실패 시 투명한 1x1 픽셀 반환
+    return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
   }
 }
 

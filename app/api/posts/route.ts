@@ -14,6 +14,8 @@ const querySchema = z.object({
 
 const imageSchema = z.object({
   url: z.string().url(),
+  thumbnailUrl: z.string().url().optional(),
+  blurDataURL: z.string().optional(),
   name: z.string(),
   order: z.number().int().nonnegative(),
 })
@@ -145,6 +147,8 @@ export async function POST(request: Request) {
 
     // 첫 번째 이미지를 thumbnailUrl과 fileUrl로 설정 (하위 호환성)
     const firstImage = validatedData.images[0]
+    // 썸네일이 있으면 썸네일 URL 사용, 없으면 원본 URL 사용
+    const thumbnailUrl = firstImage.thumbnailUrl || firstImage.url
 
     // 태그 처리
     const tagConnections = []
@@ -185,8 +189,8 @@ export async function POST(request: Request) {
         description: validatedData.description,
         categoryId: validatedData.categoryId,
         images: validatedData.images,
-        thumbnailUrl: firstImage.url,
-        fileUrl: firstImage.url, // 하위 호환성
+        thumbnailUrl: thumbnailUrl, // 썸네일 우선, 없으면 원본
+        fileUrl: firstImage.url, // 하위 호환성 (원본 URL)
         fileSize: 0, // 이미지 크기는 나중에 계산 가능
         fileType: 'image',
         mimeType: 'image/*',

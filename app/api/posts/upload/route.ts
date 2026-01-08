@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-helpers'
-import { uploadFile, generateSafeFileName } from '@/lib/b2'
+import { uploadImageWithThumbnail, uploadFile, generateSafeFileName } from '@/lib/b2'
 
 export async function POST(request: Request) {
   try {
@@ -48,14 +48,35 @@ export async function POST(request: Request) {
       const safeFileName = generateSafeFileName(file.name)
       const filePath = `posts/${categorySlug}/${safeFileName}`
 
-      // Backblaze B2에 업로드
-      const uploadResult = await uploadFile(buffer, filePath, file.type)
+      // 이미지 파일인 경우 썸네일 생성, 아닌 경우 원본만 업로드
+      const isImage = file.type.startsWith('image/')
+      
+      if (isImage) {
+        // 이미지 파일: 썸네일과 Blur 데이터 URL 생성
+        const { fileUrl, thumbnailUrl, blurDataURL } = await uploadImageWithThumbnail(
+          buffer,
+          filePath,
+          file.type,
+          400 // 썸네일 크기
+        )
 
-      uploadedImages.push({
-        url: uploadResult.fileUrl,
-        name: file.name,
-        order: i,
-      })
+        uploadedImages.push({
+          url: fileUrl,
+          thumbnailUrl: thumbnailUrl,
+          blurDataURL: blurDataURL,
+          name: file.name,
+          order: i,
+        })
+      } else {
+        // 이미지가 아닌 파일: 원본만 업로드
+        const uploadResult = await uploadFile(buffer, filePath, file.type)
+
+        uploadedImages.push({
+          url: uploadResult.fileUrl,
+          name: file.name,
+          order: i,
+        })
+      }
     }
 
     return NextResponse.json({

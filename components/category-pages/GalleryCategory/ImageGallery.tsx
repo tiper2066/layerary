@@ -6,6 +6,8 @@ import { ZoomIn } from 'lucide-react'
 
 interface PostImage {
   url: string
+  thumbnailUrl?: string
+  blurDataURL?: string
   name: string
   order: number
 }
@@ -16,6 +18,7 @@ interface ImageGalleryProps {
 
 export function ImageGallery({ images }: ImageGalleryProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set())
 
   // images가 JSON 타입일 수 있으므로 타입 확인 및 변환
   let validImages: PostImage[] = []
@@ -65,10 +68,16 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     return url
   }
 
+  const handleImageLoad = (index: number) => {
+    setLoadedImages((prev) => new Set(prev).add(index))
+  }
+
   return (
     <div className="space-y-4 pt-20 pr-6 pb-6 pl-6 md:pt-6 flex flex-col items-center">
       {sortedImages.map((image, index) => {
         const isExpanded = expandedIndex === index
+        const isLoaded = loadedImages.has(index)
+        const blurDataURL = image.blurDataURL
 
         return (
           <div key={index} className="relative group w-full flex justify-center">
@@ -79,14 +88,32 @@ export function ImageGallery({ images }: ImageGalleryProps) {
               )}
               onClick={() => setExpandedIndex(isExpanded ? null : index)}
             >
+              {/* Blur-up Placeholder */}
+              {blurDataURL && !isLoaded && (
+                <img
+                  src={blurDataURL}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{
+                    filter: 'blur(10px)',
+                    transform: 'scale(1.1)',
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              {/* 메인 이미지 (원본) */}
               <img
                 src={getImageSrc(image.url)}
                 alt={image.name || `Image ${index + 1}`}
-                className="w-full h-auto object-contain"
+                className={cn(
+                  'w-full h-auto object-contain transition-opacity duration-300',
+                  blurDataURL && !isLoaded ? 'opacity-0' : 'opacity-100'
+                )}
                 style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'auto'}
+                onLoad={() => handleImageLoad(index)}
               />
             </div>
           </div>

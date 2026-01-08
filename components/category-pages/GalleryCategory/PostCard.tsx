@@ -1,9 +1,12 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface PostImage {
   url: string
+  thumbnailUrl?: string
+  blurDataURL?: string
   name: string
   order: number
 }
@@ -26,8 +29,10 @@ interface PostCardProps {
 export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   const router = useRouter()
 
-  // 첫 번째 이미지 URL 추출
-  const getFirstImageUrl = () => {
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  // 첫 번째 이미지 정보 추출 (썸네일 우선)
+  const getFirstImageInfo = () => {
     // images가 JSON 타입일 수 있으므로 타입 확인
     let images: PostImage[] = []
     
@@ -61,13 +66,21 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
       // order로 정렬
       const sortedImages = [...images].sort((a, b) => (a.order || 0) - (b.order || 0))
       const firstImage = sortedImages[0]
-      if (firstImage && firstImage.url) {
-        return firstImage.url
+      if (firstImage) {
+        return {
+          url: firstImage.url,
+          thumbnailUrl: firstImage.thumbnailUrl,
+          blurDataURL: firstImage.blurDataURL,
+        }
       }
     }
     
-    // fallback: thumbnailUrl 또는 fileUrl 사용
-    return post.thumbnailUrl || post.fileUrl || '/placeholder.png'
+    // fallback: post의 thumbnailUrl 또는 fileUrl 사용
+    return {
+      url: post.thumbnailUrl || post.fileUrl || '/placeholder.png',
+      thumbnailUrl: undefined,
+      blurDataURL: undefined,
+    }
   }
 
   // Backblaze B2 URL인 경우 프록시를 통해 제공
@@ -108,7 +121,7 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   }
 
   const handleClick = () => {
-    // 게시물의 모든 이미지 프리로드
+    // 게시물의 모든 이미지 프리로드 (원본 이미지)
     const allImages = getAllImages()
     if (allImages.length > 0) {
       allImages.forEach((image) => {
@@ -126,7 +139,15 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
     }
   }
 
-  const imageUrl = getFirstImageUrl()
+  const imageInfo = getFirstImageInfo()
+  // 썸네일이 있으면 썸네일 사용, 없으면 원본 사용
+  const displayImageUrl = imageInfo.thumbnailUrl || imageInfo.url
+  const blurDataURL = imageInfo.blurDataURL
+
+  // 이미지 URL이 변경되면 로드 상태 리셋
+  useEffect(() => {
+    setImageLoaded(false)
+  }, [displayImageUrl])
 
   return (
     <div
@@ -134,12 +155,29 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
       onClick={handleClick}
     >
       <div className="relative w-full overflow-hidden rounded-lg bg-muted">
+        {/* Blur-up Placeholder */}
+        {blurDataURL && !imageLoaded && (
+          <img
+            src={blurDataURL}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              filter: 'blur(10px)',
+              transform: 'scale(1.1)',
+            }}
+            aria-hidden="true"
+          />
+        )}
+        {/* 메인 이미지 */}
         <img
-          src={getImageSrc(imageUrl)}
+          src={getImageSrc(displayImageUrl)}
           alt={post.title}
-          className="w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50"
+          className={`w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50 ${
+            blurDataURL && !imageLoaded ? 'opacity-0' : 'opacity-100'
+          }`}
           loading="lazy"
           decoding="async"
+          onLoad={() => setImageLoaded(true)}
         />
         {/* 호버 시 어두운 오버레이 */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300" />
