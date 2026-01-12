@@ -37,10 +37,10 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
     })
 
   // CI/BI 페이지인지 확인 (slug가 'ci-bi'인 경우)
-  const isCiBiPage = pathname && 
+  const isCiBiPage = Boolean(pathname && 
     !pathname.startsWith('/admin') &&
     pathname.startsWith('/ci-bi') &&
-    categories.some(cat => cat.slug === 'ci-bi' && cat.pageType === 'ci-bi')
+    categories.some(cat => cat.slug === 'ci-bi' && cat.pageType === 'ci-bi'))
 
   return (
     <div className="flex min-h-screen md:h-screen bg-background">
