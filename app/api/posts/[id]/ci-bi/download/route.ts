@@ -57,10 +57,13 @@ export async function GET(
     let images: Array<{ url: string; thumbnailUrl?: string; name: string; order: number }> = []
     if (post.images) {
       if (Array.isArray(post.images)) {
-        images = post.images
+        images = post.images as Array<{ url: string; thumbnailUrl?: string; name: string; order: number }>
       } else if (typeof post.images === 'string') {
         try {
-          images = JSON.parse(post.images)
+          const parsed = JSON.parse(post.images)
+          if (Array.isArray(parsed)) {
+            images = parsed as Array<{ url: string; thumbnailUrl?: string; name: string; order: number }>
+          }
         } catch {
           images = []
         }
