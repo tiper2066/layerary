@@ -201,7 +201,7 @@ export function changeCiColorSet(
       // 내부 tspan 중 "Penta"가 포함된 것만 변경
       innerHtml = innerHtml.replace(
         /<tspan([^>]*)>([\s\S]*?Penta[\s\S]*?)<\/tspan>/gi,
-        (tspanMatch, tspanAttrs, tspanContent) => {
+        (tspanMatch: string, tspanAttrs: string, tspanContent: string) => {
           if (tspanAttrs.includes('fill=')) {
             tspanAttrs = tspanAttrs.replace(/fill=["'][^"']*["']/i, `fill="${pentaColor}"`)
           } else {
