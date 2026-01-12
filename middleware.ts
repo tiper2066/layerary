@@ -11,8 +11,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 로그인/회원가입 페이지는 항상 접근 가능
-  if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
+  // 로그인/회원가입/에러 페이지는 항상 접근 가능
+  if (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/error')) {
     return NextResponse.next()
   }
 

@@ -14,6 +14,7 @@ interface Category {
   type: CategoryType
   parentId?: string | null
   children?: Category[]
+  pageType?: string | null
 }
 
 interface MainLayoutProps {
@@ -35,6 +36,12 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
       return match && match[1] === cat.slug
     })
 
+  // CI/BI 페이지인지 확인 (slug가 'ci-bi'인 경우)
+  const isCiBiPage = pathname && 
+    !pathname.startsWith('/admin') &&
+    pathname.startsWith('/ci-bi') &&
+    categories.some(cat => cat.slug === 'ci-bi' && cat.pageType === 'ci-bi')
+
   return (
     <div className="flex min-h-screen md:h-screen bg-background">
       {/* 데스크톱 Sidebar */}
@@ -55,11 +62,20 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="flex flex-col flex-1 min-w-0 md:overflow-hidden">
-        {!isGalleryDetailPage && <Header onMenuClick={() => setMobileMenuOpen(true)} />}
-        <main className="flex-1 overflow-y-auto bg-background pt-16 md:pt-16">
-          <div className="w-full px-8 pt-0 pb-10">
-            {children}
-          </div>
+        {!isGalleryDetailPage && (
+          <Header 
+            onMenuClick={() => setMobileMenuOpen(true)} 
+            isCiBiPage={isCiBiPage}
+          />
+        )}
+        <main className={`flex-1 bg-background pt-16 md:pt-16 ${isCiBiPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
+          {isCiBiPage ? (
+            children
+          ) : (
+            <div className="w-full px-8 pt-0 pb-10">
+              {children}
+            </div>
+          )}
         </main>
       </div>
     </div>

@@ -49,8 +49,12 @@ async function main() {
       name: 'CI/BI',
       slug: 'ci-bi',
       type: CategoryType.SOURCE,
+      pageType: 'ci-bi',
       order: 1,
       description: 'CI/BI 벡터 이미지',
+      config: {
+        allowedTypes: ['CI', 'BI'],
+      },
     },
     {
       name: 'ICON',
@@ -136,7 +140,15 @@ async function main() {
   for (const category of categories) {
     const created = await prisma.category.upsert({
       where: { slug: category.slug },
-      update: {},
+      update: {
+        // 기존 카테고리가 있으면 업데이트
+        name: category.name,
+        type: category.type,
+        order: category.order,
+        description: category.description,
+        pageType: category.pageType || null,
+        config: category.config || null,
+      },
       create: category,
     })
     console.log(`✅ Category created: ${created.name}`)

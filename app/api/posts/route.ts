@@ -29,6 +29,7 @@ const createPostSchema = z.object({
   concept: z.string().optional().nullable(),
   tool: z.string().optional().nullable(),
   tags: z.array(z.string()).optional().default([]),
+  config: z.record(z.any()).optional().nullable(), // CI/BI 타입 등 추가 설정
 })
 
 export async function GET(request: Request) {
@@ -182,6 +183,12 @@ export async function POST(request: Request) {
     }
 
     // 게시물 생성
+    // CI/BI 타입 정보는 concept 필드에 저장 (config 필드가 없으므로)
+    // config가 있으면 ciBiType을 concept에 저장
+    const conceptValue = validatedData.config?.ciBiType 
+      ? validatedData.config.ciBiType 
+      : validatedData.concept
+
     const post = await prisma.post.create({
       data: {
         title: validatedData.title,
@@ -194,7 +201,7 @@ export async function POST(request: Request) {
         fileSize: 0, // 이미지 크기는 나중에 계산 가능
         fileType: 'image',
         mimeType: 'image/*',
-        concept: validatedData.concept,
+        concept: conceptValue,
         tool: validatedData.tool,
         authorId: admin.id,
         tags: {

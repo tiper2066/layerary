@@ -5,6 +5,11 @@ import { prisma } from "./prisma"
 import * as bcrypt from "bcryptjs"
 import { UserRole } from "@prisma/client"
 
+// 이메일 도메인 검증 함수
+function isValidEmailDomain(email: string): boolean {
+  return email.toLowerCase().endsWith('@pentasecurity.com')
+}
+
 export const authOptions: NextAuthConfig = {
   trustHost: true, // NextAuth v5 beta에서 필요
   providers: [
@@ -29,6 +34,11 @@ export const authOptions: NextAuthConfig = {
 
         const email = credentials.email as string
         const password = credentials.password as string
+
+        // 이메일 도메인 검증
+        if (!isValidEmailDomain(email)) {
+          throw new Error('pentasecurity.com 도메인의 이메일만 로그인할 수 있습니다.')
+        }
 
         const user = await prisma.user.findUnique({
           where: { email }
@@ -67,8 +77,13 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Google 로그인 시 사용자를 데이터베이스에 저장
+      // Google 로그인 시 이메일 도메인 검증
       if (account?.provider === 'google' && user.email) {
+        // 이메일 도메인 검증
+        if (!isValidEmailDomain(user.email)) {
+          return false // 로그인 거부 (에러 페이지로 리다이렉트)
+        }
+
         try {
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email },
@@ -138,6 +153,7 @@ export const authOptions: NextAuthConfig = {
   },
   pages: {
     signIn: "/login",
+    error: "/error", // 커스텀 에러 페이지 지정
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development', // 개발 환경에서 디버그 모드 활성화

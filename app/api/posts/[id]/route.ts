@@ -19,6 +19,7 @@ const updatePostSchema = z.object({
   concept: z.string().optional().nullable(),
   tool: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
+  config: z.record(z.any()).optional().nullable(), // CI/BI 타입 등 추가 설정
 })
 
 export async function GET(
@@ -221,7 +222,10 @@ export async function PUT(
     if (validatedData.description !== undefined) {
       updateData.description = validatedData.description
     }
-    if (validatedData.concept !== undefined) {
+    // CI/BI 타입 정보는 concept 필드에 저장
+    if (validatedData.config?.ciBiType !== undefined) {
+      updateData.concept = validatedData.config.ciBiType
+    } else if (validatedData.concept !== undefined) {
       updateData.concept = validatedData.concept
     }
     if (validatedData.tool !== undefined) {

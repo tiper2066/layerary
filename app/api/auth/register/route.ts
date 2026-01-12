@@ -9,12 +9,25 @@ const registerSchema = z.object({
   password: z.string().min(6, '비밀번호는 최소 6자 이상이어야 합니다'),
 })
 
+// 이메일 도메인 검증 함수
+function isValidEmailDomain(email: string): boolean {
+  return email.toLowerCase().endsWith('@pentasecurity.com')
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     
     // 유효성 검사
     const validatedData = registerSchema.parse(body)
+
+    // 이메일 도메인 검증
+    if (!isValidEmailDomain(validatedData.email)) {
+      return NextResponse.json(
+        { error: 'pentasecurity.com 도메인의 이메일만 회원가입이 가능합니다.' },
+        { status: 403 }
+      )
+    }
 
     // 이메일 중복 확인
     const existingUser = await prisma.user.findUnique({

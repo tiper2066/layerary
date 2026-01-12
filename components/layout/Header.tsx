@@ -11,9 +11,10 @@ import { useTheme } from 'next-themes'
 
 interface HeaderProps {
   onMenuClick?: () => void
+  isCiBiPage?: boolean // CI/BI 페이지 여부
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, isCiBiPage = false }: HeaderProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const { theme, setTheme, resolvedTheme } = useTheme()
@@ -39,7 +40,9 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   return (
     <header 
-      className="fixed md:absolute top-0 left-0 md:left-56 right-0 z-50"
+      className={`fixed md:absolute top-0 left-0 md:left-56 z-50 ${
+        isCiBiPage ? 'md:right-[410px]' : 'right-0'
+      }`}
       style={{
         backgroundColor: currentTheme === 'dark' 
           ? 'rgba(13, 13, 13, 0.6)' // dark mode 배경 (대략적인 값)

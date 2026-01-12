@@ -39,7 +39,12 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+        // 도메인 제한 에러 메시지 처리
+        if (result.error.includes('pentasecurity.com')) {
+          setError('pentasecurity.com 도메인의 이메일만 로그인할 수 있습니다.')
+        } else {
+          setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+        }
         setIsLoading(false)
       } else {
         // 즉시 전체 페이지 리로드하여 홈으로 이동
@@ -56,6 +61,8 @@ function LoginForm() {
     setIsLoading(true)
     try {
       await signIn('google', { callbackUrl: '/' })
+      // Google OAuth는 리다이렉트되므로 여기서는 에러 처리를 하지 않음
+      // 에러는 NextAuth가 커스텀 에러 페이지로 리다이렉트함
     } catch (err) {
       setError('구글 로그인 중 오류가 발생했습니다.')
       setIsLoading(false)
