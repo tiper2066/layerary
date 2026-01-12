@@ -165,7 +165,7 @@ export async function GET(
         })
         .toBuffer()
 
-      return new NextResponse(imageBuffer, {
+      return new NextResponse(new Uint8Array(imageBuffer), {
         headers: {
           'Content-Type': mimeType,
           'Content-Disposition': `attachment; filename="${post.title}.${validatedQuery.format}"`,
