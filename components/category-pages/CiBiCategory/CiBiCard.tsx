@@ -62,7 +62,7 @@ export function CiBiCard({
           images = []
         }
       } else if (typeof post.images === 'object' && post.images !== null) {
-        const parsed = post.images as any
+        const parsed = post.images as unknown as PostImage[]
         if (Array.isArray(parsed)) {
           images = parsed
         }

@@ -147,7 +147,7 @@ async function main() {
         order: category.order,
         description: category.description,
         pageType: category.pageType || null,
-        config: category.config || null,
+        ...(category.config ? { config: category.config } : {}),
       },
       create: category,
     })
