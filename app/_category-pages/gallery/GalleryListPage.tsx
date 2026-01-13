@@ -80,6 +80,8 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
         )
 
         if (!response.ok) {
+          // 에러 발생 시 더 이상 로드하지 않도록 설정
+          setHasMore(false)
           throw new Error('게시물 목록을 불러오는데 실패했습니다.')
         }
 
@@ -94,6 +96,8 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
         setHasMore(data.pagination.hasMore)
       } catch (error) {
         console.error('Error fetching posts:', error)
+        // 에러 발생 시 더 이상 로드하지 않도록 설정
+        setHasMore(false)
       } finally {
         setLoading(false)
       }

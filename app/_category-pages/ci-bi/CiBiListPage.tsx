@@ -40,6 +40,7 @@ interface Post {
   images?: Array<{ url: string; thumbnailUrl?: string; name: string; order: number }> | null | any
   fileUrl?: string
   concept?: string | null // CI/BI 타입
+  tags?: Array<{ tag: { id: string; name: string; slug: string } }>
 }
 
 export function CiBiListPage({ category }: CiBiListPageProps) {
@@ -63,6 +64,7 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletePostId, setDeletePostId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState<string>('ALL') // 필터 상태
 
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
@@ -91,14 +93,36 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
     async (pageNum: number, append: boolean = false, forceRefresh: boolean = false) => {
       try {
         setLoading(true)
-        const response = await fetch(
-          `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20${forceRefresh ? `&_t=${Date.now()}` : ''}`,
-          {
-            cache: forceRefresh ? 'no-store' : 'default',
+        
+        // 필터 파라미터 구성
+        const params = new URLSearchParams({
+          categorySlug: category.slug,
+          page: pageNum.toString(),
+          limit: '20',
+        })
+        
+        // 필터 적용
+        if (selectedFilter !== 'ALL') {
+          // CI 필터인 경우
+          if (selectedFilter === 'CI') {
+            params.append('concept', 'CI')
+          } else {
+            // 태그 필터인 경우 (D.AMO, WAPPLES, iSIGN, Cloudbric 등)
+            params.append('tag', selectedFilter)
           }
-        )
+        }
+        
+        if (forceRefresh) {
+          params.append('_t', Date.now().toString())
+        }
+        
+        const response = await fetch(`/api/posts?${params.toString()}`, {
+          cache: forceRefresh ? 'no-store' : 'default',
+        })
 
         if (!response.ok) {
+          // 에러 발생 시 더 이상 로드하지 않도록 설정
+          setHasMore(false)
           throw new Error('게시물 목록을 불러오는데 실패했습니다.')
         }
 
@@ -113,12 +137,26 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
         setHasMore(data.pagination.hasMore)
       } catch (error) {
         console.error('Error fetching posts:', error)
+        // 에러 발생 시 더 이상 로드하지 않도록 설정
+        setHasMore(false)
       } finally {
         setLoading(false)
       }
     },
-    [category.slug]
+    [category.slug, selectedFilter]
   )
+
+  // 필터 변경 시 목록 새로고침 및 선택 상태 초기화
+  useEffect(() => {
+    setPage(1)
+    setHasMore(true)
+    // 선택 상태 초기화
+    setSelectedPostId(null)
+    setSelectedPost(null)
+    setSelectedColor('#000000')
+    setSelectedSize({})
+    fetchPosts(1, false, true)
+  }, [selectedFilter, fetchPosts])
 
   // 초기 로드
   useEffect(() => {
@@ -135,6 +173,23 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
       router.replace(`/${category.slug}`, { scroll: false })
     }
   }, [searchParams, fetchPosts, category.slug, router])
+
+  // postId 파라미터 감지하여 게시물 자동 선택
+  useEffect(() => {
+    const postIdParam = searchParams.get('postId')
+    if (postIdParam && posts.length > 0) {
+      const post = posts.find((p) => p.id === postIdParam)
+      if (post) {
+        setSelectedPostId(postIdParam)
+        setSelectedPost(post)
+        // 선택된 게시물의 타입에 따라 기본 색상 설정
+        const defaultColor = post.concept === 'CI' ? 'CI_COLOR_SET' : '#000000'
+        setSelectedColor(defaultColor)
+        // URL에서 postId 파라미터 제거 (선택적으로)
+        router.replace(`/${category.slug}`, { scroll: false })
+      }
+    }
+  }, [searchParams, posts, category.slug, router])
 
   // 페이지 변경 시 추가 로드
   useEffect(() => {
@@ -319,6 +374,23 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
                 게시물 추가
               </Button>
             )}
+          </div>
+
+          {/* 필터 메뉴 */}
+          <div className="flex items-center gap-4 mb-3">
+            {['ALL', 'CI', 'D.AMO', 'WAPPLES', 'iSIGN', 'Cloudbric', 'etc'].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setSelectedFilter(filter)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  selectedFilter === filter
+                    ? 'text-primary font-semibold hover:bg-muted'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                {filter === 'etc' ? 'etc.' : filter}
+              </button>
+            ))}
           </div>
 
           {/* 게시물이 없을 때 빈 상태 메시지 */}

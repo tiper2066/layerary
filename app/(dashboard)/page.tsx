@@ -166,27 +166,35 @@ export default async function HomePage() {
             <CardContent className="p-6">
               {recentPosts.length > 0 ? (
                 <div className="space-y-4">
-                  {recentPosts.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/${post.category.slug}/${post.id}`}
-                      className="block p-4 rounded-lg hover:bg-accent transition-colors last:border-b-0"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                          {post.category.type && post.category.type !== CategoryType.ADMIN && post.category.type !== CategoryType.ETC && (
-                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryTypeBadgeColor(post.category.type)}`}>
-                              {getCategoryTypeLabel(post.category.type)}
-                            </span>
-                          )}
-                          <h3 className="font-medium text-base">{post.title}</h3>
+                  {recentPosts.map((post) => {
+                    // CI/BI 카테고리인 경우 링크 형식 변경
+                    const isCiBiCategory = post.category.pageType === 'ci-bi'
+                    const href = isCiBiCategory 
+                      ? `/${post.category.slug}?postId=${post.id}`
+                      : `/${post.category.slug}/${post.id}`
+                    
+                    return (
+                      <Link
+                        key={post.id}
+                        href={href}
+                        className="block p-4 rounded-lg hover:bg-accent transition-colors last:border-b-0"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                            {post.category.type && post.category.type !== CategoryType.ADMIN && post.category.type !== CategoryType.ETC && (
+                              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryTypeBadgeColor(post.category.type)}`}>
+                                {getCategoryTypeLabel(post.category.type)}
+                              </span>
+                            )}
+                            <h3 className="font-medium text-base">{post.title}</h3>
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(post.createdAt).toLocaleDateString('ko-KR')}
+                          </span>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(post.createdAt).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    )
+                  })}
                 </div>
               ) : (
                 <p className="text-muted-foreground text-center py-8">

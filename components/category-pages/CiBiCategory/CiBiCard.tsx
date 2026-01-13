@@ -237,15 +237,15 @@ export function CiBiCard({
 
   // White 색상이 선택된 경우 배경을 검정으로 변경
   const isWhiteSelected = selectedColor === '#FFFFFF' || selectedColor === '#FFF' || selectedColor?.toLowerCase() === 'white'
-  const cardBackgroundColor = isWhiteSelected ? 'bg-black' : 'bg-card'
+  const cardBackgroundColor = isWhiteSelected ? 'bg-black' : 'bg-card dark:bg-white'
 
   return (
     <div
       className={`
         relative group cursor-pointer
-        ${cardBackgroundColor} border rounded-lg overflow-hidden
+        ${cardBackgroundColor} border dark:border-4 rounded-lg overflow-hidden
         transition-all duration-200
-        ${isSelected ? 'border-penta-blue' : 'hover:shadow-md'}
+        ${isSelected ? 'border-penta-blue dark:border-penta-sky' : 'hover:shadow-md'}
         h-[136px] flex items-center justify-center p-8
       `}
       onClick={() => onClick(post.id)}

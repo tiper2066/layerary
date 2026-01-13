@@ -45,8 +45,27 @@ export default function RegisterPage() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.')
+    // 비밀번호 조건 검사
+    const passwordErrors: string[] = []
+    
+    if (formData.password.length < 5) {
+      passwordErrors.push('최소 5자 이상')
+    }
+    
+    if (!/[a-zA-Z]/.test(formData.password)) {
+      passwordErrors.push('영문')
+    }
+    
+    if (!/[0-9]/.test(formData.password)) {
+      passwordErrors.push('숫자')
+    }
+    
+    if (!/[.!@#]/.test(formData.password)) {
+      passwordErrors.push('특수문자(.!@#)')
+    }
+    
+    if (passwordErrors.length > 0) {
+      setError(`비밀번호는 ${passwordErrors.join(', ')}을(를) 포함해야 합니다.`)
       return
     }
 
@@ -157,6 +176,10 @@ export default function RegisterPage() {
                     <Eye className="h-4 w-4" />
                   )}
                 </button>
+              </div>
+              {/* 비밀번호 조건 표시 */}
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p className="font-medium">최소 5자 이상, 영문, 숫자, 특수문자(.!@#) 포함</p>
               </div>
             </div>
 

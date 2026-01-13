@@ -4,14 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Download, RotateCcw } from 'lucide-react'
+import { Download, RotateCcw, Link as LinkIcon, Loader2 } from 'lucide-react'
 
 interface Post {
   id: string
@@ -25,7 +18,7 @@ interface PropertyPanelProps {
   selectedColor: string
   onColorChange: (color: string) => void
   onSizeChange: (width?: number, height?: number) => void
-  onDownload: (format: 'png' | 'jpg' | 'svg') => void
+  onDownload: (format: 'png' | 'jpg' | 'svg') => Promise<void>
 }
 
 const CI_COLORS = [
@@ -40,11 +33,11 @@ const BI_COLORS = [
 ]
 
 const SIZE_PRESETS = [
-  { label: '60px', height: 60 },
-  { label: '120px', height: 120 },
-  { label: '240px', height: 240 },
-  { label: '512px', height: 512 },
-  { label: '1024px', height: 1024 },
+  { label: '60h', height: 60 },
+  { label: '120h', height: 120 },
+  { label: '240h', height: 240 },
+  { label: '512h', height: 512 },
+  { label: '1024h', height: 1024 },
 ]
 
 export function PropertyPanel({
@@ -61,6 +54,7 @@ export function PropertyPanel({
   const [originalWidth, setOriginalWidth] = useState<number | undefined>(undefined)
   const [originalHeight, setOriginalHeight] = useState<number | undefined>(undefined)
   const [isSizeFieldFocused, setIsSizeFieldFocused] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
 
   const postType = post?.concept || 'CI' // 기본값 CI
@@ -215,8 +209,8 @@ export function PropertyPanel({
     setHeight(presetHeight)
     
     if (aspectRatio) {
-      // aspectRatio가 있으면 가로도 계산하여 설정
-      const presetWidth = presetHeight * aspectRatio
+      // aspectRatio가 있으면 가로도 계산하여 설정 (반올림)
+      const presetWidth = Math.round(presetHeight * aspectRatio)
       setWidth(presetWidth)
       onSizeChange(presetWidth, presetHeight)
     } else {
@@ -245,12 +239,12 @@ export function PropertyPanel({
 
   return (
     <div className="w-[410px] h-full bg-background fixed right-0 top-0 bottom-0 overflow-y-auto">
-      <div className="p-6 space-y-6">
+      <div className="px-8 pt-14 pb-8 space-y-6">
         {/* 제목 및 타입 */}
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">{post.title}</h2>
+        <div className="space-y-5 pb-8 border-b">
+          <h2 className="text-xl font-bold">{post.title}</h2>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">타입:</span>
+            {/* <span className="text-sm text-muted-foreground">타입:</span> */}
             <span className="px-2 py-1 bg-primary/10 text-primary rounded text-sm font-medium">
               {postType}
             </span>
@@ -258,9 +252,9 @@ export function PropertyPanel({
         </div>
 
         {/* 색상 선택 */}
-        <div className="space-y-3">
-          <Label>색상</Label>
-          <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3 pt-4">
+          <Label className='text-xs text-muted-foreground'>COLOR</Label>
+          <div className="flex justify-start items-center flex-wrap gap-6">
             {availableColors.map((color) => {
               // CI 컬러 세트인 경우 특별한 표시 (블루 + 그레이 두 개의 색상 표시)
               if (color.value === 'CI_COLOR_SET') {
@@ -268,20 +262,20 @@ export function PropertyPanel({
                   <Button
                     key={color.value}
                     variant={selectedColor === color.value ? 'default' : 'outline'}
-                    className="flex items-center gap-2 justify-start h-auto py-3 px-4"
+                    className="flex items-center gap-0 justify-center w-9 h-9 p-0 bg-none focus:ring-4 focus:bg-penta-sky/20 active:ring-4 active:bg-penta-sky/20"
                     onClick={() => onColorChange(color.value)}
                   >
-                    <div className="flex gap-1">
+                    <div className="flex">
                       <div
-                        className="w-4 h-6 rounded border border-border"
+                        className="w-4 h-8 rounded-l-sm"
                         style={{ backgroundColor: '#0060A9' }}
                       />
                       <div
-                        className="w-4 h-6 rounded border border-border"
+                        className="w-4 h-8 rounded-r-sm"
                         style={{ backgroundColor: '#999B9E' }}
                       />
                     </div>
-                    <span className="text-sm">{color.label}</span>
+                    {/* <span className="text-sm">{color.label}</span> */}
                   </Button>
                 )
               }
@@ -291,14 +285,14 @@ export function PropertyPanel({
                 <Button
                   key={color.value}
                   variant={selectedColor === color.value ? 'default' : 'outline'}
-                  className="flex items-center gap-2 justify-start h-auto py-3 px-4"
+                  className="flex items-center gap-0 justify-center w-9 h-9 p-0 focus:ring-4 focus:bg-penta-sky/20 active:ring-4 active:bg-penta-sky/20"
                   onClick={() => onColorChange(color.value)}
                 >
                   <div
-                    className="w-6 h-6 rounded border border-border"
+                    className="w-8 h-8 rounded border-border border"
                     style={{ backgroundColor: color.value }}
                   />
-                  <span className="text-sm">{color.label}</span>
+                  {/* <span className="text-sm">{color.label}</span> */}
                 </Button>
               )
             })}
@@ -306,14 +300,12 @@ export function PropertyPanel({
         </div>
 
         {/* 사이즈 조정 */}
-        <div className="space-y-3">
-          <Label>사이즈</Label>
+        <div className="space-y-3 pt-4">
+          <Label className='text-xs text-muted-foreground'>SIZE</Label>
           
-          <div className="grid grid-cols-3 gap-2">
-            <div className="space-y-2 col-span-1">
-              <Label htmlFor="width" className="text-xs text-muted-foreground">
-                가로 (px)
-              </Label>
+          <div className="flex justify-between items-center gap-3">
+            <div className='flex items-center gap-2'>
+              <span className='text-sm'>W</span>
               <Input
                 id="width"
                 type="number"
@@ -328,15 +320,16 @@ export function PropertyPanel({
                   setIsSizeFieldFocused(false)
                 }}
                 placeholder="자동"
+                className='h-8'
                 style={{
                   backgroundColor: isSizeFieldFocused ? '#D7EDFF80' : undefined,
                 }}
               />
+              <span className='text-sm'>px</span>
             </div>
-            <div className="space-y-2 col-span-1">
-              <Label htmlFor="height" className="text-xs text-muted-foreground">
-                세로 (px)
-              </Label>
+            <LinkIcon className="h-6 w-6 text-muted-foreground" />
+            <div className='flex items-center gap-2'>
+              <span className='text-sm'>H</span>
               <Input
                 id="height"
                 type="number"
@@ -351,21 +344,20 @@ export function PropertyPanel({
                   setIsSizeFieldFocused(false)
                 }}
                 placeholder="자동"
+                className='h-8'
                 style={{
                   backgroundColor: isSizeFieldFocused ? '#D7EDFF80' : undefined,
                 }}
               />
+              <span className='text-sm'>px</span>
             </div>
-            <div className="space-y-2 col-span-1">
-              <Label className="text-xs text-muted-foreground opacity-0">
-                초기화
-              </Label>
+            <div>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleResetSize}
                 disabled={originalWidth === undefined || originalHeight === undefined}
-                className="w-full h-10"
+                className="h-8 w-8"
                 title="원본 크기로 초기화"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -374,9 +366,8 @@ export function PropertyPanel({
           </div>
 
           {/* 프리셋 버튼 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">프리셋</Label>
-            <div className="flex flex-wrap gap-2">
+          <div className="pt-2 pb-2">
+            <div className="flex justify-between items-center flex-wrap gap-2">
               {SIZE_PRESETS.map((preset) => (
                 <Button
                   key={preset.label}
@@ -387,7 +378,7 @@ export function PropertyPanel({
                     e.stopPropagation()
                     handlePresetClick(preset.height)
                   }}
-                  className={height === preset.height ? 'bg-primary text-primary-foreground' : ''}
+                  className={height === preset.height ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' : 'text-xs bg-gray-50 border-none flex-1 h-8'}
                 >
                   {preset.label}
                 </Button>
@@ -397,33 +388,91 @@ export function PropertyPanel({
         </div>
 
         {/* 다운로드 */}
-        <div className="space-y-3 pt-4 border-t">
-          <Label>다운로드</Label>
+        <div className="space-y-3 pt-4">
+          <Label className='text-xs text-muted-foreground'>FORMAT</Label>
           <div className="space-y-2">
-            <Select
-              value={downloadFormat}
-              onValueChange={(value) => {
-                setDownloadFormat(value as 'png' | 'jpg' | 'svg')
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="포맷 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="png">PNG</SelectItem>
-                {!isWhiteSelected && <SelectItem value="jpg">JPG</SelectItem>}
-                <SelectItem value="svg">SVG</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              className="w-full"
-              onClick={() => {
-                onDownload(downloadFormat)
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              다운로드
-            </Button>
+            {/* 포맷 선택 버튼 */}
+            <div className="flex justify-between items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDownloadFormat('png')
+                }}
+                className={downloadFormat === 'png' 
+                  ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' 
+                  : 'text-xs bg-white border flex-1 h-8'}
+              >
+                PNG
+              </Button>
+              {!isWhiteSelected && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setDownloadFormat('jpg')
+                  }}
+                  className={downloadFormat === 'jpg' 
+                    ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' 
+                    : 'text-xs bg-white border flex-1 h-8'}
+                >
+                  JPG
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDownloadFormat('svg')
+                }}
+                className={downloadFormat === 'svg' 
+                  ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' 
+                  : 'text-xs bg-white border flex-1 h-8'}
+              >
+                SVG
+              </Button>
+            </div>
+            <div className='pb-12 border-b'>
+              <p className='text-xs font-light text-muted-foreground'>
+                <span className='font-semibold mr-1'>PNG </span>: 배경투명
+                <span className='font-semibold ml-4 mr-1'>JPG </span>: 배경투명
+                <span className='font-semibold ml-4'>SVG </span>: 벡터 (ai 파일대체)
+              </p>
+            </div>
+            <div className='pt-10'>
+              <Button
+                className="w-full"
+                onClick={async () => {
+                  try {
+                    setDownloading(true)
+                    await onDownload(downloadFormat)
+                  } catch (error) {
+                    console.error('Download error:', error)
+                  } finally {
+                    setDownloading(false)
+                  }
+                }}
+                disabled={downloading}
+              >
+                {downloading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    다운로드 중...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    다운로드
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

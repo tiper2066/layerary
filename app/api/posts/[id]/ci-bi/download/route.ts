@@ -127,31 +127,20 @@ export async function GET(
 
       // width 또는 height가 있을 때만 resize 적용 (PNG/JPG 변환 시)
       if (validatedQuery.width || validatedQuery.height) {
-        const resizeOptions: { width?: number; height?: number; fit?: 'inside' } = {}
-        
         // width와 height를 정수로 반올림
         const roundedWidth = validatedQuery.width ? Math.round(validatedQuery.width) : undefined
         const roundedHeight = validatedQuery.height ? Math.round(validatedQuery.height) : undefined
         
         if (roundedWidth && roundedHeight) {
-          resizeOptions.width = roundedWidth
-          resizeOptions.height = roundedHeight
-          resizeOptions.fit = 'inside'
+          // width와 height가 모두 있으면 정확한 크기로 리사이즈 (fit 옵션 없이)
+          sharpInstance = sharpInstance.resize(roundedWidth, roundedHeight)
         } else if (roundedWidth) {
-          resizeOptions.width = roundedWidth
-          resizeOptions.fit = 'inside'
+          // width만 있으면 aspect ratio 유지하며 리사이즈
+          sharpInstance = sharpInstance.resize(roundedWidth, null, { fit: 'inside' })
         } else if (roundedHeight) {
-          resizeOptions.height = roundedHeight
-          resizeOptions.fit = 'inside'
+          // height만 있으면 aspect ratio 유지하며 리사이즈
+          sharpInstance = sharpInstance.resize(null, roundedHeight, { fit: 'inside' })
         }
-
-        console.log('[Download API] Resize 옵션:', resizeOptions)
-
-        sharpInstance = sharpInstance.resize(
-          resizeOptions.width,
-          resizeOptions.height,
-          resizeOptions.fit ? { fit: resizeOptions.fit } : undefined
-        )
       }
 
       // JPG인 경우 배경을 흰색으로 설정 (투명도 지원하지 않음)

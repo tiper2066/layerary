@@ -36,6 +36,7 @@ const ciBiPostSchema = z.object({
   type: z.enum(['CI', 'BI'], {
     required_error: '타입을 선택해주세요.',
   }),
+  tags: z.string().optional(), // 쉼표로 구분된 태그 문자열
 })
 
 type CiBiPostFormValues = z.infer<typeof ciBiPostSchema>
@@ -52,6 +53,8 @@ interface Post {
   id: string
   title: string
   images?: PostImage[] | null | any
+  concept?: string | null // CI/BI 타입
+  tags?: Array<{ tag: { id: string; name: string; slug: string } }>
 }
 
 interface CiBiUploadDialogProps {
@@ -85,6 +88,7 @@ export function CiBiUploadDialog({
     defaultValues: {
       title: '',
       type: 'CI',
+      tags: '',
     },
   })
 
@@ -115,18 +119,26 @@ export function CiBiUploadDialog({
       }
       setExistingImages(images)
 
-      // 기존 Post의 config에서 타입 추출 (또는 다른 방법)
-      // 임시로 제목에서 추출하거나, config 필드 사용
-      const existingType = 'CI' // 기본값, 나중에 config에서 읽어오도록 수정 필요
+      // 기존 Post의 concept 필드에서 타입 추출
+      const existingType = (post.concept === 'CI' || post.concept === 'BI') 
+        ? post.concept 
+        : 'CI' // 기본값
+      
+      // 기존 태그 추출
+      const existingTags = post.tags
+        ? post.tags.map((pt: { tag: { name: string } }) => pt.tag.name).join(', ')
+        : ''
       
       form.reset({
         title: post.title || '',
         type: existingType as 'CI' | 'BI',
+        tags: existingTags,
       })
     } else {
       form.reset({
         title: '',
         type: 'CI',
+        tags: '',
       })
       setExistingImages([])
       setSelectedFiles([])
@@ -289,6 +301,11 @@ export function CiBiUploadDialog({
         ciBiType: values.type,
       }
 
+      // 태그 처리: 쉼표로 구분된 문자열을 배열로 변환
+      const tagsArray = values.tags
+        ? values.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+        : []
+
       if (isEditMode) {
         // 수정 모드: PUT 요청
         const response = await fetch(`/api/posts/${postId}`, {
@@ -301,6 +318,7 @@ export function CiBiUploadDialog({
             categoryId: categoryId,
             images: finalImages,
             config: config,
+            tags: tagsArray,
           }),
         })
 
@@ -324,6 +342,7 @@ export function CiBiUploadDialog({
             images: finalImages,
             concept: values.type, // 임시로 concept에 타입 저장 (나중에 config로 변경)
             config: config,
+            tags: tagsArray,
           }),
         })
 
@@ -406,6 +425,27 @@ export function CiBiUploadDialog({
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>태그 (쉼표로 구분)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="예: D.AMO, WAPPLES, iSIGN, Cloudbric, etc"
+                      {...field}
+                      disabled={submitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-xs text-muted-foreground">
+                    여러 태그를 입력할 경우 쉼표로 구분하세요.
+                  </p>
                 </FormItem>
               )}
             />

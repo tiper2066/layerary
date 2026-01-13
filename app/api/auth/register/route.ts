@@ -6,7 +6,9 @@ import { z } from 'zod'
 const registerSchema = z.object({
   name: z.string().min(1, '이름을 입력해주세요'),
   email: z.string().email('올바른 이메일을 입력해주세요'),
-  password: z.string().min(6, '비밀번호는 최소 6자 이상이어야 합니다'),
+  password: z.string()
+    .min(5, '비밀번호는 최소 5자 이상이어야 합니다')
+    .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[.!@#])/, '영문, 숫자, 특수문자(.!@#)를 포함해야 합니다'),
 })
 
 // 이메일 도메인 검증 함수

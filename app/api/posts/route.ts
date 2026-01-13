@@ -10,6 +10,8 @@ const querySchema = z.object({
   categorySlug: z.string().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
+  concept: z.string().optional(), // CI/BI 타입 필터
+  tag: z.string().optional(), // 태그 필터
 })
 
 const imageSchema = z.object({
@@ -35,10 +37,20 @@ const createPostSchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
+    
+    // null 값을 undefined로 변환
+    const categorySlug = searchParams.get('categorySlug')
+    const page = searchParams.get('page')
+    const limit = searchParams.get('limit')
+    const concept = searchParams.get('concept')
+    const tag = searchParams.get('tag')
+    
     const validatedQuery = querySchema.parse({
-      categorySlug: searchParams.get('categorySlug'),
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
+      categorySlug: categorySlug || undefined,
+      page: page || undefined,
+      limit: limit || undefined,
+      concept: concept || undefined,
+      tag: tag || undefined,
     })
 
     const skip = (validatedQuery.page - 1) * validatedQuery.limit
@@ -48,9 +60,11 @@ export async function GET(request: Request) {
       status: 'PUBLISHED',
     }
 
+    // 카테고리 정보 가져오기 (CI/BI 정렬을 위해)
+    let category: any = null
     if (validatedQuery.categorySlug) {
       // 캐싱된 카테고리 조회 함수 사용
-      const category = await getCategoryBySlug(validatedQuery.categorySlug)
+      category = await getCategoryBySlug(validatedQuery.categorySlug)
 
       if (!category) {
         return NextResponse.json(
@@ -62,48 +76,151 @@ export async function GET(request: Request) {
       where.categoryId = category.id
     }
 
-    // 게시물 목록 조회
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        skip,
-        take: validatedQuery.limit,
-        orderBy: {
-          createdAt: 'desc',
+    // concept 필터 (CI/BI 타입)
+    if (validatedQuery.concept) {
+      where.concept = validatedQuery.concept
+    }
+
+    // tag 필터
+    if (validatedQuery.tag) {
+      where.tags = {
+        some: {
+          tag: {
+            name: validatedQuery.tag,
+          },
         },
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              type: true,
+      }
+    }
+
+    // CI/BI 카테고리이고 필터가 'ALL'일 때만 커스텀 정렬 적용
+    const isCiBiCategory = category?.pageType === 'ci-bi'
+    const isAllFilter = !validatedQuery.concept && !validatedQuery.tag
+
+    let posts: any[]
+    let total: number
+    let hasMore: boolean
+
+    if (isCiBiCategory && isAllFilter) {
+      // 전체 게시물을 가져와서 정렬 후 페이지네이션
+      const [allPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+              },
             },
-          },
-          author: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
                 },
               },
             },
           },
-        },
-      }),
-      prisma.post.count({ where }),
-    ])
+        }),
+        prisma.post.count({ where }),
+      ])
 
-    const hasMore = skip + posts.length < total
+      // 필터 메뉴 순서 정의
+      const filterOrder = ['CI', 'D.AMO', 'WAPPLES', 'iSIGN', 'Cloudbric', 'etc']
+      
+      // 각 게시물에 우선순위 부여
+      const postsWithPriority = allPosts.map((post) => {
+        let priority = 999 // 기본 우선순위 (낮음)
+        
+        // CI 타입 체크
+        if (post.concept === 'CI') {
+          priority = 0
+        } else {
+          // 태그 기반 우선순위
+          const postTags = post.tags?.map((pt: any) => pt.tag.name) || []
+          for (let i = 0; i < filterOrder.length; i++) {
+            if (postTags.includes(filterOrder[i])) {
+              priority = i + 1
+              break // 첫 번째 매칭 태그만 사용
+            }
+          }
+        }
+        
+        return { post, priority }
+      })
+      
+      // 우선순위로 정렬, 같은 우선순위 내에서는 최신순
+      const sortedPosts = postsWithPriority
+        .sort((a, b) => {
+          if (a.priority !== b.priority) {
+            return a.priority - b.priority
+          }
+          return new Date(b.post.createdAt).getTime() - new Date(a.post.createdAt).getTime()
+        })
+        .map((item) => item.post)
+
+      // 페이지네이션 적용
+      total = totalCount
+      posts = sortedPosts.slice(skip, skip + validatedQuery.limit)
+      hasMore = skip + posts.length < total
+    } else {
+      // 일반 정렬 (최신순)
+      const [fetchedPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          skip,
+          take: validatedQuery.limit,
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ])
+
+      total = totalCount
+      posts = fetchedPosts
+      hasMore = skip + posts.length < total
+    }
 
     return NextResponse.json(
       {

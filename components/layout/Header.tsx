@@ -42,8 +42,12 @@ export function Header({ onMenuClick, isCiBiPage = false }: HeaderProps) {
     <header 
       className={`fixed md:absolute top-0 left-0 md:left-56 z-50 ${
         isCiBiPage ? 'md:right-[410px]' : 'right-0'
+      } ${
+        isCiBiPage 
+          ? 'bg-neutral-50 dark:bg-neutral-900' 
+          : ''
       }`}
-      style={{
+      style={isCiBiPage ? undefined : {
         backgroundColor: currentTheme === 'dark' 
           ? 'rgba(13, 13, 13, 0.6)' // dark mode 배경 (대략적인 값)
           : 'rgba(255, 255, 255, 0.6)', // light mode 배경

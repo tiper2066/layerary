@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getCategoryBySlug } from '@/lib/categories'
 import { CategoryType } from '@prisma/client'
 import { GalleryDetailPage } from '@/app/_category-pages/gallery/GalleryDetailPage'
@@ -34,6 +34,10 @@ export default async function PostDetailPage({
   switch (pageType) {
     case 'gallery':
       return <GalleryDetailPage category={category} postId={params.id} />
+
+    case 'ci-bi':
+      // CI/BI는 리스트 페이지로 리다이렉트 (게시물 ID를 query parameter로 전달)
+      redirect(`/${params.slug}?postId=${params.id}`)
 
     case 'editor':
       // TODO: EditorDetailPage 구현 시 추가
