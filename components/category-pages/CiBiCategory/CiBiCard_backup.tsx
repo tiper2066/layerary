@@ -246,9 +246,14 @@ export function CiBiCard({
         ${cardBackgroundColor} border dark:border-4 rounded-lg overflow-hidden
         transition-all duration-200
         ${isSelected ? 'border-penta-blue dark:border-penta-sky' : 'hover:shadow-md'}
-        h-[136px] w-full flex items-center justify-center p-10
+        h-[136px] flex items-center justify-center p-8
       `}
-      onClick={() => onClick(post.id)}      
+      onClick={() => onClick(post.id)}
+      style={{
+          width: '100%',
+        minWidth: '270px',
+        maxWidth: '320px',
+      }}      
     >
       {/* Blur placeholder */}
       {imageInfo.blurDataURL && !imageLoaded && (
@@ -272,7 +277,7 @@ export function CiBiCard({
         <img
           src={displayImageUrl}
           alt={post.title}
-          className="max-w-full max-h-[50px] object-contain"
+          className="max-w-full max-h-full object-contain"
           onLoad={() => {
             setImageLoaded(true)
             setError(false)

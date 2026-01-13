@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react'
 import { CiBiUploadDialog } from '@/components/category-pages/CiBiCategory/CiBiUploadDialog'
 import { CiBiCard } from '@/components/category-pages/CiBiCategory/CiBiCard'
 import { PropertyPanel } from '@/components/category-pages/CiBiCategory/PropertyPanel'
+import { Flipper, Flipped } from 'react-flip-toolkit'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +44,9 @@ interface Post {
   tags?: Array<{ tag: { id: string; name: string; slug: string } }>
 }
 
+// ****************************************************************************** CI/BI 카드 고정 너비 (이 값만 수정하면 됨)
+const CIBI_CARD_WIDTH = 360
+
 export function CiBiListPage({ category }: CiBiListPageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -65,8 +69,11 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
   const [deletePostId, setDeletePostId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL') // 필터 상태
+  const [columns, setColumns] = useState<Post[][]>([])
 
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const resizeTimeoutRef = useRef<NodeJS.Timeout>()
 
   // 무한 스크롤 구현
   useEffect(() => {
@@ -197,6 +204,59 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
       fetchPosts(page, true)
     }
   }, [page, fetchPosts])
+
+  // 컨테이너 너비에 따라 열 개수 계산 (masonry 레이아웃)
+  const calculateColumns = useCallback(() => {
+    if (!containerRef.current) return
+
+    const containerWidth = containerRef.current.offsetWidth
+    const cardWidth = CIBI_CARD_WIDTH
+    const gap = 8 // gap-2 = 8px
+    
+    // 열 개수 계산: (사용 가능 너비 + gap) / (카드 너비 + gap)
+    const numColumns = Math.max(1, Math.floor((containerWidth + gap) / (cardWidth + gap)))
+    
+    // 각 열에 카드 분배
+    const newColumns: Post[][] = Array(numColumns).fill(null).map(() => [])
+    
+    posts.forEach((post) => {
+      // 가장 짧은 열에 카드 추가 (Pinterest 스타일)
+      const shortestColumnIndex = newColumns.reduce((minIndex, column, i) => {
+        return column.length < newColumns[minIndex].length ? i : minIndex
+      }, 0)
+      newColumns[shortestColumnIndex].push(post)
+    })
+    
+    setColumns(newColumns)
+  }, [posts])
+
+  // 컬럼 계산 및 리사이즈 핸들러
+  useEffect(() => {
+    calculateColumns()
+
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current)
+      }
+      
+      resizeTimeoutRef.current = setTimeout(() => {
+        calculateColumns()
+      }, 150)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current)
+      }
+    }
+  }, [calculateColumns])
+
+  // Flipper의 flipKey는 columns 구조가 변경될 때마다 업데이트되어 애니메이션 트리거
+  const flipKey = columns.length > 0 
+    ? `${selectedFilter}:${columns.map((col, idx) => `${idx}:${col.map(p => p.id).join(',')}`).join('|')}`
+    : 'empty'
 
   // 게시물 선택
   const handlePostClick = (postId: string) => {
@@ -410,20 +470,38 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
 
           {/* 카드 그리드 */}
           {posts.length > 0 && (
-            <div className="flex flex-wrap gap-4">
-              {posts.map((post) => (
-                <CiBiCard
-                  key={post.id}
-                  post={post}
-                  isSelected={selectedPostId === post.id}
-                  selectedColor={selectedPostId === post.id ? selectedColor : undefined}
-                  onClick={handlePostClick}
-                  onEdit={isAdmin ? handleEdit : undefined}
-                  onDelete={isAdmin ? handleDeleteClick : undefined}
-                  showActions={isAdmin}
-                />
-              ))}
-            </div>
+            <Flipper
+              flipKey={flipKey}
+              spring={{ stiffness: 160, damping: 22 }}
+              staggerConfig={{
+                default: {
+                  speed: 0.5,
+                },
+              }}
+              decisionData={columns}
+            >
+              <div ref={containerRef} className="masonry-container justify-center md:justify-start">
+                {columns.map((column, columnIndex) => (
+                  <div key={columnIndex} className="masonry-column" style={{ flex: `0 0 ${CIBI_CARD_WIDTH}px`, width: `${CIBI_CARD_WIDTH}px`, gap: '8px' }}>
+                    {column.map((post) => (
+                      <Flipped key={post.id} flipId={post.id}>
+                        <div>
+                          <CiBiCard
+                            post={post}
+                            isSelected={selectedPostId === post.id}
+                            selectedColor={selectedPostId === post.id ? selectedColor : undefined}
+                            onClick={handlePostClick}
+                            onEdit={isAdmin ? handleEdit : undefined}
+                            onDelete={isAdmin ? handleDeleteClick : undefined}
+                            showActions={isAdmin}
+                          />
+                        </div>
+                      </Flipped>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </Flipper>
           )}
 
           {/* 무한 스크롤 트리거 */}
