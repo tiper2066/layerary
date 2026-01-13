@@ -20,8 +20,8 @@ function getDatabaseUrl(): string {
   return `${url}${separator}connection_limit=1`
 }
 
-// Supabase 연결 풀 제한을 고려한 설정
-// 개발 환경에서 핫 리로드 시 연결이 누적되는 것을 방지
+// Vercel 서버리스 환경에서도 싱글톤 패턴 강화
+// 프로덕션 환경에서도 global 객체에 저장하여 재사용
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   datasources: {
@@ -31,15 +31,15 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   },
 })
 
-// 개발 환경에서 핫 리로드 시 기존 연결 정리
-if (process.env.NODE_ENV !== 'production') {
+// 모든 환경에서 싱글톤 유지 (Vercel 서버리스 환경 대응)
+if (!globalForPrisma.prisma) {
   globalForPrisma.prisma = prisma
-  
-  // 개발 서버 종료 시 연결 정리
-  if (typeof process !== 'undefined' && process.on) {
-    process.on('beforeExit', async () => {
-      await prisma.$disconnect()
-    })
-  }
+}
+
+// 개발 서버 종료 시 연결 정리
+if (process.env.NODE_ENV !== 'production' && typeof process !== 'undefined' && process.on) {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect()
+  })
 }
 
