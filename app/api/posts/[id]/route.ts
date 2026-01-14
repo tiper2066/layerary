@@ -20,6 +20,7 @@ const updatePostSchema = z.object({
   tool: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
   config: z.record(z.any()).optional().nullable(), // CI/BI 타입 등 추가 설정
+  producedAt: z.string().datetime().optional().nullable(), // ISO 8601 형식의 날짜 문자열
 })
 
 export async function GET(
@@ -230,6 +231,9 @@ export async function PUT(
     }
     if (validatedData.tool !== undefined) {
       updateData.tool = validatedData.tool
+    }
+    if (validatedData.producedAt !== undefined) {
+      updateData.producedAt = validatedData.producedAt ? new Date(validatedData.producedAt) : null
     }
 
     // 이미지 처리

@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -31,6 +32,9 @@ const postSchema = z.object({
   concept: z.string().optional(),
   tool: z.string().optional(),
   tags: z.string().optional(), // 쉼표로 구분된 태그 문자열
+  producedAt: z.date({
+    required_error: '제작일을 선택해주세요.',
+  }),
 })
 
 type PostFormValues = z.infer<typeof postSchema>
@@ -51,6 +55,7 @@ interface Post {
   tool?: string | null
   images?: PostImage[] | null | any
   tags?: Array<{ tag: { id: string; name: string; slug: string } }>
+  producedAt?: Date | string | null
 }
 
 interface PostUploadDialogProps {
@@ -88,6 +93,7 @@ export function PostUploadDialog({
       concept: '',
       tool: '',
       tags: '',
+      producedAt: undefined,
     },
   })
 
@@ -124,12 +130,18 @@ export function PostUploadDialog({
         ? post.tags.map(({ tag }) => tag.name).join(', ')
         : ''
 
+      // producedAt을 Date 객체로 변환
+      const producedAtDate = post.producedAt
+        ? new Date(post.producedAt)
+        : undefined
+
       form.reset({
         title: post.title || '',
         subtitle: post.subtitle || '',
         concept: post.concept || '',
         tool: post.tool || '',
         tags: tagsString,
+        producedAt: producedAtDate,
       })
     } else {
       form.reset({
@@ -138,6 +150,7 @@ export function PostUploadDialog({
         concept: '',
         tool: '',
         tags: '',
+        producedAt: undefined,
       })
       setExistingImages([])
       setSelectedFiles([])
@@ -307,6 +320,7 @@ export function PostUploadDialog({
             concept: values.concept || null,
             tool: values.tool || null,
             tags,
+            producedAt: values.producedAt ? values.producedAt.toISOString() : null,
           }),
         })
 
@@ -329,6 +343,7 @@ export function PostUploadDialog({
             concept: values.concept || null,
             tool: values.tool || null,
             tags,
+            producedAt: values.producedAt ? values.producedAt.toISOString() : null,
           }),
         })
 
@@ -445,6 +460,25 @@ export function PostUploadDialog({
                     <Input
                       {...field}
                       placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 디자인, 브랜딩)"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="producedAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>제작일 *</FormLabel>
+                  <FormControl>
+                    <DatePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="제작일을 선택하세요"
+                      disabled={submitting || uploading}
                     />
                   </FormControl>
                   <FormMessage />

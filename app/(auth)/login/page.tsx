@@ -86,7 +86,18 @@ function LoginForm() {
             </div>
           )}
 
-          {/* 구글 로그인 버튼 */}
+          {/* 구분선  */}
+          <div className="relative">
+              <Separator />
+          </div>
+          <div className='py-4'>
+            <p className='text-center text-sm font-light text-penta-indigo leading-relaxed'>
+              Layeray는 펜타시큐리티 임직원을 위한 서비스로, <br />
+              펜타시큐리티 이메일 계정으로만 로그인이 가능합니다.
+            </p>
+          </div>
+
+          {/* 구글 로그인 버튼 - 펜타시큐리티 이메일 계정으로만 로그인 가능 */}
           <Button
             type="button"
             variant="outline"
@@ -97,23 +108,26 @@ function LoginForm() {
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <svg className="mr-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-              </svg>
+              // Google 로고
+              // <svg className="mr-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+              //   <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+              // </svg>
+              <img src="/img/favicon.png" alt="pentasecurity logo" className="h-4 w-4" />
             )}
-            Google 계정으로 로그인
+            펜타시큐리티 계정 로그인
           </Button>
 
-          <div className="relative">
+          {/* 구분선  */}
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <Separator />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+              {<span className="bg-background px-2 text-muted-foreground">
                 또는
-              </span>
+              </span>}
             </div>
-          </div>
+          </div>  */}
 
           {/* 이메일/패스워드 로그인 폼 */}
           <form onSubmit={handleEmailLogin} className="space-y-4">
@@ -160,12 +174,13 @@ function LoginForm() {
             </Button>
           </form>
 
-          <div className="text-center text-sm">
+          {/* 회원가입 링크 */}
+          {/* <div className="text-center text-sm">
             <span className="text-muted-foreground">계정이 없으신가요? </span>
             <Link href="/register" className="text-primary hover:underline">
               회원가입
             </Link>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>

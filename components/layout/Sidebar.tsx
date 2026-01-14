@@ -126,7 +126,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
 
     return (
       // ********** 실제 사이드 메뉴 아이템 부분 
-      <div key={category.id} className='pl-2 pr-4'>
+      <div key={category.id} className='pr-4'>
         <div
           className={cn(
             'flex items-center gap-2 px-3 py-1.5 transition-colors', // 메뉴 활성화 상태 
@@ -161,7 +161,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
               className="flex items-center flex-1 gap-2"
               onClick={handleCategoryClick}
             >
-              <span className="flex-1 text-sm px-3">{category.name}</span>
+              <span className="flex-1 text-sm">{category.name}</span>
             </Link>
           )}
         </div>
@@ -270,10 +270,10 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                       href="https://img-edm-code-generator.vercel.app/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-2 px-3 py-1.5 ml-3 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                      className="group flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
                       onClick={onLinkClick}
                     >
-                      <span className="flex-1 text-sm px-3">eDM</span> 
+                      <span className="flex-1 text-sm">eDM</span> 
                       <SquareArrowOutUpRight className="h-4 w-4 flex-shrink-0 ml-3 opacity-0 transition-opacity group-hover:opacity-100" />
                     </Link>
                   </div>
@@ -305,27 +305,27 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                     <Link
                       href="/admin/dashboard"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 ml-3 transition-colors rounded-md',
+                        'flex items-center gap-2 px-3 py-1.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/dashboard')
                           ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                       onClick={handleAdminMenuClick}
                     >
-                      <Gauge className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <Gauge className="h-4 w-4 flex-shrink-0" />
                       <span className="flex-1 text-sm">대시보드</span>
                     </Link>
                     <Link
                       href="/admin/users"
                       className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 ml-3 transition-colors rounded-md',
+                        'flex items-center gap-2 px-3 py-1.5 transition-colors rounded-md',
                         pathname.startsWith('/admin/users')
                           ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent rounded-md'
                           : 'hover:bg-accent hover:text-accent-foreground'
                       )}
                       onClick={handleAdminMenuClick}
                     >
-                      <Users className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <Users className="h-4 w-4 flex-shrink-0" />
                       <span className="flex-1 text-sm">회원 관리</span>
                     </Link>
                     <Link
@@ -338,7 +338,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                       )}
                       onClick={handleAdminMenuClick}
                     >
-                      <Megaphone className="h-4 w-4 flex-shrink-0 ml-3" />
+                      <Megaphone className="h-4 w-4 flex-shrink-0" />
                       <span className="flex-1 text-sm">공지사항 관리</span>
                     </Link>
                   </div>

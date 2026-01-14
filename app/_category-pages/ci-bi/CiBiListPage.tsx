@@ -74,6 +74,8 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const resizeTimeoutRef = useRef<NodeJS.Timeout>()
+  const isInitialMountRef = useRef(true) // 초기 마운트 플래그
+  const fetchInProgressRef = useRef(false) // fetch 진행 중 플래그
 
   // 무한 스크롤 구현
   useEffect(() => {
@@ -95,9 +97,15 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
     }
   }, [hasMore, loading])
 
-  // 게시물 목록 조회
+  // 게시물 목록 조회 (selectedFilter를 파라미터로 받도록 변경)
   const fetchPosts = useCallback(
-    async (pageNum: number, append: boolean = false, forceRefresh: boolean = false) => {
+    async (pageNum: number, filter: string, append: boolean = false, forceRefresh: boolean = false) => {
+      // 중복 호출 방지 (loading 상태와 fetchInProgressRef 모두 확인)
+      if (fetchInProgressRef.current || loading) {
+        return
+      }
+      
+      fetchInProgressRef.current = true
       try {
         setLoading(true)
         
@@ -109,13 +117,13 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
         })
         
         // 필터 적용
-        if (selectedFilter !== 'ALL') {
+        if (filter !== 'ALL') {
           // CI 필터인 경우
-          if (selectedFilter === 'CI') {
+          if (filter === 'CI') {
             params.append('concept', 'CI')
           } else {
             // 태그 필터인 경우 (D.AMO, WAPPLES, iSIGN, Cloudbric 등)
-            params.append('tag', selectedFilter)
+            params.append('tag', filter)
           }
         }
         
@@ -136,7 +144,12 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
         const data = await response.json()
 
         if (append) {
-          setPosts((prev) => [...prev, ...data.posts])
+          setPosts((prev) => {
+            // 중복 제거: 이미 존재하는 post.id는 추가하지 않음
+            const existingIds = new Set(prev.map(p => p.id))
+            const newPosts = data.posts.filter((p: Post) => !existingIds.has(p.id))
+            return [...prev, ...newPosts]
+          })
         } else {
           setPosts(data.posts)
         }
@@ -148,38 +161,47 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
         setHasMore(false)
       } finally {
         setLoading(false)
+        fetchInProgressRef.current = false
       }
     },
-    [category.slug, selectedFilter]
+    [category.slug] // selectedFilter 의존성 제거
   )
 
   // 필터 변경 시 목록 새로고침 및 선택 상태 초기화
   useEffect(() => {
+    // 초기 마운트 시에는 실행하지 않음 (초기 로드 useEffect가 처리)
+    if (isInitialMountRef.current) {
+      return
+    }
+    
     setPage(1)
-    setHasMore(true)
+    // setHasMore(true) 제거 - fetchPosts에서 API 응답의 실제 hasMore 값을 설정함
+    setPosts([]) // 기존 게시물 초기화
     // 선택 상태 초기화
     setSelectedPostId(null)
     setSelectedPost(null)
     setSelectedColor('#000000')
     setSelectedSize({})
-    fetchPosts(1, false, true)
-  }, [selectedFilter, fetchPosts])
+    fetchPosts(1, selectedFilter, false, true)
+  }, [selectedFilter, fetchPosts]) // posts.length와 page 제거 (무한 루프 방지)
 
-  // 초기 로드
+  // 초기 로드 (마운트 시에만 실행)
   useEffect(() => {
-    fetchPosts(1, false)
-  }, [fetchPosts])
+    fetchPosts(1, 'ALL', false)
+    isInitialMountRef.current = false // 초기 마운트 완료 표시
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 새로고침 파라미터 감지
   useEffect(() => {
     const refreshParam = searchParams.get('refresh')
     if (refreshParam) {
       setPage(1)
-      setHasMore(true)
-      fetchPosts(1, false, true)
+      // setHasMore(true) 제거 - fetchPosts에서 API 응답의 실제 hasMore 값을 설정함
+      setPosts([]) // 기존 게시물 초기화
+      fetchPosts(1, selectedFilter, false, true)
       router.replace(`/${category.slug}`, { scroll: false })
     }
-  }, [searchParams, fetchPosts, category.slug, router])
+  }, [searchParams, selectedFilter, fetchPosts, category.slug, router])
 
   // postId 파라미터 감지하여 게시물 자동 선택
   useEffect(() => {
@@ -200,10 +222,11 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
 
   // 페이지 변경 시 추가 로드
   useEffect(() => {
-    if (page > 1) {
-      fetchPosts(page, true)
+    // page가 1보다 크고, 현재 로딩 중이 아니고, fetch가 진행 중이 아니며, hasMore가 true일 때만 실행
+    if (page > 1 && !loading && !fetchInProgressRef.current && hasMore) {
+      fetchPosts(page, selectedFilter, true)
     }
-  }, [page, fetchPosts])
+  }, [page, selectedFilter, fetchPosts, hasMore])
 
   // 컨테이너 너비에 따라 열 개수 계산 (masonry 레이아웃)
   const calculateColumns = useCallback(() => {
@@ -417,7 +440,8 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
   const handleUploadSuccess = () => {
     setPage(1)
     setHasMore(true)
-    fetchPosts(1, false, true)
+    setPosts([]) // 기존 게시물 초기화
+    fetchPosts(1, selectedFilter, false, true)
     router.refresh()
   }
 

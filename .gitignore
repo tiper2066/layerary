@@ -40,3 +40,12 @@ next-env.d.ts
 
 # design resources (디자인 리소스)
 /design_resources
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# cursor debug logs
+.cursor/debug.log
+.cursor/

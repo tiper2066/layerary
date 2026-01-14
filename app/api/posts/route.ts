@@ -12,6 +12,7 @@ const querySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
   concept: z.string().optional(), // CI/BI 타입 필터
   tag: z.string().optional(), // 태그 필터
+  year: z.string().optional(), // 연도 필터 (예: "2026", "~2022")
 })
 
 const imageSchema = z.object({
@@ -32,6 +33,7 @@ const createPostSchema = z.object({
   tool: z.string().optional().nullable(),
   tags: z.array(z.string()).optional().default([]),
   config: z.record(z.any()).optional().nullable(), // CI/BI 타입 등 추가 설정
+  producedAt: z.string().datetime().optional().nullable(), // ISO 8601 형식의 날짜 문자열
 })
 
 export async function GET(request: Request) {
@@ -44,6 +46,7 @@ export async function GET(request: Request) {
     const limit = searchParams.get('limit')
     const concept = searchParams.get('concept')
     const tag = searchParams.get('tag')
+    const year = searchParams.get('year')
     
     const validatedQuery = querySchema.parse({
       categorySlug: categorySlug || undefined,
@@ -51,6 +54,7 @@ export async function GET(request: Request) {
       limit: limit || undefined,
       concept: concept || undefined,
       tag: tag || undefined,
+      year: year || undefined,
     })
 
     const skip = (validatedQuery.page - 1) * validatedQuery.limit
@@ -89,6 +93,28 @@ export async function GET(request: Request) {
             name: validatedQuery.tag,
           },
         },
+      }
+    }
+
+    // year 필터 (제작일 기준)
+    if (validatedQuery.year) {
+      if (validatedQuery.year.startsWith('~')) {
+        // ~2022 형식: 2022년 이전 (2023-01-01 미만)
+        const year = parseInt(validatedQuery.year.substring(1))
+        if (!isNaN(year)) {
+          where.producedAt = {
+            lt: new Date(`${year + 1}-01-01`),
+          }
+        }
+      } else {
+        // 특정 연도: 해당 연도 범위
+        const year = parseInt(validatedQuery.year)
+        if (!isNaN(year)) {
+          where.producedAt = {
+            gte: new Date(`${year}-01-01`),
+            lt: new Date(`${year + 1}-01-01`),
+          }
+        }
       }
     }
 
@@ -320,6 +346,7 @@ export async function POST(request: Request) {
         mimeType: 'image/*',
         concept: conceptValue,
         tool: validatedData.tool,
+        producedAt: validatedData.producedAt ? new Date(validatedData.producedAt) : null,
         authorId: admin.id,
         tags: {
           create: tagConnections,

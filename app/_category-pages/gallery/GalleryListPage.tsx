@@ -43,8 +43,27 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState<string>('ALL') // 필터 상태
 
   const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  // 연도 필터 옵션 생성 (ALL, 현재 연도, 현재 연도-1, 현재 연도-2, 현재 연도-3, ~2022)
+  const getYearFilters = () => {
+    const currentYear = new Date().getFullYear()
+    const filters = ['ALL']
+    
+    // 현재 연도부터 3년 전까지
+    for (let year = currentYear; year >= currentYear - 3; year--) {
+      filters.push(year.toString())
+    }
+    
+    // ~2022 추가
+    filters.push('~2022')
+    
+    return filters
+  }
+
+  const yearFilters = getYearFilters()
 
   // 무한 스크롤 구현
   useEffect(() => {
@@ -71,13 +90,26 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
     async (pageNum: number, append: boolean = false, forceRefresh: boolean = false) => {
       try {
         setLoading(true)
-        // 새로고침이 필요한 경우 캐시 무시
-        const response = await fetch(
-          `/api/posts?categorySlug=${category.slug}&page=${pageNum}&limit=20${forceRefresh ? `&_t=${Date.now()}` : ''}`,
-          {
-            cache: forceRefresh ? 'no-store' : 'default', // 강제 새로고침 시 캐시 무시
-          }
-        )
+        
+        // 필터 파라미터 구성
+        const params = new URLSearchParams({
+          categorySlug: category.slug,
+          page: pageNum.toString(),
+          limit: '20',
+        })
+        
+        // 연도 필터 적용
+        if (selectedFilter !== 'ALL') {
+          params.append('year', selectedFilter)
+        }
+        
+        if (forceRefresh) {
+          params.append('_t', Date.now().toString())
+        }
+        
+        const response = await fetch(`/api/posts?${params.toString()}`, {
+          cache: forceRefresh ? 'no-store' : 'default', // 강제 새로고침 시 캐시 무시
+        })
 
         if (!response.ok) {
           // 에러 발생 시 더 이상 로드하지 않도록 설정
@@ -102,8 +134,15 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
         setLoading(false)
       }
     },
-    [category.slug]
+    [category.slug, selectedFilter]
   )
+
+  // 필터 변경 시 목록 새로고침
+  useEffect(() => {
+    setPage(1)
+    setHasMore(true)
+    fetchPosts(1, false, true)
+  }, [selectedFilter, fetchPosts])
 
   // 초기 로드
   useEffect(() => {
@@ -152,6 +191,23 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
             게시물 추가
           </Button>
         )}
+      </div>
+
+      {/* 필터 메뉴 */}
+      <div className="flex items-center gap-4 mb-3">
+        {yearFilters.map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setSelectedFilter(filter)}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              selectedFilter === filter
+                ? 'text-primary font-semibold hover:bg-muted'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+          >
+            {filter}
+          </button>
+        ))}
       </div>
 
       <PostGrid posts={posts} categorySlug={category.slug} loading={loading} onPostClick={handlePostClick} />
