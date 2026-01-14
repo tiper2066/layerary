@@ -143,7 +143,8 @@ export function PostGrid({ posts, categorySlug, loading, onPostClick }: PostGrid
           ))}
         </div>
       </Flipper>
-      {loading && (
+      {/* 데이터가 있을 때는 로딩 표시하지 않음 (백그라운드 업데이트 중) */}
+      {loading && posts.length === 0 && (
         <div className="w-full flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>

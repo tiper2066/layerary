@@ -44,6 +44,9 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   const [loading, setLoading] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL') // 필터 상태
+  // 하이브리드 캐싱: 최근 3개 필터의 데이터를 메모리에 저장 (useRef 사용으로 무한 루프 방지)
+  const filterCacheRef = useRef<Record<string, Post[]>>({})
+  const filterCacheOrderRef = useRef<string[]>([]) // 캐시 순서 추적 (LRU 방식)
 
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
@@ -123,6 +126,25 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
           setPosts((prev) => [...prev, ...data.posts])
         } else {
           setPosts(data.posts)
+          
+          // 캐시 저장 (최근 3개 필터만 유지 - LRU 방식)
+          if (!append && pageNum === 1) {
+            filterCacheRef.current[selectedFilter] = data.posts
+            
+            // 최근 사용한 필터 순서 업데이트
+            const order = filterCacheOrderRef.current.filter((f) => f !== selectedFilter)
+            order.unshift(selectedFilter) // 맨 앞에 추가
+            
+            // 최근 3개만 유지
+            if (order.length > 3) {
+              const removed = order.pop()
+              if (removed) {
+                delete filterCacheRef.current[removed]
+              }
+            }
+            
+            filterCacheOrderRef.current = order
+          }
         }
 
         setHasMore(data.pagination.hasMore)
@@ -140,9 +162,18 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   // 필터 변경 시 목록 새로고침
   useEffect(() => {
     setPage(1)
-    setHasMore(true)
-    fetchPosts(1, false, true)
-  }, [selectedFilter, fetchPosts])
+    
+    // 하이브리드 캐싱: 캐시된 데이터가 있으면 즉시 표시
+    if (filterCacheRef.current[selectedFilter] && filterCacheRef.current[selectedFilter].length > 0) {
+      setPosts(filterCacheRef.current[selectedFilter])
+      // 백그라운드에서 최신 데이터 확인 (브라우저 캐시 활용)
+      fetchPosts(1, false, false)
+    } else {
+      // 캐시가 없으면 로딩 표시 후 API 호출
+      setHasMore(true)
+      fetchPosts(1, false, false)
+    }
+  }, [selectedFilter, fetchPosts]) // filterCache 의존성 제거 (무한 루프 방지)
 
   // 초기 로드
   useEffect(() => {
@@ -153,6 +184,10 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   useEffect(() => {
     const refreshParam = searchParams.get('refresh')
     if (refreshParam) {
+      // 모든 캐시 무효화
+      filterCacheRef.current = {}
+      filterCacheOrderRef.current = []
+      
       // 새로고침 파라미터가 있으면 강제 새로고침
       setPage(1)
       setHasMore(true)
@@ -174,6 +209,10 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
   }
 
   const handleUploadSuccess = () => {
+    // 현재 필터의 캐시 무효화
+    delete filterCacheRef.current[selectedFilter]
+    filterCacheOrderRef.current = filterCacheOrderRef.current.filter((f) => f !== selectedFilter)
+    
     // 업로드 성공 시 목록 강제 새로고침 (캐시 무시)
     setPage(1)
     setHasMore(true)

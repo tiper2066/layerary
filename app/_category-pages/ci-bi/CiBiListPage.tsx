@@ -70,6 +70,9 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
   const [deleting, setDeleting] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL') // 필터 상태
   const [columns, setColumns] = useState<Post[][]>([])
+  // 하이브리드 캐싱: 최근 3개 필터의 데이터를 메모리에 저장 (useRef 사용으로 무한 루프 방지)
+  const filterCacheRef = useRef<Record<string, Post[]>>({})
+  const filterCacheOrderRef = useRef<string[]>([]) // 캐시 순서 추적 (LRU 방식)
 
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -152,6 +155,25 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
           })
         } else {
           setPosts(data.posts)
+          
+          // 캐시 저장 (최근 3개 필터만 유지 - LRU 방식)
+          if (!append && pageNum === 1) {
+            filterCacheRef.current[filter] = data.posts
+            
+            // 최근 사용한 필터 순서 업데이트
+            const order = filterCacheOrderRef.current.filter((f) => f !== filter)
+            order.unshift(filter) // 맨 앞에 추가
+            
+            // 최근 3개만 유지
+            if (order.length > 3) {
+              const removed = order.pop()
+              if (removed) {
+                delete filterCacheRef.current[removed]
+              }
+            }
+            
+            filterCacheOrderRef.current = order
+          }
         }
 
         setHasMore(data.pagination.hasMore)
@@ -175,15 +197,23 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
     }
     
     setPage(1)
-    // setHasMore(true) 제거 - fetchPosts에서 API 응답의 실제 hasMore 값을 설정함
-    setPosts([]) // 기존 게시물 초기화
     // 선택 상태 초기화
     setSelectedPostId(null)
     setSelectedPost(null)
     setSelectedColor('#000000')
     setSelectedSize({})
-    fetchPosts(1, selectedFilter, false, true)
-  }, [selectedFilter, fetchPosts]) // posts.length와 page 제거 (무한 루프 방지)
+    
+    // 하이브리드 캐싱: 캐시된 데이터가 있으면 즉시 표시
+    if (filterCacheRef.current[selectedFilter] && filterCacheRef.current[selectedFilter].length > 0) {
+      setPosts(filterCacheRef.current[selectedFilter])
+      // 백그라운드에서 최신 데이터 확인 (브라우저 캐시 활용)
+      fetchPosts(1, selectedFilter, false, false)
+    } else {
+      // 캐시가 없으면 로딩 표시 후 API 호출
+      setPosts([])
+      fetchPosts(1, selectedFilter, false, false)
+    }
+  }, [selectedFilter, fetchPosts]) // filterCache 의존성 제거 (무한 루프 방지)
 
   // 초기 로드 (마운트 시에만 실행)
   useEffect(() => {
@@ -195,6 +225,10 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
   useEffect(() => {
     const refreshParam = searchParams.get('refresh')
     if (refreshParam) {
+      // 모든 캐시 무효화
+      filterCacheRef.current = {}
+      filterCacheOrderRef.current = []
+      
       setPage(1)
       // setHasMore(true) 제거 - fetchPosts에서 API 응답의 실제 hasMore 값을 설정함
       setPosts([]) // 기존 게시물 초기화
@@ -420,6 +454,11 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
       // 목록에서 제거
       setPosts((prev) => prev.filter((p) => p.id !== deletePostId))
       
+      // 모든 필터 캐시에서도 제거
+      Object.keys(filterCacheRef.current).forEach((filter) => {
+        filterCacheRef.current[filter] = filterCacheRef.current[filter].filter((p) => p.id !== deletePostId)
+      })
+      
       // 선택된 게시물이 삭제된 경우 선택 해제
       if (selectedPostId === deletePostId) {
         setSelectedPostId(null)
@@ -438,10 +477,14 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
 
   // 업로드 성공 핸들러
   const handleUploadSuccess = () => {
+    // 현재 필터의 캐시 무효화
+    delete filterCacheRef.current[selectedFilter]
+    filterCacheOrderRef.current = filterCacheOrderRef.current.filter((f) => f !== selectedFilter)
+    
     setPage(1)
     setHasMore(true)
     setPosts([]) // 기존 게시물 초기화
-    fetchPosts(1, selectedFilter, false, true)
+    fetchPosts(1, selectedFilter, false, true) // 강제 새로고침
     router.refresh()
   }
 
@@ -531,8 +574,8 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
           {/* 무한 스크롤 트리거 */}
           {hasMore && <div ref={loadMoreRef} className="h-20" />}
 
-          {/* 로딩 표시 */}
-          {loading && (
+          {/* 로딩 표시 - 데이터가 없을 때만 표시 */}
+          {loading && posts.length === 0 && (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
