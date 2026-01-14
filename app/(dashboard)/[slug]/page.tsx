@@ -3,6 +3,7 @@ import { getCategoryBySlug } from '@/lib/categories'
 import { CategoryType } from '@prisma/client'
 import { GalleryListPage } from '@/app/_category-pages/gallery/GalleryListPage'
 import { CiBiListPage } from '@/app/_category-pages/ci-bi/CiBiListPage'
+import { CharacterListPage } from '@/app/_category-pages/character/CharacterListPage'
 
 // 카테고리 타입별 기본 pageType 반환
 function getDefaultPageType(categoryType: CategoryType): string {
@@ -38,6 +39,9 @@ export default async function CategoryPage({
 
     case 'ci-bi':
       return <CiBiListPage category={category} />
+
+    case 'character':
+      return <CharacterListPage category={category} />
 
     case 'editor':
       // TODO: EditorListPage 구현 시 추가

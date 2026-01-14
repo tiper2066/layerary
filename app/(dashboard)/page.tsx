@@ -167,9 +167,10 @@ export default async function HomePage() {
               {recentPosts.length > 0 ? (
                 <div className="space-y-4">
                   {recentPosts.map((post) => {
-                    // CI/BI 카테고리인 경우 링크 형식 변경
+                    // CI/BI 또는 캐릭터 카테고리인 경우 링크 형식 변경
                     const isCiBiCategory = post.category.pageType === 'ci-bi'
-                    const href = isCiBiCategory 
+                    const isCharacterCategory = post.category.pageType === 'character'
+                    const href = (isCiBiCategory || isCharacterCategory)
                       ? `/${post.category.slug}?postId=${post.id}`
                       : `/${post.category.slug}/${post.id}`
                     

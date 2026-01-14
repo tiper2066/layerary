@@ -36,11 +36,18 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
       return match && match[1] === cat.slug
     })
 
-  // CI/BI 페이지인지 확인 (slug가 'ci-bi'인 경우)
+  // CI/BI 페이지인지 확인 (pathname 기반으로 우선 감지)
   const isCiBiPage = Boolean(pathname && 
     !pathname.startsWith('/admin') &&
-    pathname.startsWith('/ci-bi') &&
-    categories.some(cat => cat.slug === 'ci-bi' && cat.pageType === 'ci-bi'))
+    pathname.startsWith('/ci-bi'))
+
+  // 캐릭터 페이지인지 확인 (pathname 기반으로 우선 감지)
+  const isCharacterPage = Boolean(pathname && 
+    !pathname.startsWith('/admin') &&
+    pathname.startsWith('/character'))
+
+  // CI/BI 또는 캐릭터 페이지인지 확인 (속성 패널이 있는 특수 페이지)
+  const isSpecialPage = isCiBiPage || isCharacterPage
 
   return (
     <div className="flex min-h-screen md:h-screen bg-background">
@@ -65,11 +72,11 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
         {!isGalleryDetailPage && (
           <Header 
             onMenuClick={() => setMobileMenuOpen(true)} 
-            isCiBiPage={isCiBiPage}
+            isCiBiPage={isSpecialPage}
           />
         )}
-        <main className={`flex-1 bg-background pt-16 md:pt-16 ${isCiBiPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
-          {isCiBiPage ? (
+        <main className={`flex-1 bg-background pt-16 md:pt-16 ${isSpecialPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
+          {isSpecialPage ? (
             children
           ) : (
             <div className="w-full px-8 pt-0 pb-10">

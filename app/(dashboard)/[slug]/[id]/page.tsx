@@ -39,6 +39,10 @@ export default async function PostDetailPage({
       // CI/BI는 리스트 페이지로 리다이렉트 (게시물 ID를 query parameter로 전달)
       redirect(`/${params.slug}?postId=${params.id}`)
 
+    case 'character':
+      // 캐릭터는 리스트 페이지로 리다이렉트 (게시물 ID를 query parameter로 전달)
+      redirect(`/${params.slug}?postId=${params.id}`)
+
     case 'editor':
       // TODO: EditorDetailPage 구현 시 추가
       return (

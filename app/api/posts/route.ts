@@ -118,15 +118,95 @@ export async function GET(request: Request) {
       }
     }
 
-    // CI/BI 카테고리이고 필터가 'ALL'일 때만 커스텀 정렬 적용
+    // CI/BI 또는 캐릭터 카테고리이고 필터가 'ALL'일 때만 커스텀 정렬 적용
     const isCiBiCategory = category?.pageType === 'ci-bi'
+    const isCharacterCategory = category?.pageType === 'character'
     const isAllFilter = !validatedQuery.concept && !validatedQuery.tag
 
     let posts: any[]
     let total: number
     let hasMore: boolean
 
-    if (isCiBiCategory && isAllFilter) {
+    if (isCharacterCategory && isAllFilter) {
+      // 캐릭터 카테고리: 전체 게시물을 가져와서 정렬 후 페이지네이션
+      const [allPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ])
+
+      // 필터 메뉴 순서 정의 (캐릭터 타입 순서)
+      const filterOrder = [
+        '대표이사',
+        '보안사업본부',
+        '인증보안사업본부',
+        '미래보안사업본부',
+        '기획실',
+        '품질관리실',
+        '보안기술연구소',
+        '인사부',
+        '재경부',
+      ]
+      
+      // 각 게시물에 우선순위 부여
+      const postsWithPriority = allPosts.map((post) => {
+        let priority = 999 // 기본 우선순위 (낮음)
+        
+        // concept 필드 기반 우선순위
+        if (post.concept) {
+          const index = filterOrder.indexOf(post.concept)
+          if (index !== -1) {
+            priority = index
+          }
+        }
+        
+        return { post, priority }
+      })
+      
+      // 우선순위로 정렬, 같은 우선순위 내에서는 최신순
+      const sortedPosts = postsWithPriority
+        .sort((a, b) => {
+          if (a.priority !== b.priority) {
+            return a.priority - b.priority
+          }
+          return new Date(b.post.createdAt).getTime() - new Date(a.post.createdAt).getTime()
+        })
+        .map((item) => item.post)
+
+      // 페이지네이션 적용
+      total = totalCount
+      posts = sortedPosts.slice(skip, skip + validatedQuery.limit)
+      hasMore = skip + posts.length < total
+    } else if (isCiBiCategory && isAllFilter) {
       // 전체 게시물을 가져와서 정렬 후 페이지네이션
       const [allPosts, totalCount] = await Promise.all([
         prisma.post.findMany({
