@@ -170,6 +170,7 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
       fetchPosts(1, false, false)
     } else {
       // 캐시가 없으면 로딩 표시 후 API 호출
+      setPosts([]) // 게시물 초기화하여 로딩 애니메이션 표시
       setHasMore(true)
       fetchPosts(1, false, false)
     }
