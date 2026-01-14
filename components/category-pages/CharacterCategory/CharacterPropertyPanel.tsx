@@ -300,7 +300,7 @@ export function CharacterPropertyPanel({
                     e.stopPropagation()
                     handlePresetClick(preset.width)
                   }}
-                  className={width === preset.width ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' : 'text-xs bg-gray-50 border-none flex-1 h-8'}
+                  className={width === preset.width ? 'text-xs dark:text-black bg-penta-sky/20 dark:bg-gray-50 hover:bg-penta-sky/20 border-none flex-1 h-8' : 'text-xs dark:text-gray-50 dark:hover:text-white bg-gray-50 dark:bg-penta-sky/20 dark:hover:bg-penta-sky/30 border-none flex-1 h-8'}
                 >
                   {preset.label}
                 </Button>
@@ -324,8 +324,8 @@ export function CharacterPropertyPanel({
                   setDownloadFormat('png')
                 }}
                 className={downloadFormat === 'png' 
-                  ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' 
-                  : 'text-xs bg-white border flex-1 h-8'}
+                  ? 'text-xs dark:text-black bg-penta-sky/20 dark:bg-gray-50 hover:bg-penta-sky/20 border-none flex-1 h-8' 
+                  : 'text-xs bg-white dark:bg-penta-sky/20 dark:hover:bg-penta-sky/30 flex-1 h-8 dark:text-white dark:hover:text-white border'}
               >
                 PNG
               </Button>
@@ -338,8 +338,8 @@ export function CharacterPropertyPanel({
                   setDownloadFormat('jpg')
                 }}
                 className={downloadFormat === 'jpg' 
-                  ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' 
-                  : 'text-xs bg-white border flex-1 h-8'}
+                  ? 'text-xs dark:text-black bg-penta-sky/20 dark:bg-gray-50 hover:bg-penta-sky/20 border-none flex-1 h-8' 
+                  : 'text-xs bg-white dark:bg-penta-sky/20 dark:hover:bg-penta-sky/30 flex-1 h-8 dark:text-white dark:hover:text-white border'}
               >
                 JPG
               </Button>
@@ -352,8 +352,8 @@ export function CharacterPropertyPanel({
                   setDownloadFormat('svg')
                 }}
                 className={downloadFormat === 'svg' 
-                  ? 'text-xs bg-penta-sky/20 hover:bg-penta-sky/20 border-none flex-1 h-8' 
-                  : 'text-xs bg-white border flex-1 h-8'}
+                  ? 'text-xs dark:text-black bg-penta-sky/20 dark:bg-gray-50 hover:bg-penta-sky/20 border-none flex-1 h-8' 
+                  : 'text-xs bg-white dark:bg-penta-sky/20 dark:hover:bg-penta-sky/30 flex-1 h-8 dark:text-white dark:hover:text-white border'}
               >
                 SVG
               </Button>
