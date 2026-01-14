@@ -128,7 +128,7 @@ function Calendar({
         month={month}
         onMonthChange={setMonth}
         components={{
-          Nav: () => null, // 기본 네비게이션 제거
+          Nav: () => <></>, // 기본 네비게이션 제거
         }}
         classNames={{
           months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
