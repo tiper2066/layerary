@@ -167,10 +167,14 @@ export default async function HomePage() {
               {recentPosts.length > 0 ? (
                 <div className="space-y-4">
                   {recentPosts.map((post) => {
-                    // CI/BI 또는 캐릭터 카테고리인 경우 링크 형식 변경
+                    // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, 또는 Cloudbric 카테고리인 경우 링크 형식 변경
                     const isCiBiCategory = post.category.pageType === 'ci-bi'
                     const isCharacterCategory = post.category.pageType === 'character'
-                    const href = (isCiBiCategory || isCharacterCategory)
+                    const isWapplesCategory = post.category.pageType === 'wapples'
+                    const isDamoCategory = post.category.pageType === 'damo'
+                    const isIsignCategory = post.category.pageType === 'isign'
+                    const isCloudbricCategory = post.category.pageType === 'cloudbric'
+                    const href = (isCiBiCategory || isCharacterCategory || isWapplesCategory || isDamoCategory || isIsignCategory || isCloudbricCategory)
                       ? `/${post.category.slug}?postId=${post.id}`
                       : `/${post.category.slug}/${post.id}`
                     

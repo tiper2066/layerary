@@ -118,9 +118,13 @@ export async function GET(request: Request) {
       }
     }
 
-    // CI/BI 또는 캐릭터 카테고리이고 필터가 'ALL'일 때만 커스텀 정렬 적용
+    // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, 또는 Cloudbric 카테고리이고 필터가 'ALL'일 때만 커스텀 정렬 적용
     const isCiBiCategory = category?.pageType === 'ci-bi'
     const isCharacterCategory = category?.pageType === 'character'
+    const isWapplesCategory = category?.pageType === 'wapples'
+    const isDamoCategory = category?.pageType === 'damo'
+    const isIsignCategory = category?.pageType === 'isign'
+    const isCloudbricCategory = category?.pageType === 'cloudbric'
     const isAllFilter = !validatedQuery.concept && !validatedQuery.tag
 
     let posts: any[]
@@ -276,6 +280,367 @@ export async function GET(request: Request) {
           return new Date(b.post.createdAt).getTime() - new Date(a.post.createdAt).getTime()
         })
         .map((item) => item.post)
+
+      // 페이지네이션 적용
+      total = totalCount
+      posts = sortedPosts.slice(skip, skip + validatedQuery.limit)
+      hasMore = skip + posts.length < total
+    } else if (isWapplesCategory) {
+      // WAPPLES 카테고리: 전체 게시물을 가져와서 정렬 후 페이지네이션
+      const [allPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+                pageType: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ])
+
+      let sortedPosts: any[]
+
+      if (isAllFilter) {
+        // 필터가 'ALL'일 때: 타입 순서로 정렬 후 제작일 내림차순
+        const filterOrder = [
+          'WAPPLES',
+          'WAPPLES CC',
+          'WAPPLES SA',
+          'WAPPLES Cloud',
+        ]
+
+        // 각 게시물에 우선순위 부여
+        const postsWithPriority = allPosts.map((post) => {
+          let priority = 999 // 기본 우선순위 (낮음)
+
+          // concept 필드 기반 우선순위
+          if (post.concept) {
+            const index = filterOrder.indexOf(post.concept)
+            if (index !== -1) {
+              priority = index
+            }
+          }
+
+          return { post, priority }
+        })
+
+        // 우선순위로 정렬, 같은 우선순위 내에서는 제작일 내림차순 (가장 마지막 제작일 순)
+        sortedPosts = postsWithPriority
+          .sort((a, b) => {
+            if (a.priority !== b.priority) {
+              return a.priority - b.priority
+            }
+            // 제작일이 없으면 createdAt 사용
+            const aDate = a.post.producedAt || a.post.createdAt
+            const bDate = b.post.producedAt || b.post.createdAt
+            return new Date(bDate).getTime() - new Date(aDate).getTime()
+          })
+          .map((item) => item.post)
+      } else {
+        // 특정 필터 선택 시: 제작일 내림차순만 (가장 마지막 제작일 순)
+        sortedPosts = allPosts.sort((a, b) => {
+          const aDate = a.producedAt || a.createdAt
+          const bDate = b.producedAt || b.createdAt
+          return new Date(bDate).getTime() - new Date(aDate).getTime()
+        })
+      }
+
+      // 페이지네이션 적용
+      total = totalCount
+      posts = sortedPosts.slice(skip, skip + validatedQuery.limit)
+      hasMore = skip + posts.length < total
+    } else if (isDamoCategory) {
+      // D.AMO 카테고리: 전체 게시물을 가져와서 정렬 후 페이지네이션
+      const [allPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+                pageType: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ])
+
+      let sortedPosts: any[]
+
+      if (isAllFilter) {
+        // 필터가 'ALL'일 때: 타입 순서로 정렬 후 제작일 내림차순
+        const filterOrder = [
+          'D.AMO',
+          'D.AMO Cloud',
+          'D.AMO KMS',
+          'D.AMO for SAP',
+          'D.AMO PACS',
+          'D.AMO KE',
+        ]
+
+        // 각 게시물에 우선순위 부여
+        const postsWithPriority = allPosts.map((post) => {
+          let priority = 999 // 기본 우선순위 (낮음)
+
+          // concept 필드 기반 우선순위
+          if (post.concept) {
+            const index = filterOrder.indexOf(post.concept)
+            if (index !== -1) {
+              priority = index
+            }
+          }
+
+          return { post, priority }
+        })
+
+        // 우선순위로 정렬, 같은 우선순위 내에서는 제작일 내림차순 (가장 마지막 제작일 순)
+        sortedPosts = postsWithPriority
+          .sort((a, b) => {
+            if (a.priority !== b.priority) {
+              return a.priority - b.priority
+            }
+            // 제작일이 없으면 createdAt 사용
+            const aDate = a.post.producedAt || a.post.createdAt
+            const bDate = b.post.producedAt || b.post.createdAt
+            return new Date(bDate).getTime() - new Date(aDate).getTime()
+          })
+          .map((item) => item.post)
+      } else {
+        // 특정 필터 선택 시: 제작일 내림차순만 (가장 마지막 제작일 순)
+        sortedPosts = allPosts.sort((a, b) => {
+          const aDate = a.producedAt || a.createdAt
+          const bDate = b.producedAt || b.createdAt
+          return new Date(bDate).getTime() - new Date(aDate).getTime()
+        })
+      }
+
+      // 페이지네이션 적용
+      total = totalCount
+      posts = sortedPosts.slice(skip, skip + validatedQuery.limit)
+      hasMore = skip + posts.length < total
+    } else if (isIsignCategory) {
+      // iSIGN 카테고리: 전체 게시물을 가져와서 정렬 후 페이지네이션
+      const [allPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+                pageType: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ])
+
+      let sortedPosts: any[]
+
+      if (isAllFilter) {
+        // 필터가 'ALL'일 때: 타입 순서로 정렬 후 제작일 내림차순
+        const filterOrder = [
+          'iSIGN',
+          'iSIGN PASS',
+          'iSIGN WA',
+          'iSIGN EA',
+          'iSIGN PL',
+        ]
+
+        // 각 게시물에 우선순위 부여
+        const postsWithPriority = allPosts.map((post) => {
+          let priority = 999 // 기본 우선순위 (낮음)
+
+          // concept 필드 기반 우선순위
+          if (post.concept) {
+            const index = filterOrder.indexOf(post.concept)
+            if (index !== -1) {
+              priority = index
+            }
+          }
+
+          return { post, priority }
+        })
+
+        // 우선순위로 정렬, 같은 우선순위 내에서는 제작일 내림차순 (가장 마지막 제작일 순)
+        sortedPosts = postsWithPriority
+          .sort((a, b) => {
+            if (a.priority !== b.priority) {
+              return a.priority - b.priority
+            }
+            // 제작일이 없으면 createdAt 사용
+            const aDate = a.post.producedAt || a.post.createdAt
+            const bDate = b.post.producedAt || b.post.createdAt
+            return new Date(bDate).getTime() - new Date(aDate).getTime()
+          })
+          .map((item) => item.post)
+      } else {
+        // 특정 필터 선택 시: 제작일 내림차순만 (가장 마지막 제작일 순)
+        sortedPosts = allPosts.sort((a, b) => {
+          const aDate = a.producedAt || a.createdAt
+          const bDate = b.producedAt || b.createdAt
+          return new Date(bDate).getTime() - new Date(aDate).getTime()
+        })
+      }
+
+      // 페이지네이션 적용
+      total = totalCount
+      posts = sortedPosts.slice(skip, skip + validatedQuery.limit)
+      hasMore = skip + posts.length < total
+    } else if (isCloudbricCategory) {
+      // Cloudbric 카테고리: 전체 게시물을 가져와서 정렬 후 페이지네이션
+      const [allPosts, totalCount] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                type: true,
+                pageType: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ])
+
+      let sortedPosts: any[]
+
+      if (isAllFilter) {
+        // 필터가 'ALL'일 때: 타입 순서로 정렬 후 제작일 내림차순
+        const filterOrder = [
+          'Cloudbric',
+          'WAF+',
+          'WMS',
+          'Managed Rules',
+          'RAS',
+          'PAS',
+        ]
+
+        // 각 게시물에 우선순위 부여
+        const postsWithPriority = allPosts.map((post) => {
+          let priority = 999 // 기본 우선순위 (낮음)
+
+          // concept 필드 기반 우선순위
+          if (post.concept) {
+            const index = filterOrder.indexOf(post.concept)
+            if (index !== -1) {
+              priority = index
+            }
+          }
+
+          return { post, priority }
+        })
+
+        // 우선순위로 정렬, 같은 우선순위 내에서는 제작일 내림차순 (가장 마지막 제작일 순)
+        sortedPosts = postsWithPriority
+          .sort((a, b) => {
+            if (a.priority !== b.priority) {
+              return a.priority - b.priority
+            }
+            // 제작일이 없으면 createdAt 사용
+            const aDate = a.post.producedAt || a.post.createdAt
+            const bDate = b.post.producedAt || b.post.createdAt
+            return new Date(bDate).getTime() - new Date(aDate).getTime()
+          })
+          .map((item) => item.post)
+      } else {
+        // 특정 필터 선택 시: 제작일 내림차순만 (가장 마지막 제작일 순)
+        sortedPosts = allPosts.sort((a, b) => {
+          const aDate = a.producedAt || a.createdAt
+          const bDate = b.producedAt || b.createdAt
+          return new Date(bDate).getTime() - new Date(aDate).getTime()
+        })
+      }
 
       // 페이지네이션 적용
       total = totalCount

@@ -4,6 +4,10 @@ import { CategoryType } from '@prisma/client'
 import { GalleryListPage } from '@/app/_category-pages/gallery/GalleryListPage'
 import { CiBiListPage } from '@/app/_category-pages/ci-bi/CiBiListPage'
 import { CharacterListPage } from '@/app/_category-pages/character/CharacterListPage'
+import { WapplesListPage } from '@/app/_category-pages/wapples/WapplesListPage'
+import { DamoListPage } from '@/app/_category-pages/damo/DamoListPage'
+import { IsignListPage } from '@/app/_category-pages/isign/IsignListPage'
+import { CloudbricListPage } from '@/app/_category-pages/cloudbric/CloudbricListPage'
 
 // 카테고리 타입별 기본 pageType 반환
 function getDefaultPageType(categoryType: CategoryType): string {
@@ -42,6 +46,18 @@ export default async function CategoryPage({
 
     case 'character':
       return <CharacterListPage category={category} />
+
+    case 'wapples':
+      return <WapplesListPage category={category} />
+
+    case 'damo':
+      return <DamoListPage category={category} />
+
+    case 'isign':
+      return <IsignListPage category={category} />
+
+    case 'cloudbric':
+      return <CloudbricListPage category={category} />
 
     case 'editor':
       // TODO: EditorListPage 구현 시 추가
