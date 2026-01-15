@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2, X, File } from 'lucide-react'
+import Image from 'next/image'
 
 const postSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요.'),
@@ -509,12 +510,14 @@ export function PostUploadDialog({
                         key={index}
                         className="relative aspect-square border rounded-md overflow-hidden bg-muted group"
                       >
-                        <img
+                        <Image
                           src={image.url.startsWith('http') && image.url.includes('backblazeb2.com')
                             ? `/api/posts/images?url=${encodeURIComponent(image.url)}`
                             : image.url}
                           alt={image.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 33vw, 150px"
                         />
                         <Button
                           type="button"

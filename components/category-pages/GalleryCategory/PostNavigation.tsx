@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 interface NavigationPost {
   id: string
@@ -157,12 +158,13 @@ export function PostNavigation({
                 )}
               >
                 {post.thumbnailUrl ? (
-                  <img
+                  <Image
                     src={getThumbnailSrc(post.thumbnailUrl) || '/placeholder.png'}
                     alt={post.title}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="80px"
                     loading="lazy"
-                    decoding="async"
                   />
                 ) : (
                   <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
@@ -230,12 +232,13 @@ export function PostNavigation({
               )}
             >
               {post.thumbnailUrl ? (
-                <img
+                <Image
                   src={getThumbnailSrc(post.thumbnailUrl) || '/placeholder.png'}
                   alt={post.title}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="96px"
                   loading="lazy"
-                  decoding="async"
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
