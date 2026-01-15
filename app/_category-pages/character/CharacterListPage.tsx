@@ -327,10 +327,10 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
   }
 
   // 사이즈 변경
-  const handleSizeChange = (width?: number, height?: number) => {
+  const handleSizeChange = useCallback((width?: number, height?: number) => {
     setSelectedSize({ width, height })
     // 목록에는 반영하지 않음 (다운로드 시에만 사용)
-  }
+  }, [])
 
   // 다운로드 파일명 생성
   const generateDownloadFileName = (format: 'png' | 'jpg' | 'svg'): string => {

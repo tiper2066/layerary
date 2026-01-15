@@ -88,7 +88,7 @@ export function PropertyPanel({
       setHeight(originalHeight)
       onSizeChange(originalWidth, originalHeight)
     }
-  }, [downloadFormat, originalWidth, originalHeight])
+  }, [downloadFormat, originalWidth, originalHeight, onSizeChange])
 
   // post가 변경될 때 width, height 초기화
   useEffect(() => {
@@ -96,7 +96,7 @@ export function PropertyPanel({
       setWidth(undefined)
       setHeight(undefined)
     }
-  }, [post?.id])
+  }, [post])
 
   // 이미지 정보 추출 (비율 계산용)
   useEffect(() => {
@@ -143,7 +143,7 @@ export function PropertyPanel({
       }
       img.src = imageUrl
     }
-  }, [post?.images])
+  }, [post, onSizeChange])
 
   // 너비 변경 시 높이 자동 조정 (정비율)
   const handleWidthChange = (value: string) => {

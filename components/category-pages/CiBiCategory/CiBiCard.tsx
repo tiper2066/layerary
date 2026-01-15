@@ -223,7 +223,8 @@ export function CiBiCard({
         setError(false)
       }
     }
-  }, [imageInfo?.url, imageInfo?.thumbnailUrl, selectedColor, svgContent])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageInfo?.url, imageInfo?.thumbnailUrl, selectedColor, svgContent]) // imageInfo 객체는 매 렌더링마다 새로 생성되므로 필요한 값만 의존성에 포함
 
   if (!imageInfo) {
     return null
