@@ -51,14 +51,6 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     }
   }
 
-  if (!validImages || validImages.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        이미지가 없습니다.
-      </div>
-    )
-  }
-
   // order로 정렬
   const sortedImages = [...validImages].sort((a, b) => (a.order || 0) - (b.order || 0))
 
@@ -70,8 +62,13 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     return url
   }
 
-  // 이미지 크기 미리 로드
+  // 이미지 크기 미리 로드 - early return 이전에 배치
   useEffect(() => {
+    // sortedImages가 비어있으면 실행하지 않음
+    if (!sortedImages || sortedImages.length === 0) {
+      return
+    }
+
     // sortedImages를 기반으로 이미지 크기 로드
     sortedImages.forEach((image, index) => {
       const img = new window.Image()
@@ -92,6 +89,15 @@ export function ImageGallery({ images }: ImageGalleryProps) {
 
   const handleImageLoad = (index: number) => {
     setLoadedImages((prev) => new Set(prev).add(index))
+  }
+
+  // early return은 useEffect 이후에 배치
+  if (!validImages || validImages.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground">
+        이미지가 없습니다.
+      </div>
+    )
   }
 
   return (
