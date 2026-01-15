@@ -238,6 +238,57 @@ export async function PUT(
 
     // 이미지 처리
     if (validatedData.images) {
+      // 기존 이미지와 새 이미지를 비교하여 삭제할 파일 찾기
+      try {
+        const { deleteFileByUrl } = await import('@/lib/b2')
+        
+        // 기존 이미지 파싱
+        let existingImages: Array<{ url: string; thumbnailUrl?: string; name: string; order: number }> = []
+        if (existingPost.images) {
+          if (Array.isArray(existingPost.images)) {
+            existingImages = existingPost.images as Array<{ url: string; thumbnailUrl?: string; name: string; order: number }>
+          } else if (typeof existingPost.images === 'string') {
+            try {
+              existingImages = JSON.parse(existingPost.images)
+            } catch {
+              existingImages = []
+            }
+          }
+        }
+
+        // 새 이미지 URL 목록
+        const newImageUrls = new Set(validatedData.images.map((img: any) => img.url))
+        const newThumbnailUrls = new Set(
+          validatedData.images
+            .map((img: any) => img.thumbnailUrl)
+            .filter((url: string | undefined) => url)
+        )
+
+        // 기존 이미지 중 더 이상 사용되지 않는 파일 삭제
+        for (const existingImage of existingImages) {
+          // 새 이미지 목록에 없는 경우 삭제
+          if (!newImageUrls.has(existingImage.url)) {
+            try {
+              await deleteFileByUrl(existingImage.url)
+            } catch (fileError: any) {
+              console.error(`Failed to delete B2 file ${existingImage.url}:`, fileError.message)
+            }
+          }
+
+          // 썸네일이 있고 새 목록에 없는 경우 삭제
+          if (existingImage.thumbnailUrl && !newThumbnailUrls.has(existingImage.thumbnailUrl)) {
+            try {
+              await deleteFileByUrl(existingImage.thumbnailUrl)
+            } catch (thumbnailError: any) {
+              console.error(`Failed to delete B2 thumbnail ${existingImage.thumbnailUrl}:`, thumbnailError.message)
+            }
+          }
+        }
+      } catch (b2Error: any) {
+        // B2 삭제 실패는 로그만 남기고 계속 진행 (데이터베이스 업데이트는 진행)
+        console.error('B2 file deletion error:', b2Error.message)
+      }
+
       const firstImage = validatedData.images[0]
       updateData.images = validatedData.images
       updateData.thumbnailUrl = firstImage.url

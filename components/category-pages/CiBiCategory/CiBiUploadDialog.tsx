@@ -452,55 +452,33 @@ export function CiBiUploadDialog({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">SVG 파일</label>
-              {!isEditMode && (
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-                  <input
-                    type="file"
-                    accept=".svg,image/svg+xml"
-                    multiple={false}
-                    onChange={handleFileSelect}
-                    disabled={submitting || uploading}
-                    className="hidden"
-                    id="svg-file-input"
-                  />
-                  <label
-                    htmlFor="svg-file-input"
-                    className="cursor-pointer flex flex-col items-center justify-center space-y-2"
-                  >
-                    <File className="h-8 w-8 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      SVG 파일을 선택하세요
-                    </span>
-                  </label>
-                </div>
-              )}
-
-              {/* 선택된 파일 목록 */}
-              {selectedFiles.length > 0 && (
-                <div className="space-y-2">
-                  {selectedFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-muted rounded"
-                    >
-                      <span className="text-sm">{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveFile(index)}
-                        disabled={submitting || uploading}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              
+              {/* 파일 입력 필드 - 수정 모드에서도 항상 표시 */}
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                <input
+                  type="file"
+                  accept=".svg,image/svg+xml"
+                  multiple={false}
+                  onChange={handleFileSelect}
+                  disabled={submitting || uploading}
+                  className="hidden"
+                  id="svg-file-input"
+                />
+                <label
+                  htmlFor="svg-file-input"
+                  className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                >
+                  <File className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    SVG 파일을 선택하세요
+                  </span>
+                </label>
+              </div>
 
               {/* 기존 이미지 목록 (수정 모드) */}
               {isEditMode && existingImages.length > 0 && (
                 <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">기존 이미지:</p>
                   {existingImages.map((image, index) => (
                     <div
                       key={index}
@@ -512,6 +490,35 @@ export function CiBiUploadDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveExistingImage(index)}
+                        disabled={submitting || uploading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <p className="text-xs text-muted-foreground">
+                    기존 이미지를 삭제한 후 새 이미지를 선택할 수 있습니다.
+                  </p>
+                </div>
+              )}
+
+              {/* 선택된 파일 목록 */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    {isEditMode ? '새로 추가할 이미지:' : '선택된 이미지:'}
+                  </p>
+                  {selectedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-muted rounded"
+                    >
+                      <span className="text-sm">{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFile(index)}
                         disabled={submitting || uploading}
                       >
                         <X className="h-4 w-4" />
