@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 
 interface PostImage {
   url: string
@@ -111,7 +112,7 @@ export function CharacterCard({
     setError(false)
 
     // 이미 로드된 이미지인지 확인 (캐시된 경우)
-    const img = new Image()
+    const img = new window.Image()
     const imageUrl = imageInfo.thumbnailUrl 
       ? getImageSrc(imageInfo.thumbnailUrl) 
       : getImageSrc(imageInfo.url)
@@ -155,12 +156,20 @@ export function CharacterCard({
     >
       {/* Blur placeholder */}
       {imageInfo.blurDataURL && !imageLoaded && (
-        <img
-          src={imageInfo.blurDataURL}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover filter blur-md scale-110"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0">
+          <Image
+            src={imageInfo.blurDataURL}
+            alt=""
+            fill
+            className="object-cover"
+            style={{
+              filter: 'blur(10px)',
+              transform: 'scale(1.1)',
+            }}
+            aria-hidden="true"
+            unoptimized // blur placeholder는 최적화 불필요
+          />
+        </div>
       )}
 
       {/* 메인 이미지 */}
@@ -172,19 +181,23 @@ export function CharacterCard({
           ${imageLoaded ? 'opacity-100' : 'opacity-0'}
         `}
       >
-        <img
-          src={displayImageUrl}
-          alt={post.title}
-          className="max-w-full max-h-[168px] object-contain"
-          onLoad={() => {
-            setImageLoaded(true)
-            setError(false)
-          }}
-          onError={() => {
-            setError(true)
-            setImageLoaded(false)
-          }}
-        />
+        <div className="relative w-full max-w-full" style={{ height: '168px', maxHeight: '168px' }}>
+          <Image
+            src={displayImageUrl}
+            alt={post.title}
+            fill
+            className="object-contain"
+            onLoad={() => {
+              setImageLoaded(true)
+              setError(false)
+            }}
+            onError={() => {
+              setError(true)
+              setImageLoaded(false)
+            }}
+            sizes="285px"
+          />
+        </div>
       </div>
 
       {/* 에러 상태 */}

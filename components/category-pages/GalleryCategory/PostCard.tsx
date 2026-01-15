@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface PostImage {
   url: string
@@ -30,7 +31,8 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   const router = useRouter()
 
   const [imageLoaded, setImageLoaded] = useState(false)
-  const imgRef = useRef<HTMLImageElement>(null)
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // 첫 번째 이미지 정보 추출 (썸네일 우선)
   const getFirstImageInfo = () => {
@@ -139,7 +141,7 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
     const allImages = getAllImages()
     if (allImages.length > 0) {
       allImages.forEach((image) => {
-        const img = new Image()
+        const img = new window.Image()
         const imageUrl = getImageSrc(image.url)
         img.src = imageUrl
       })
@@ -158,54 +160,118 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
   const displayImageUrl = imageInfo.thumbnailUrl || imageInfo.url || '/placeholder.png'
   const blurDataURL = imageInfo.blurDataURL
 
-  // 이미지 URL이 변경되면 로드 상태 리셋하고 이미 로드된 이미지인지 확인
+  // post prop이 변경되면 로드 상태 리셋
   useEffect(() => {
     setImageLoaded(false)
-    
-    // 이미지가 이미 로드되어 있는지 확인 (캐시된 이미지)
-    if (imgRef.current) {
-      if (imgRef.current.complete && imgRef.current.naturalHeight !== 0) {
+    setImageDimensions(null)
+  }, [post.id, displayImageUrl]) // displayImageUrl도 의존성에 추가
+
+  // 이미지 크기 미리 로드하여 aspect ratio 계산
+  useEffect(() => {
+    if (!displayImageUrl || displayImageUrl === '/placeholder.png') {
+      setImageDimensions(null)
+      setImageLoaded(false)
+      return
+    }
+
+    // 로드 상태 리셋
+    setImageLoaded(false)
+    setImageDimensions(null) // 크기도 리셋
+
+    let isCancelled = false // cleanup을 위한 플래그
+
+    const img = new window.Image()
+    img.onload = () => {
+      if (!isCancelled) {
+        setImageDimensions({
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        })
+        // 이미지 크기를 로드하면 이미지도 로드된 것으로 간주
         setImageLoaded(true)
       }
     }
+    img.onerror = () => {
+      if (!isCancelled) {
+        setImageDimensions(null)
+        setImageLoaded(true) // 에러가 나도 로드 상태로 표시
+      }
+    }
+    img.src = getImageSrc(displayImageUrl)
+
+    // cleanup 함수: 컴포넌트가 언마운트되거나 URL이 변경되면 취소
+    return () => {
+      isCancelled = true
+      img.onload = null
+      img.onerror = null
+    }
   }, [displayImageUrl])
+
+  // 추가 안전장치: 이미지 로드 타임아웃
+  useEffect(() => {
+    if (!displayImageUrl || displayImageUrl === '/placeholder.png') return
+    if (imageLoaded) return
+
+    const timeout = setTimeout(() => {
+      // 5초 후에도 로드되지 않으면 강제로 로드 완료 처리
+      setImageLoaded(true)
+    }, 5000)
+
+    return () => clearTimeout(timeout)
+  }, [displayImageUrl, imageLoaded])
 
   return (
     <div
       className="w-[285px] cursor-pointer group flex-shrink-0"
       onClick={handleClick}
     >
-      <div className="relative w-full overflow-hidden rounded-lg bg-muted">
+      <div 
+        ref={containerRef}
+        className="relative w-full overflow-hidden rounded-lg bg-muted"
+        style={{
+          // 이미지 비율에 맞춰 높이 설정
+          aspectRatio: imageDimensions 
+            ? `${imageDimensions.width} / ${imageDimensions.height}`
+            : '4 / 3', // 기본 비율 (이미지 로드 전)
+        }}
+      >
         {/* Blur-up Placeholder */}
         {blurDataURL && !imageLoaded && (
-          <img
-            src={blurDataURL}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{
-              filter: 'blur(10px)',
-              transform: 'scale(1.1)',
-            }}
-            aria-hidden="true"
-          />
+          <div className="absolute inset-0">
+            <Image
+              src={blurDataURL}
+              alt=""
+              fill
+              className="object-cover"
+              style={{
+                filter: 'blur(10px)',
+                transform: 'scale(1.1)',
+              }}
+              aria-hidden="true"
+              unoptimized // blur placeholder는 최적화 불필요
+            />
+          </div>
         )}
         {/* 메인 이미지 */}
-        <img
-          ref={imgRef}
-          key={displayImageUrl} // 이미지 URL 변경 시 재로드 보장
+        <Image
           src={getImageSrc(displayImageUrl)}
           alt={post.title}
-          className={`w-full h-auto object-cover transition-all duration-300 group-hover:brightness-50 ${
+          fill
+          className={`object-cover transition-all duration-300 group-hover:brightness-50 ${
             blurDataURL && !imageLoaded ? 'opacity-0' : 'opacity-100'
           }`}
           loading="lazy"
-          decoding="async"
           onLoad={() => {
             setImageLoaded(true)
           }}
           onError={() => {
             setImageLoaded(true)
           }}
+          onLoadingComplete={() => {
+            // 추가 안전장치: 로딩 완료 시 확실히 상태 업데이트
+            setImageLoaded(true)
+          }}
+          sizes="285px" // 카드 너비에 맞춤
         />
         {/* 호버 시 어두운 오버레이 */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300" />

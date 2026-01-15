@@ -124,7 +124,7 @@ export function PropertyPanel({
       const imageUrl = getImageSrc(rawImageUrl)
 
       // 이미지 로드하여 비율 계산
-      const img = new Image()
+      const img = new window.Image()
       img.onload = () => {
         const ratio = img.width / img.height
         setAspectRatio(ratio)

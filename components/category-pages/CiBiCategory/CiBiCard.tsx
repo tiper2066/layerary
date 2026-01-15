@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { changeSvgColors, changeCiColorSet, changeAllSvgColors } from '@/lib/svg-utils'
 
 interface PostImage {
@@ -108,14 +109,14 @@ export function CiBiCard({
   useEffect(() => {
     if (!imageInfo?.thumbnailUrl || selectedColor) return
     
-    const img = new Image()
+    const img = new window.Image()
     img.onload = () => {
       setThumbnailSize({ width: img.width, height: img.height })
     }
     img.onerror = () => {
       // 썸네일이 없으면 원본 이미지 크기 측정
       if (imageInfo.url) {
-        const originalImg = new Image()
+        const originalImg = new window.Image()
         originalImg.onload = () => {
           setThumbnailSize({ width: originalImg.width, height: originalImg.height })
         }
@@ -201,7 +202,7 @@ export function CiBiCard({
       setError(false)
 
       // 이미 로드된 이미지인지 확인 (캐시된 경우)
-      const img = new Image()
+      const img = new window.Image()
       const imageUrl = imageInfo.thumbnailUrl 
         ? getImageSrc(imageInfo.thumbnailUrl) 
         : getImageSrc(imageInfo.url)
@@ -252,12 +253,20 @@ export function CiBiCard({
     >
       {/* Blur placeholder */}
       {imageInfo.blurDataURL && !imageLoaded && (
-        <img
-          src={imageInfo.blurDataURL}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover filter blur-md scale-110"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0">
+          <Image
+            src={imageInfo.blurDataURL}
+            alt=""
+            fill
+            className="object-cover"
+            style={{
+              filter: 'blur(10px)',
+              transform: 'scale(1.1)',
+            }}
+            aria-hidden="true"
+            unoptimized // blur placeholder는 최적화 불필요
+          />
+        </div>
       )}
 
       {/* 메인 이미지 */}
@@ -269,19 +278,24 @@ export function CiBiCard({
           ${imageLoaded ? 'opacity-100' : 'opacity-0'}
         `}
       >
-        <img
-          src={displayImageUrl}
-          alt={post.title}
-          className="max-w-full max-h-[50px] object-contain"
-          onLoad={() => {
-            setImageLoaded(true)
-            setError(false)
-          }}
-          onError={() => {
-            setError(true)
-            setImageLoaded(false)
-          }}
-        />
+        <div className="relative w-full max-w-full" style={{ height: '50px', maxHeight: '50px' }}>
+          <Image
+            src={displayImageUrl}
+            alt={post.title}
+            fill
+            className="object-contain"
+            onLoad={() => {
+              setImageLoaded(true)
+              setError(false)
+            }}
+            onError={() => {
+              setError(true)
+              setImageLoaded(false)
+            }}
+            sizes="285px"
+            unoptimized={!!svgContent} // SVG 색상 변경된 경우 최적화 비활성화
+          />
+        </div>
       </div>
 
       {/* 에러 상태 */}

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { ZoomIn } from 'lucide-react'
+import Image from 'next/image'
 
 interface PostImage {
   url: string
@@ -19,6 +20,7 @@ interface ImageGalleryProps {
 export function ImageGallery({ images }: ImageGalleryProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set())
+  const [imageDimensions, setImageDimensions] = useState<Map<number, { width: number; height: number }>>(new Map())
 
   // images가 JSON 타입일 수 있으므로 타입 확인 및 변환
   let validImages: PostImage[] = []
@@ -68,6 +70,26 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     return url
   }
 
+  // 이미지 크기 미리 로드
+  useEffect(() => {
+    // sortedImages를 기반으로 이미지 크기 로드
+    sortedImages.forEach((image, index) => {
+      const img = new window.Image()
+      img.onload = () => {
+        setImageDimensions(prev => {
+          const newMap = new Map(prev)
+          newMap.set(index, {
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+          })
+          return newMap
+        })
+      }
+      img.src = getImageSrc(image.url)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images]) // images prop이 변경될 때만 실행
+
   const handleImageLoad = (index: number) => {
     setLoadedImages((prev) => new Set(prev).add(index))
   }
@@ -78,6 +100,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
         const isExpanded = expandedIndex === index
         const isLoaded = loadedImages.has(index)
         const blurDataURL = image.blurDataURL
+        const dimensions = imageDimensions.get(index)
 
         return (
           <div key={index} className="relative group w-full flex justify-center">
@@ -90,31 +113,76 @@ export function ImageGallery({ images }: ImageGalleryProps) {
             >
               {/* Blur-up Placeholder */}
               {blurDataURL && !isLoaded && (
-                <img
-                  src={blurDataURL}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{
-                    filter: 'blur(10px)',
-                    transform: 'scale(1.1)',
-                  }}
-                  aria-hidden="true"
-                />
+                <div className="absolute inset-0">
+                  <Image
+                    src={blurDataURL}
+                    alt=""
+                    fill
+                    className="object-contain"
+                    style={{
+                      filter: 'blur(10px)',
+                      transform: 'scale(1.1)',
+                    }}
+                    aria-hidden="true"
+                    unoptimized // blur placeholder는 최적화 불필요
+                  />
+                </div>
               )}
               {/* 메인 이미지 (원본) */}
-              <img
-                src={getImageSrc(image.url)}
-                alt={image.name || `Image ${index + 1}`}
-                className={cn(
-                  'w-full h-auto object-contain transition-opacity duration-300',
-                  blurDataURL && !isLoaded ? 'opacity-0' : 'opacity-100'
-                )}
-                style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                fetchPriority={index === 0 ? 'high' : 'auto'}
-                onLoad={() => handleImageLoad(index)}
-              />
+              {dimensions ? (
+                <div 
+                  className={cn(
+                    'relative transition-all duration-300',
+                    isExpanded ? 'w-full' : 'w-[600px]'
+                  )}
+                  style={{
+                    aspectRatio: `${dimensions.width} / ${dimensions.height}`,
+                  }}
+                >
+                  <Image
+                    src={getImageSrc(image.url)}
+                    alt={image.name || `Image ${index + 1}`}
+                    width={dimensions.width}
+                    height={dimensions.height}
+                    className={cn(
+                      'object-contain transition-opacity duration-300',
+                      blurDataURL && !isLoaded ? 'opacity-0' : 'opacity-100',
+                      isExpanded ? 'w-full h-auto' : 'w-full h-auto max-w-[600px]'
+                    )}
+                    style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    priority={index === 0}
+                    onLoad={() => handleImageLoad(index)}
+                    onLoadingComplete={() => handleImageLoad(index)}
+                    sizes={isExpanded ? '100vw' : '600px'}
+                  />
+                </div>
+              ) : (
+                // 이미지 크기를 아직 모를 때는 fill 사용
+                <div 
+                  className={cn(
+                    'relative transition-all duration-300',
+                    isExpanded ? 'w-full' : 'w-[600px]'
+                  )}
+                  style={{ aspectRatio: '4 / 3', minHeight: '300px' }}
+                >
+                  <Image
+                    src={getImageSrc(image.url)}
+                    alt={image.name || `Image ${index + 1}`}
+                    fill
+                    className={cn(
+                      'object-contain transition-opacity duration-300',
+                      blurDataURL && !isLoaded ? 'opacity-0' : 'opacity-100'
+                    )}
+                    style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    priority={index === 0}
+                    onLoad={() => handleImageLoad(index)}
+                    onLoadingComplete={() => handleImageLoad(index)}
+                    sizes={isExpanded ? '100vw' : '600px'}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )
