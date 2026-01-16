@@ -1,55 +1,141 @@
+import { Suspense } from 'react'
 import { getCategoriesByType } from '@/lib/categories'
 import { CategoryType } from '@prisma/client'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { prisma } from '@/lib/prisma'
 import { CategoryCard } from '@/components/CategoryCard'
 import { ThemeLogo } from '@/components/ThemeLogo'
 import { NoticesSection } from '@/components/NoticesSection'
+import { getRecentPosts, getRecentNotices } from '@/lib/homepage'
+import { ListSkeleton } from '@/components/ui/list-skeleton'
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'auto'
+export const revalidate = 60
+
+// 카테고리 타입에 따른 배경색 매핑
+function getCategoryTypeBadgeColor(type: CategoryType): string {
+  switch (type) {
+    case CategoryType.WORK:
+      return 'bg-penta-indigo/5 dark:bg-penta-indigo/30 text-penta-indigo'
+    case CategoryType.SOURCE:
+      return 'bg-penta-green/5 dark:bg-penta-green/30 text-penta-green'
+    case CategoryType.TEMPLATE:
+      return 'bg-penta-yellow/10 dark:bg-penta-yellow/30 text-penta-yellow'
+    case CategoryType.BROCHURE:
+      return 'bg-penta-blue/5 dark:bg-penta-blue/30 text-penta-blue'
+    default:
+      return 'bg-muted dark:bg-muted/30 text-muted-foreground'
+  }
+}
+
+// 카테고리 타입에 따른 라벨
+function getCategoryTypeLabel(type: CategoryType): string {
+  switch (type) {
+    case CategoryType.WORK:
+      return 'WORK'
+    case CategoryType.SOURCE:
+      return 'SOURCE'
+    case CategoryType.TEMPLATE:
+      return 'TEMPLATE'
+    case CategoryType.BROCHURE:
+      return 'BROCHURE'
+    default:
+      return type
+  }
+}
+
+async function RecentPostsSection() {
+  const recentPosts = await getRecentPosts()
+
+  return (
+    <section>
+      <Card className="py-0 pb-3 gap-3">
+        <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
+          <h3 className="font-semibold">최근 게시물</h3>
+        </div>
+        <CardContent className="p-6">
+          {recentPosts.length > 0 ? (
+            <div className="space-y-4">
+              {recentPosts.map((post) => {
+                // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, 또는 Cloudbric 카테고리인 경우 링크 형식 변경
+                const isCiBiCategory = post.category.pageType === 'ci-bi'
+                const isCharacterCategory = post.category.pageType === 'character'
+                const isWapplesCategory = post.category.pageType === 'wapples'
+                const isDamoCategory = post.category.pageType === 'damo'
+                const isIsignCategory = post.category.pageType === 'isign'
+                const isCloudbricCategory = post.category.pageType === 'cloudbric'
+                const href = (isCiBiCategory || isCharacterCategory || isWapplesCategory || isDamoCategory || isIsignCategory || isCloudbricCategory)
+                  ? `/${post.category.slug}?postId=${post.id}`
+                  : `/${post.category.slug}/${post.id}`
+                
+                return (
+                  <Link
+                    key={post.id}
+                    href={href}
+                    className="block p-4 rounded-lg hover:bg-accent transition-colors last:border-b-0"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0 flex items-center gap-2">
+                        {post.category.type && post.category.type !== CategoryType.ADMIN && post.category.type !== CategoryType.ETC && (
+                          <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryTypeBadgeColor(post.category.type)}`}>
+                            {getCategoryTypeLabel(post.category.type)}
+                          </span>
+                        )}
+                        <h3 className="font-medium text-base">{post.title}</h3>
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {new Date(post.createdAt).toLocaleDateString('ko-KR')}
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center py-8">
+              등록된 게시물이 없습니다.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </section>
+  )
+}
+
+async function NoticesSectionWrapper() {
+  const notices = await getRecentNotices()
+
+  return (
+    <NoticesSection 
+      notices={notices.map(notice => ({
+        id: notice.id,
+        title: notice.title,
+        isImportant: notice.isImportant,
+        createdAt: notice.createdAt instanceof Date 
+          ? notice.createdAt.toISOString() 
+          : typeof notice.createdAt === 'string'
+            ? notice.createdAt
+            : new Date(notice.createdAt).toISOString(),
+        author: {
+          name: notice.author.name,
+        },
+      }))} 
+    />
+  )
+}
 
 export default async function HomePage() {
-  // 병렬로 데이터 가져오기 (성능 최적화)
+  // 병렬로 카테고리 데이터 가져오기
   const [
     workCategories,
     sourceCategories,
     templateCategories,
     brochureCategories,
-    recentPosts,
-    notices,
   ] = await Promise.all([
     getCategoriesByType(CategoryType.WORK),
     getCategoriesByType(CategoryType.SOURCE),
     getCategoriesByType(CategoryType.TEMPLATE),
     getCategoriesByType(CategoryType.BROCHURE),
-    prisma.post.findMany({
-      take: 3,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        category: true,
-        author: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    }),
-    prisma.notice.findMany({
-      take: 3,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        author: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    }),
   ])
 
   const getFirstCategorySlug = (categories: typeof workCategories) => {
@@ -98,45 +184,11 @@ export default async function HomePage() {
     },
   ]
 
-  // 카테고리 타입에 따른 배경색 매핑
-  const getCategoryTypeBadgeColor = (type: CategoryType) => {
-    switch (type) {
-      case CategoryType.WORK:
-        return 'bg-penta-indigo/5 dark:bg-penta-indigo/30 text-penta-indigo'
-      case CategoryType.SOURCE:
-        return 'bg-penta-green/5 dark:bg-penta-green/30 text-penta-green'
-      case CategoryType.TEMPLATE:
-        return 'bg-penta-yellow/10 dark:bg-penta-yellow/30 text-penta-yellow'
-      case CategoryType.BROCHURE:
-        return 'bg-penta-blue/5 dark:bg-penta-blue/30 text-penta-blue'
-      default:
-        return 'bg-muted dark:bg-muted/30 text-muted-foreground'
-    }
-  }
-
-  // 카테고리 타입에 따른 라벨
-  const getCategoryTypeLabel = (type: CategoryType) => {
-    switch (type) {
-      case CategoryType.WORK:
-        return 'WORK'
-      case CategoryType.SOURCE:
-        return 'SOURCE'
-      case CategoryType.TEMPLATE:
-        return 'TEMPLATE'
-      case CategoryType.BROCHURE:
-        return 'BROCHURE'
-      default:
-        return type
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* 카테고리 카드 */}
       <section>
-        {/* <h2 className="text-3xl font-bold mb-8">카테고리</h2> */}
         <h1 className="tracking-tight flex justify-start items-end w-auto gap-2 pb-4">
-          {/* {session?.user?.name ? `${session.user.name} 님 환영합니다.` : "Penta Design Assets Management System"} */}
           <ThemeLogo
             width={160}
             height={40}
@@ -147,7 +199,7 @@ export default async function HomePage() {
         </h1>
         <p className="text-muted-foreground w-full">
           LAYERARY는 펜타시큐리티의 브랜드와 디자인 기준, 그리고 이를 구성하는 것들을 하나의 체계로 관리하는 포털입니다. <br /> 일관된 브랜드 경험을 위해 필요한 기준과 리소스를 정리하고 공유합니다.<br />
-          <span className="text-xs font-regular">LAYERARY is Penta Security’s official portal for managing brand and design standards and assets in one cohesive system. It provides clear guidance and resources to ensure a consistent brand experience.</span>
+          <span className="text-xs font-regular">LAYERARY is Penta Security's official portal for managing brand and design standards and assets in one cohesive system. It provides clear guidance and resources to ensure a consistent brand experience.</span>
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
           {categoryCards.map((card) => (
@@ -158,70 +210,36 @@ export default async function HomePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
         {/* 최근 게시물 */}
-        <section>
-          <Card className="py-0 pb-3 gap-3">
-            <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
-              <h3 className="font-semibold">최근 게시물</h3>
-            </div>
-            <CardContent className="p-6">
-              {recentPosts.length > 0 ? (
-                <div className="space-y-4">
-                  {recentPosts.map((post) => {
-                    // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, 또는 Cloudbric 카테고리인 경우 링크 형식 변경
-                    const isCiBiCategory = post.category.pageType === 'ci-bi'
-                    const isCharacterCategory = post.category.pageType === 'character'
-                    const isWapplesCategory = post.category.pageType === 'wapples'
-                    const isDamoCategory = post.category.pageType === 'damo'
-                    const isIsignCategory = post.category.pageType === 'isign'
-                    const isCloudbricCategory = post.category.pageType === 'cloudbric'
-                    const href = (isCiBiCategory || isCharacterCategory || isWapplesCategory || isDamoCategory || isIsignCategory || isCloudbricCategory)
-                      ? `/${post.category.slug}?postId=${post.id}`
-                      : `/${post.category.slug}/${post.id}`
-                    
-                    return (
-                      <Link
-                        key={post.id}
-                        href={href}
-                        className="block p-4 rounded-lg hover:bg-accent transition-colors last:border-b-0"
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex-1 min-w-0 flex items-center gap-2">
-                            {post.category.type && post.category.type !== CategoryType.ADMIN && post.category.type !== CategoryType.ETC && (
-                              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryTypeBadgeColor(post.category.type)}`}>
-                                {getCategoryTypeLabel(post.category.type)}
-                              </span>
-                            )}
-                            <h3 className="font-medium text-base">{post.title}</h3>
-                          </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(post.createdAt).toLocaleDateString('ko-KR')}
-                          </span>
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  등록된 게시물이 없습니다.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+        <Suspense fallback={
+          <section>
+            <Card className="py-0 pb-3 gap-3">
+              <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
+                <h3 className="font-semibold">최근 게시물</h3>
+              </div>
+              <CardContent className="p-6">
+                <ListSkeleton count={3} />
+              </CardContent>
+            </Card>
+          </section>
+        }>
+          <RecentPostsSection />
+        </Suspense>
 
         {/* 공지사항 */}
-        <NoticesSection 
-          notices={notices.map(notice => ({
-            id: notice.id,
-            title: notice.title,
-            isImportant: notice.isImportant,
-            createdAt: notice.createdAt.toISOString(),
-            author: {
-              name: notice.author.name,
-            },
-          }))} 
-        />
+        <Suspense fallback={
+          <section>
+            <Card className="py-0 pb-3 gap-3">
+              <div className="pt-4 pb-4 pl-6 pr-6 border-b min-h-[65px] flex items-center">
+                <h3 className="font-semibold">공지사항</h3>
+              </div>
+              <CardContent className="p-6">
+                <ListSkeleton count={3} />
+              </CardContent>
+            </Card>
+          </section>
+        }>
+          <NoticesSectionWrapper />
+        </Suspense>
       </div>
     </div>
   )

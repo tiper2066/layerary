@@ -9,6 +9,7 @@ import { CloudbricUploadDialog } from '@/components/category-pages/CloudbricCate
 import { CloudbricCard } from '@/components/category-pages/CloudbricCategory/CloudbricCard'
 import { CloudbricPropertyPanel } from '@/components/category-pages/CloudbricCategory/CloudbricPropertyPanel'
 import { Flipper, Flipped } from 'react-flip-toolkit'
+import { PostCardSkeleton } from '@/components/ui/post-card-skeleton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -491,6 +492,19 @@ export function CloudbricListPage({ category }: CloudbricListPageProps) {
             ))}
           </div>
 
+          {/* 로딩 중 Skeleton 표시 */}
+          {loading && posts.length === 0 && (
+            <div ref={containerRef} className="masonry-container justify-center md:justify-start">
+              {Array.from({ length: Math.min(4, Math.max(1, Math.floor((containerRef.current?.offsetWidth || 1200) / (CLOUDBRIC_CARD_WIDTH + 8)))) }).map((_, colIndex) => (
+                <div key={colIndex} className="masonry-column" style={{ flex: `0 0 ${CLOUDBRIC_CARD_WIDTH}px`, width: `${CLOUDBRIC_CARD_WIDTH}px`, gap: '8px' }}>
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <PostCardSkeleton key={index} width={CLOUDBRIC_CARD_WIDTH} height={230} showButtons={true} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* 게시물이 없을 때 빈 상태 메시지 */}
           {posts.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -546,13 +560,6 @@ export function CloudbricListPage({ category }: CloudbricListPageProps) {
 
           {/* 무한 스크롤 트리거 */}
           {hasMore && <div ref={loadMoreRef} className="h-20" />}
-
-          {/* 로딩 표시 - 데이터가 없을 때만 표시 */}
-          {loading && posts.length === 0 && (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          )}
         </div>
       </div>
 

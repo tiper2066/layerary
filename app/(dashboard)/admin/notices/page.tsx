@@ -47,6 +47,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2, Plus, Pencil, Trash2, Upload, X, File, Paperclip } from 'lucide-react'
+import { TableRowSkeleton } from '@/components/ui/table-row-skeleton'
 
 interface Attachment {
   url: string
@@ -360,8 +361,44 @@ export default function NoticesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">공지사항 관리</h1>
+            <p className="text-muted-foreground mt-2">
+              공지사항을 등록, 수정, 삭제할 수 있습니다.
+            </p>
+          </div>
+          <Button disabled>
+            <Plus className="h-4 w-4 mr-2" />
+            공지사항 추가
+          </Button>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>공지사항 목록</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>작성일</TableHead>
+                  <TableHead>작성자</TableHead>
+                  <TableHead>제목</TableHead>
+                  <TableHead className='text-center'>첨부파일</TableHead>
+                  <TableHead className='text-center'>조회수</TableHead>
+                  <TableHead className='text-center'>중요</TableHead>
+                  <TableHead className="text-center">작업</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <TableRowSkeleton key={index} columns={7} />
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     )
   }

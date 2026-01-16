@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { CategoryType, Prisma } from '@prisma/client'
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'auto'
+export const revalidate = 30 // 30초 캐시 (실시간 반영 중요)
 
 export async function GET() {
   try {
@@ -100,6 +101,10 @@ export async function GET() {
       totalPosts,
       totalImages,
       postsByCategoryType: categoryTypeCounts,
+    }, {
+      headers: {
+        'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60',
+      },
     })
   } catch (error: any) {
     if (error.message === 'Unauthorized' || error.message === 'Forbidden') {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { ZoomIn } from 'lucide-react'
 import Image from 'next/image'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface PostImage {
   url: string
@@ -117,6 +118,13 @@ export function ImageGallery({ images }: ImageGalleryProps) {
               )}
               onClick={() => setExpandedIndex(isExpanded ? null : index)}
             >
+              {/* Skeleton Placeholder - blur보다 먼저 표시 */}
+              {!isLoaded && !blurDataURL && (
+                <Skeleton className={cn(
+                  'absolute inset-0 w-full',
+                  isExpanded ? 'h-full' : 'h-[450px]'
+                )} />
+              )}
               {/* Blur-up Placeholder */}
               {blurDataURL && !isLoaded && (
                 <div className="absolute inset-0">
@@ -124,7 +132,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                     src={blurDataURL}
                     alt=""
                     fill
-                    className="object-contain"
+                    className="object-contain transition-opacity duration-300"
                     style={{
                       filter: 'blur(10px)',
                       transform: 'scale(1.1)',
@@ -152,7 +160,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                     height={dimensions.height}
                     className={cn(
                       'object-contain transition-opacity duration-300',
-                      blurDataURL && !isLoaded ? 'opacity-0' : 'opacity-100',
+                      !isLoaded ? 'opacity-0' : 'opacity-100',
                       isExpanded ? 'w-full h-auto' : 'w-full h-auto max-w-[600px]'
                     )}
                     style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
@@ -178,7 +186,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                     fill
                     className={cn(
                       'object-contain transition-opacity duration-300',
-                      blurDataURL && !isLoaded ? 'opacity-0' : 'opacity-100'
+                      !isLoaded ? 'opacity-0' : 'opacity-100'
                     )}
                     style={{ cursor: isExpanded ? 'zoom-out' : 'zoom-in' }}
                     loading={index === 0 ? 'eager' : 'lazy'}

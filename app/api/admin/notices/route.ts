@@ -16,6 +16,9 @@ const createNoticeSchema = z.object({
   attachments: z.array(attachmentSchema).optional().nullable(),
 })
 
+export const dynamic = 'auto'
+export const revalidate = 30 // 30초 캐시 (실시간 반영 중요)
+
 export async function GET() {
   try {
     await requireAdmin()
@@ -35,7 +38,11 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json({ notices })
+    return NextResponse.json({ notices }, {
+      headers: {
+        'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60',
+      },
+    })
   } catch (error: any) {
     if (error.message === 'Unauthorized' || error.message === 'Forbidden') {
       return NextResponse.json(

@@ -9,6 +9,7 @@ import { CiBiUploadDialog } from '@/components/category-pages/CiBiCategory/CiBiU
 import { CiBiCard } from '@/components/category-pages/CiBiCategory/CiBiCard'
 import { PropertyPanel } from '@/components/category-pages/CiBiCategory/PropertyPanel'
 import { Flipper, Flipped } from 'react-flip-toolkit'
+import { ImageCardSkeleton } from '@/components/ui/image-card-skeleton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -522,6 +523,19 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
             ))}
           </div>
 
+          {/* 로딩 중 Skeleton 표시 */}
+          {loading && posts.length === 0 && (
+            <div ref={containerRef} className="masonry-container justify-center md:justify-start">
+              {Array.from({ length: Math.min(4, Math.max(1, Math.floor((containerRef.current?.offsetWidth || 1200) / (CIBI_CARD_WIDTH + 8)))) }).map((_, colIndex) => (
+                <div key={colIndex} className="masonry-column" style={{ flex: `0 0 ${CIBI_CARD_WIDTH}px`, width: `${CIBI_CARD_WIDTH}px`, gap: '8px' }}>
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <ImageCardSkeleton key={index} width={CIBI_CARD_WIDTH} height={136} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* 게시물이 없을 때 빈 상태 메시지 */}
           {posts.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -575,13 +589,6 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
 
           {/* 무한 스크롤 트리거 */}
           {hasMore && <div ref={loadMoreRef} className="h-20" />}
-
-          {/* 로딩 표시 - 데이터가 없을 때만 표시 */}
-          {loading && posts.length === 0 && (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          )}
         </div>
       </div>
 

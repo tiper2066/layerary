@@ -4,6 +4,7 @@ import { PostCard } from './PostCard'
 import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Flipper, Flipped } from 'react-flip-toolkit'
+import { PostCardSkeleton } from '@/components/ui/post-card-skeleton'
 
 interface Post {
   id: string
@@ -84,9 +85,27 @@ export function PostGrid({ posts, categorySlug, loading, onPostClick }: PostGrid
   }, [calculateColumns])
 
   if (loading && posts.length === 0) {
+    // Skeleton 카드들을 Masonry 레이아웃으로 표시
+    const numSkeletons = 6
+    const skeletonColumns = Array(Math.min(4, Math.max(1, Math.floor((containerRef.current?.offsetWidth || 1200) / 295)))).fill(null).map(() => [])
+    
+    // Skeleton들을 열에 분배
+    for (let i = 0; i < numSkeletons; i++) {
+      const shortestColumnIndex = skeletonColumns.reduce((minIndex, column, idx) => {
+        return column.length < skeletonColumns[minIndex].length ? idx : minIndex
+      }, 0)
+      skeletonColumns[shortestColumnIndex].push(i)
+    }
+
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div ref={containerRef} className="masonry-container justify-center md:justify-start">
+        {skeletonColumns.map((column, columnIndex) => (
+          <div key={columnIndex} className="masonry-column">
+            {column.map((index) => (
+              <PostCardSkeleton key={index} width={285} />
+            ))}
+          </div>
+        ))}
       </div>
     )
   }

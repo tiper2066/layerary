@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
+import { Skeleton } from '@/components/ui/skeleton'
 import { changeSvgColors, changeCiColorSet, changeAllSvgColors } from '@/lib/svg-utils'
 
 interface PostImage {
@@ -252,6 +253,10 @@ export function CiBiCard({
       `}
       onClick={() => onClick(post.id)}      
     >
+      {/* Skeleton Placeholder - blur보다 먼저 표시 */}
+      {!imageLoaded && !imageInfo.blurDataURL && (
+        <Skeleton className="absolute inset-0 w-full h-full" />
+      )}
       {/* Blur placeholder */}
       {imageInfo.blurDataURL && !imageLoaded && (
         <div className="absolute inset-0">
@@ -259,7 +264,7 @@ export function CiBiCard({
             src={imageInfo.blurDataURL}
             alt=""
             fill
-            className="object-cover"
+            className="object-cover transition-opacity duration-300"
             style={{
               filter: 'blur(10px)',
               transform: 'scale(1.1)',
@@ -276,7 +281,7 @@ export function CiBiCard({
         className={`
           relative w-full h-full flex items-center justify-center
           transition-opacity duration-300
-          ${imageLoaded ? 'opacity-100' : 'opacity-0'}
+          ${!imageLoaded ? 'opacity-0' : 'opacity-100'}
         `}
       >
         <div className="relative w-full max-w-full" style={{ height: '50px', maxHeight: '50px' }}>

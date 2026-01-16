@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { UserRole } from '@prisma/client'
 import { Loader2 } from 'lucide-react'
+import { TableRowSkeleton } from '@/components/ui/table-row-skeleton'
 
 interface User {
   id: string
@@ -119,8 +120,38 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">회원 관리</h1>
+          <p className="text-muted-foreground mt-2">
+            등록된 모든 회원의 정보를 관리하고 권한을 부여합니다.
+          </p>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-lg font-semibold'>회원 목록</CardTitle>
+            <CardDescription>등록된 회원 정보를 불러오는 중...</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>사용자</TableHead>
+                  <TableHead>이메일</TableHead>
+                  <TableHead className='text-center'>역할</TableHead>
+                  <TableHead className='text-center'>게시물 수</TableHead>
+                  <TableHead className='text-center'>공지사항 수</TableHead>
+                  <TableHead className='text-center'>가입일</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <TableRowSkeleton key={index} columns={5} showAvatar={true} />
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     )
   }

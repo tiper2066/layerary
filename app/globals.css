@@ -103,3 +103,38 @@
   scrollbar-width: none;
 }
 
+/* Skeleton Shimmer 애니메이션 */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Skeleton Shimmer 애니메이션 스타일 */
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    hsl(210 40% 96.1%) 0%,
+    hsl(210 40% 88%) 20%,
+    hsl(210 40% 98%) 60%,
+    hsl(210 40% 88%) 80%,
+    hsl(210 40% 96.1%) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(217.2 32.6% 17.5%) 0%,
+    hsl(217.2 32.6% 12%) 20%,
+    hsl(217.2 32.6% 30%) 60%,
+    hsl(217.2 32.6% 12%) 80%,
+    hsl(217.2 32.6% 17.5%) 100%
+  );
+  background-size: 200% 100%;
+}

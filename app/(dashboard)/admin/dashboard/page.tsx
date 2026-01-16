@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { SquareArrowOutUpRight, Image, Database, HardDrive, Wallpaper, FileText as FileTextIcon, BookOpen } from 'lucide-react'
 import { Loader2, Images } from 'lucide-react'
+import { StatsCardSkeleton } from '@/components/ui/stats-card-skeleton'
 
 interface DashboardStats {
   totalPosts: number
@@ -52,8 +53,28 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">대시보드</h1>
+          <p className="text-muted-foreground mt-2">
+            프로젝트 통계 및 리소스 관리
+          </p>
+        </div>
+
+        {/* 카테고리별 게시물 수 Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCardSkeleton />
+          <StatsCardSkeleton />
+          <StatsCardSkeleton />
+          <StatsCardSkeleton />
+        </div>
+
+        {/* 전체 통계 Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatsCardSkeleton />
+          <StatsCardSkeleton />
+          <StatsCardSkeleton />
+        </div>
       </div>
     )
   }

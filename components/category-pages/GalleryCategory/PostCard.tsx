@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface PostImage {
   url: string
@@ -235,6 +236,10 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
             : '4 / 3', // 기본 비율 (이미지 로드 전)
         }}
       >
+        {/* Skeleton Placeholder - blur보다 먼저 표시 */}
+        {!imageLoaded && !blurDataURL && (
+          <Skeleton className="absolute inset-0 w-full h-full" />
+        )}
         {/* Blur-up Placeholder */}
         {blurDataURL && !imageLoaded && (
           <div className="absolute inset-0">
@@ -242,7 +247,7 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
               src={blurDataURL}
               alt=""
               fill
-              className="object-cover"
+              className="object-cover transition-opacity duration-300"
               style={{
                 filter: 'blur(10px)',
                 transform: 'scale(1.1)',
@@ -258,7 +263,7 @@ export function PostCard({ post, categorySlug, onClick }: PostCardProps) {
           alt={post.title}
           fill
           className={`object-cover transition-all duration-300 group-hover:brightness-50 ${
-            blurDataURL && !imageLoaded ? 'opacity-0' : 'opacity-100'
+            !imageLoaded ? 'opacity-0' : 'opacity-100'
           }`}
           loading="lazy"
           onLoad={() => {

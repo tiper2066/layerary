@@ -381,7 +381,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{userName || session.user.name || '사용자'}</p>
+                  <p>{session.user.email || '이메일 없음'}</p>
                 </TooltipContent>
               </Tooltip>
             </div>

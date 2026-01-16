@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'auto'
+export const revalidate = 30 // 30초 캐시 (실시간 반영 중요)
 
 export async function GET() {
   try {
@@ -31,7 +32,11 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json({ users })
+    return NextResponse.json({ users }, {
+      headers: {
+        'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60',
+      },
+    })
   } catch (error: any) {
     if (error.message === 'Unauthorized' || error.message === 'Forbidden') {
       return NextResponse.json(
