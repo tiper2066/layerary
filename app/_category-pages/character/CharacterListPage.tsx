@@ -193,7 +193,8 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
         fetchInProgressRef.current = false
       }
     },
-    [category.slug] // selectedFilter 의존성 제거
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [category.slug] // selectedFilter, loading 의존성 제거 (무한 루프 방지)
   )
 
   // 필터 변경 시 목록 새로고침 및 선택 상태 초기화
@@ -263,7 +264,8 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
     if (page > 1 && !loading && !fetchInProgressRef.current && hasMore) {
       fetchPosts(page, selectedFilter, true)
     }
-  }, [page, selectedFilter, fetchPosts, hasMore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, selectedFilter, fetchPosts, hasMore]) // loading 의존성 제거 (무한 루프 방지)
 
   // 컨테이너 너비에 따라 열 개수 계산 (masonry 레이아웃)
   const calculateColumns = useCallback(() => {

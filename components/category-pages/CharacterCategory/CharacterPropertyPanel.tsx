@@ -114,7 +114,7 @@ export function CharacterPropertyPanel({
       }
       img.src = imageUrl
     }
-  }, [post])
+  }, [post, onSizeChange])
 
   // 너비 변경 시 높이 자동 조정 (정비율)
   const handleWidthChange = (value: string) => {
