@@ -8,6 +8,7 @@ import { WapplesListPage } from '@/app/_category-pages/wapples/WapplesListPage'
 import { DamoListPage } from '@/app/_category-pages/damo/DamoListPage'
 import { IsignListPage } from '@/app/_category-pages/isign/IsignListPage'
 import { CloudbricListPage } from '@/app/_category-pages/cloudbric/CloudbricListPage'
+import { PptListPage } from '@/app/_category-pages/ppt/PptListPage'
 
 // 카테고리 타입별 기본 pageType 반환
 function getDefaultPageType(categoryType: CategoryType): string {
@@ -58,6 +59,9 @@ export default async function CategoryPage({
 
     case 'cloudbric':
       return <CloudbricListPage category={category} />
+
+    case 'ppt':
+      return <PptListPage category={category} />
 
     case 'editor':
       // TODO: EditorListPage 구현 시 추가

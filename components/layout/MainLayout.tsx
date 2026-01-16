@@ -66,8 +66,13 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
     !pathname.startsWith('/admin') &&
     pathname.startsWith('/cloudbric'))
 
-  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, 또는 Cloudbric 페이지인지 확인 (속성 패널이 있는 특수 페이지)
-  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage
+  // PPT 페이지인지 확인 (pathname 기반으로 우선 감지)
+  const isPptPage = Boolean(pathname && 
+    !pathname.startsWith('/admin') &&
+    pathname.startsWith('/ppt'))
+
+  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, 또는 PPT 페이지인지 확인 (속성 패널이 있는 특수 페이지)
+  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage
 
   return (
     <div className="flex min-h-screen md:h-screen bg-background">

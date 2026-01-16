@@ -21,6 +21,7 @@ const updatePostSchema = z.object({
   tags: z.array(z.string()).optional(),
   config: z.record(z.any()).optional().nullable(), // CI/BI 타입 등 추가 설정
   producedAt: z.string().datetime().optional().nullable(), // ISO 8601 형식의 날짜 문자열
+  thumbnailUrl: z.string().url().optional().nullable(), // PPT 썸네일 이미지 URL
 })
 
 export async function GET(
@@ -222,6 +223,9 @@ export async function PUT(
     }
     if (validatedData.description !== undefined) {
       updateData.description = validatedData.description
+    }
+    if (validatedData.thumbnailUrl !== undefined) {
+      updateData.thumbnailUrl = validatedData.thumbnailUrl
     }
     // CI/BI 타입 정보는 concept 필드에 저장
     if (validatedData.config?.ciBiType !== undefined) {

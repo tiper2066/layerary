@@ -732,6 +732,16 @@ export async function POST(request: Request) {
     const admin = await requireAdmin()
     const body = await request.json()
 
+    // 디버깅: 데이터베이스 연결 정보 확인 (민감 정보 마스킹)
+    const dbUrl = process.env.DATABASE_URL || ''
+    const maskedUrl = dbUrl.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@')
+    console.log('Database connection info:', {
+      host: dbUrl.match(/@([^:]+)/)?.[1] || 'unknown',
+      database: dbUrl.match(/\/[^?]+/)?.[0]?.replace('/', '') || 'unknown',
+      schema: dbUrl.match(/schema=([^&]+)/)?.[1] || 'public',
+      maskedUrl: maskedUrl,
+    })
+
     const validatedData = createPostSchema.parse(body)
 
     // 첫 번째 이미지를 thumbnailUrl과 fileUrl로 설정 (하위 호환성)
@@ -826,6 +836,51 @@ export async function POST(request: Request) {
         },
       },
     })
+
+    // 디버깅: 생성된 게시물 ID와 데이터베이스 연결 확인
+    console.log('Post created successfully:', {
+      id: post.id,
+      title: post.title,
+      categoryId: post.categoryId,
+      createdAt: post.createdAt,
+    })
+
+    // 생성 후 즉시 조회하여 실제로 저장되었는지 확인
+    const verifyPost = await prisma.post.findUnique({
+      where: { id: post.id },
+    })
+    console.log('Post verification:', verifyPost ? 'Found in database' : 'NOT FOUND in database')
+    if (verifyPost) {
+      console.log('Verified post details:', {
+        id: verifyPost.id,
+        title: verifyPost.title,
+        categoryId: verifyPost.categoryId,
+        createdAt: verifyPost.createdAt,
+      })
+    }
+
+    // 추가 검증: 같은 카테고리의 전체 게시물 수 확인
+    const categoryPostCount = await prisma.post.count({
+      where: { categoryId: post.categoryId },
+    })
+    console.log(`Total posts in category ${post.categoryId}: ${categoryPostCount}`)
+
+    // 추가 검증: 최근 생성된 게시물 5개 조회
+    const recentPosts = await prisma.post.findMany({
+      where: { categoryId: post.categoryId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+      },
+    })
+    console.log('Recent 5 posts in category:', recentPosts.map(p => ({
+      id: p.id,
+      title: p.title,
+      createdAt: p.createdAt,
+    })))
 
     return NextResponse.json({ post }, { status: 201 })
   } catch (error: any) {
