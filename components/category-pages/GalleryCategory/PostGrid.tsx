@@ -87,7 +87,8 @@ export function PostGrid({ posts, categorySlug, loading, onPostClick }: PostGrid
   if (loading && posts.length === 0) {
     // Skeleton 카드들을 Masonry 레이아웃으로 표시
     const numSkeletons = 6
-    const skeletonColumns = Array(Math.min(4, Math.max(1, Math.floor((containerRef.current?.offsetWidth || 1200) / 295)))).fill(null).map(() => [])
+    const numColumns = Math.min(4, Math.max(1, Math.floor((containerRef.current?.offsetWidth || 1200) / 295)))
+    const skeletonColumns: number[][] = Array(numColumns).fill(null).map(() => [])
     
     // Skeleton들을 열에 분배
     for (let i = 0; i < numSkeletons; i++) {
