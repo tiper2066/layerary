@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PostGrid } from '@/components/category-pages/GalleryCategory/PostGrid'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { PostUploadDialog } from '@/components/category-pages/GalleryCategory/PostUploadDialog'
 
@@ -253,7 +253,16 @@ export function GalleryListPage({ category }: GalleryListPageProps) {
       <PostGrid posts={posts} categorySlug={category.slug} loading={loading} onPostClick={handlePostClick} />
 
       {/* 무한 스크롤 트리거 */}
-      <div ref={loadMoreRef} className="h-20" />
+      {hasMore && (
+        <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
+          {loading && posts.length > 0 && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">더 불러오는 중...</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {isAdmin && (
         <PostUploadDialog

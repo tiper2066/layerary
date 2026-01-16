@@ -559,7 +559,16 @@ export function CloudbricListPage({ category }: CloudbricListPageProps) {
           )}
 
           {/* 무한 스크롤 트리거 */}
-          {hasMore && <div ref={loadMoreRef} className="h-20" />}
+          {hasMore && (
+            <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
+              {loading && posts.length > 0 && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">더 불러오는 중...</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
