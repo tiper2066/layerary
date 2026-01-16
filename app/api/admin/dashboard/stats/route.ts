@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { CategoryType, Prisma } from '@prisma/client'
 
-export const dynamic = 'auto'
+export const dynamic = 'force-dynamic'
 export const revalidate = 30 // 30초 캐시 (실시간 반영 중요)
 
 export async function GET() {
