@@ -51,7 +51,8 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
       setEndPage('')
       setNumPages(0)
     }
-  }, [pdfFile])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pdfFile]) // setNumPages는 setState 함수이므로 안정적
 
   // 범위 입력에서 체크박스 상태 업데이트
   useEffect(() => {
@@ -76,7 +77,8 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
       // 둘 다 비어있고 선택된 페이지가 있으면 선택 해제
       setSelectedPages(new Set())
     }
-  }, [startPage, endPage, numPages]) // selectedPages를 의존성에서 제거
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startPage, endPage, numPages]) // selectedPages 제외 (순환 참조 방지)
 
   // 체크박스에서 범위 입력 업데이트 (연속된 범위인 경우만)
   useEffect(() => {
@@ -109,7 +111,8 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
         setEndPage(newEndPage)
       }
     }
-  }, [selectedPages]) // startPage, endPage를 의존성에서 제거하여 순환 참조 방지
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPages]) // startPage, endPage 제외 (순환 참조 방지)
 
   const handlePageToggle = useCallback((pageNum: number) => {
     setSelectedPages(prev => {
@@ -183,7 +186,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
       const pdfBytes = await newPdf.save()
 
       // Blob URL 생성
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      const blob = new Blob([Uint8Array.from(pdfBytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       setPreviewPdfUrl(url)
     } catch (error) {
@@ -263,7 +266,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
       }
 
       // 다운로드
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      const blob = new Blob([Uint8Array.from(pdfBytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
