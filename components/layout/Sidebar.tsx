@@ -261,6 +261,8 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
               
               // Etc 카테고리는 하드코딩
               if (type === CategoryType.ETC) {
+                const isPdfExtractorActive = pathname === '/pdf-extractor'
+                
                 return (
                   <div key={type} className="space-y-1 pr-4">
                     <div className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -275,6 +277,18 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                     >
                       <span className="flex-1 text-sm">eDM</span> 
                       <SquareArrowOutUpRight className="h-4 w-4 flex-shrink-0 ml-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </Link>
+                    <Link
+                      href="/pdf-extractor"
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors',
+                        isPdfExtractorActive
+                          ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent'
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      )}
+                      onClick={onLinkClick}
+                    >
+                      <span className="flex-1 text-sm">PDF Extractor</span>
                     </Link>
                   </div>
                 )
