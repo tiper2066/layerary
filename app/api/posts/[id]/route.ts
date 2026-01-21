@@ -295,7 +295,12 @@ export async function PUT(
 
       const firstImage = validatedData.images[0]
       updateData.images = validatedData.images
-      updateData.thumbnailUrl = firstImage.url
+      
+      // thumbnailUrl이 명시적으로 전달되지 않은 경우에만 firstImage.url 사용
+      // (PPT 페이지에서는 thumbnailUrl이 Supabase에 저장된 이미지이므로 덮어쓰면 안 됨)
+      if (validatedData.thumbnailUrl === undefined) {
+        updateData.thumbnailUrl = firstImage.url
+      }
       updateData.fileUrl = firstImage.url
     }
 

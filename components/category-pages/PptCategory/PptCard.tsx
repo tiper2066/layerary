@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2, Download, Loader2, FileArchive } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
@@ -35,6 +35,39 @@ export function PptCard({
 }: PptCardProps) {
   const [downloading, setDownloading] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const imageUrlRef = useRef<string | null>(null)
+
+  // thumbnailUrl이 변경될 때만 imageLoaded 상태 초기화
+  // 이미 로드된 이미지인지 확인하여 불필요한 리셋 방지
+  useEffect(() => {
+    if (!post.thumbnailUrl) {
+      setImageLoaded(false)
+      imageUrlRef.current = null
+      return
+    }
+
+    // 이미지 URL이 변경된 경우에만 리셋
+    if (imageUrlRef.current !== post.thumbnailUrl) {
+      imageUrlRef.current = post.thumbnailUrl
+      setImageLoaded(false)
+
+      // 이미 로드된 이미지인지 확인 (브라우저 캐시)
+      const img = new window.Image()
+      img.onload = () => {
+        setImageLoaded(true)
+      }
+      img.onerror = () => {
+        // 에러가 발생해도 로딩 상태는 true로 설정하여 Skeleton이 계속 표시되지 않도록
+        setImageLoaded(true)
+      }
+      img.src = post.thumbnailUrl
+
+      // 이미 로드된 경우 즉시 상태 업데이트
+      if (img.complete && img.naturalHeight > 0) {
+        setImageLoaded(true)
+      }
+    }
+  }, [post.thumbnailUrl])
 
   // PPT 프록시 URL 생성
   const getProxyUrl = (fileUrl: string | null | undefined) => {
@@ -119,6 +152,10 @@ export function PptCard({
               }`}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageLoaded(true)}
+              onLoadingComplete={() => {
+                // 추가 안전장치: 로딩 완료 시 확실히 상태 업데이트
+                setImageLoaded(true)
+              }}
             />
           </>
         ) : (
