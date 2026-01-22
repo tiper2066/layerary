@@ -259,6 +259,9 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
             {categoryOrder.map((type) => {
               const cats = groupedCategories[type] || []
               
+              // SOURCE 카테고리는 일반 카테고리로 처리
+              // (ICON은 Supabase 카테고리로 관리됨)
+
               // Etc 카테고리는 하드코딩
               if (type === CategoryType.ETC) {
                 const isPdfExtractorActive = pathname === '/pdf-extractor'

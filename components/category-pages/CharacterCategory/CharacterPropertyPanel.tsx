@@ -361,7 +361,7 @@ export function CharacterPropertyPanel({
             <div className='pb-12 border-b'>
               <p className='text-xs font-light text-muted-foreground'>
                 <span className='font-semibold mr-1'>PNG </span>: 배경투명
-                <span className='font-semibold ml-4 mr-1'>JPG </span>: 배경투명
+                <span className='font-semibold ml-4 mr-1'>JPG </span>: 배경불투명
                 <span className='font-semibold ml-4'>SVG </span>: 벡터 (ai 파일대체)
               </p>
             </div>

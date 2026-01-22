@@ -400,7 +400,49 @@ export async function DELETE(
       )
     }
 
-    // B2에서 이미지 파일 삭제
+    // Supabase Storage에서 아이콘 파일 삭제 (ICON 카테고리인 경우)
+    if (post.fileType === 'svg' && post.fileUrl) {
+      try {
+        const { createServerSupabaseClient } = await import('@/lib/supabase')
+        const supabase = createServerSupabaseClient()
+        
+        // Supabase Storage URL에서 파일 경로 추출
+        // URL 형식: https://xxx.supabase.co/storage/v1/object/public/icons/filename.svg
+        try {
+          const urlObj = new URL(post.fileUrl)
+          const pathParts = urlObj.pathname.split('/').filter(Boolean)
+          
+          // 'icons' 버킷의 파일인지 확인
+          // pathParts 예: ['storage', 'v1', 'object', 'public', 'icons', 'filename.svg']
+          const iconsIndex = pathParts.indexOf('icons')
+          
+          if (iconsIndex !== -1 && iconsIndex < pathParts.length - 1) {
+            // icons 다음 부분이 파일명
+            const fileName = pathParts[iconsIndex + 1]
+            
+            if (fileName) {
+              // Supabase Storage에서 파일 삭제
+              const { error: deleteError } = await supabase.storage
+                .from('icons')
+                .remove([fileName])
+              
+              if (deleteError) {
+                console.error('Supabase Storage delete error:', deleteError)
+                // 스토리지 삭제 실패해도 DB 삭제는 진행
+              }
+            }
+          }
+        } catch (urlError: any) {
+          console.error('URL parsing error:', urlError.message)
+          // URL 파싱 실패해도 DB 삭제는 진행
+        }
+      } catch (supabaseError: any) {
+        console.error('Supabase Storage deletion error:', supabaseError.message)
+        // 스토리지 삭제 실패해도 DB 삭제는 진행
+      }
+    }
+
+    // B2에서 이미지 파일 삭제 (다른 카테고리인 경우)
     try {
       const { deleteFileByUrl } = await import('@/lib/b2')
       

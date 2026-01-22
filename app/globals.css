@@ -138,3 +138,14 @@
   );
   background-size: 200% 100%;
 }
+
+/* SVG 아이콘 전용 스타일 - fill="none" 보호 */
+/* fill="none"이 명시된 요소는 none 유지 */
+.icon-svg-container svg *[fill="none"] {
+  fill: none !important;
+}
+
+/* stroke만 있는 요소는 fill이 none이어야 함 */
+.icon-svg-container svg *[stroke]:not([fill]) {
+  fill: none !important;
+}

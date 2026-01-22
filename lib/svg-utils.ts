@@ -98,9 +98,16 @@ export function resizeSvg(
 ): string {
   let modifiedSvg = svgContent
 
-  // 먼저 기존 width와 height 속성을 제거
-  modifiedSvg = modifiedSvg.replace(/\s+width=["'][^"']*["']/gi, '')
-  modifiedSvg = modifiedSvg.replace(/\s+height=["'][^"']*["']/gi, '')
+  // SVG 태그의 width와 height 속성만 제거 (rect 등의 width/height는 유지, viewBox는 유지)
+  modifiedSvg = modifiedSvg.replace(
+    /<svg([^>]*?)>/i,
+    (match, attrs) => {
+      // SVG 태그의 width, height만 제거 (viewBox는 유지)
+      let newAttrs = attrs.replace(/\s+width=["'][^"']*["']/gi, '')
+      newAttrs = newAttrs.replace(/\s+height=["'][^"']*["']/gi, '')
+      return `<svg${newAttrs ? ' ' + newAttrs : ''}>`
+    }
+  )
 
   // width 속성 추가
   if (width !== undefined) {
@@ -108,7 +115,6 @@ export function resizeSvg(
     modifiedSvg = modifiedSvg.replace(
       /<svg([^>]*?)>/i,
       (match, attrs) => {
-        // attrs 끝에 공백이 없으면 추가
         const trimmedAttrs = attrs.trim()
         const separator = trimmedAttrs ? ' ' : ''
         return `<svg${separator}${trimmedAttrs} width="${widthValue}">`
@@ -122,7 +128,6 @@ export function resizeSvg(
     modifiedSvg = modifiedSvg.replace(
       /<svg([^>]*?)>/i,
       (match, attrs) => {
-        // attrs 끝에 공백이 없으면 추가
         const trimmedAttrs = attrs.trim()
         const separator = trimmedAttrs ? ' ' : ''
         return `<svg${separator}${trimmedAttrs} height="${heightValue}">`
@@ -130,9 +135,8 @@ export function resizeSvg(
     )
   }
 
-  // 정비율 유지: viewBox 유지 (이미 존재하면 그대로 사용)
-  if (maintainAspectRatio && !modifiedSvg.match(/viewBox=["'][^"']*["']/i)) {
-    // viewBox가 없으면 추가 (기본값)
+  // viewBox가 없으면 추가 (기본값)
+  if (!modifiedSvg.match(/viewBox=["'][^"']*["']/i)) {
     modifiedSvg = modifiedSvg.replace(
       /<svg([^>]*?)>/i,
       (match, attrs) => {
@@ -285,6 +289,7 @@ export function changeCiColorSet(
 
 /**
  * SVG의 모든 fill과 stroke 색상을 하나의 색상으로 변경합니다.
+ * fill="none"인 경우는 유지하고, stroke만 있는 요소에 fill="none"을 명시적으로 추가합니다.
  * 
  * @param svgContent SVG 문자열
  * @param color 변경할 색상
@@ -296,26 +301,239 @@ export function changeAllSvgColors(
 ): string {
   let modifiedSvg = svgContent
   
-  // 모든 fill 속성을 선택한 색상으로 변경 (url(), none 제외)
+  // 1. 모든 요소에 fill 속성이 없고 stroke 속성이 있으면 fill="none" 추가
+  // 동시에 색상도 변경 (한 번에 처리)
   modifiedSvg = modifiedSvg.replace(
-    /fill=["']((?!url\(|none)[^"']+)["']/gi,
-    `fill="${color}"`
+    /<(rect|circle|ellipse|line|polyline|polygon|path|g)([^>]*?)>/gi,
+    (match, tagName, attrs) => {
+      const hasStroke = /stroke=/i.test(attrs)
+      const hasFill = /fill=/i.test(attrs)
+      
+      // fill 속성이 없고 stroke 속성이 있으면 fill="none" 추가
+      if (!hasFill && hasStroke) {
+        attrs = attrs.trim() + (attrs.trim() ? ' ' : '') + 'fill="none"'
+      }
+      
+      // stroke가 있으면 stroke 색상 변경
+      if (hasStroke) {
+        attrs = attrs.replace(
+          /stroke=["']((?!url\(|none)[^"']+)["']/gi,
+          `stroke="${color}"`
+        )
+      }
+      
+      // stroke가 없고 fill만 있으면 fill 색상 변경
+      if (!hasStroke && hasFill) {
+        attrs = attrs.replace(
+          /fill=["']((?!url\(|none)[^"']+)["']/gi,
+          `fill="${color}"`
+        )
+      }
+      
+      return `<${tagName}${attrs ? ' ' + attrs : ''}>`
+    }
   )
   
-  // 모든 stroke 속성을 선택한 색상으로 변경 (url(), none 제외)
-  modifiedSvg = modifiedSvg.replace(
-    /stroke=["']((?!url\(|none)[^"']+)["']/gi,
-    `stroke="${color}"`
-  )
-  
-  // style 속성 내부의 fill과 stroke도 변경
+  // 2. style 속성 내부의 stroke와 fill 처리
   modifiedSvg = modifiedSvg.replace(
     /style=["']([^"']*)["']/gi,
     (match, styleContent) => {
       let newStyle = styleContent
-        .replace(/fill:\s*[^;'"\s]+/gi, `fill: ${color}`)
-        .replace(/stroke:\s*[^;'"\s]+/gi, `stroke: ${color}`)
+      const hasStrokeInStyle = /stroke:\s*[^;'"\s]+/gi.test(styleContent)
+      
+      // stroke가 있으면 stroke만 변경
+      if (hasStrokeInStyle) {
+        newStyle = newStyle.replace(
+          /stroke:\s*(?!none)[^;'"\s]+/gi,
+          `stroke: ${color}`
+        )
+      } else {
+        // stroke가 없으면 fill 변경
+        newStyle = newStyle.replace(
+          /fill:\s*(?!none)[^;'"\s]+/gi,
+          `fill: ${color}`
+        )
+      }
+      
       return `style="${newStyle}"`
+    }
+  )
+  
+  return modifiedSvg
+}
+
+/**
+ * SVG의 stroke-width를 변경합니다.
+ * 개별 속성, 인라인 스타일, CSS 클래스 모두 지원합니다.
+ * 
+ * @param svgContent SVG 문자열
+ * @param strokeWidth stroke-width 값 (px 단위)
+ * @returns stroke-width가 변경된 SVG 문자열
+ */
+export function changeSvgStrokeWidth(
+  svgContent: string,
+  strokeWidth: number
+): string {
+  let modifiedSvg = svgContent
+  
+  // viewBox 추출하여 stroke-width를 viewBox 기준으로 계산
+  const viewBoxMatch = modifiedSvg.match(/viewBox=["']([^"']+)["']/i)
+  let viewBoxWidth = 24 // 기본값
+  
+  if (viewBoxMatch) {
+    const parts = viewBoxMatch[1].split(/\s+/).map(Number)
+    if (parts.length === 4 && parts.every(n => !isNaN(n))) {
+      viewBoxWidth = parts[2] // viewBox width
+    }
+  }
+  
+  // SVG의 실제 width 추출
+  const widthMatch = modifiedSvg.match(/width=["']([^"']+)["']/i)
+  let actualWidth = viewBoxWidth
+  
+  if (widthMatch) {
+    const widthStr = widthMatch[1].replace(/px$/, '')
+    const widthNum = parseFloat(widthStr)
+    if (!isNaN(widthNum)) {
+      actualWidth = widthNum
+    }
+  }
+  
+  // stroke-width를 viewBox 기준으로 계산
+  // 일러스트레이터는 viewBox 기준으로 해석하므로
+  // 설정한 strokeWidth(px)가 실제 크기에서 올바르게 표시되려면:
+  // stroke-width(viewBox 단위) = strokeWidth(px) * (viewBoxWidth / actualWidth)
+  // 예: viewBox="0 0 24 24", width="80px", strokeWidth=1.5px
+  // stroke-width = 1.5 * (24/80) = 0.45
+  // 일러스트레이터에서: 0.45 * (80/24) = 1.5px로 표시됨
+  const scale = viewBoxWidth / actualWidth
+  const strokeWidthValue = strokeWidth * scale
+  
+  // 단위 없이 설정 (일러스트레이터가 viewBox 기준으로 해석)
+  const strokeWidthStr = strokeWidthValue.toString()
+  
+  // 1. 개별 stroke-width 속성 변경 (단위 없이)
+  modifiedSvg = modifiedSvg.replace(
+    /stroke-width=["']([^"']+)["']/gi,
+    `stroke-width="${strokeWidthStr}"`
+  )
+  
+  // 2. 인라인 style 속성 내부의 stroke-width 변경/추가
+  modifiedSvg = modifiedSvg.replace(
+    /style=["']([^"']*)["']/gi,
+    (match, styleContent) => {
+      let newStyle = styleContent
+      
+      // 기존 stroke-width가 있으면 변경
+      if (/stroke-width:\s*[^;'"\s]+/gi.test(newStyle)) {
+        newStyle = newStyle.replace(
+          /stroke-width:\s*[^;'"\s]+/gi,
+          `stroke-width: ${strokeWidthStr}`
+        )
+      } else {
+        // stroke 속성이 있으면 stroke-width 추가
+        if (/stroke:\s*[^;'"\s]+/gi.test(newStyle)) {
+          newStyle = newStyle.trim()
+          if (!newStyle.endsWith(';')) {
+            newStyle += ';'
+          }
+          newStyle += ` stroke-width: ${strokeWidthStr}`
+        }
+      }
+      
+      return `style="${newStyle}"`
+    }
+  )
+  
+  // 3. CSS 클래스 내부의 stroke-width 변경/추가 (<style> 태그)
+  modifiedSvg = modifiedSvg.replace(
+    /<style[^>]*>([\s\S]*?)<\/style>/gi,
+    (match, styleContent) => {
+      let newStyleContent = styleContent
+      
+      // 각 클래스 내부의 stroke-width 변경/추가
+      newStyleContent = newStyleContent.replace(
+        /\.([a-zA-Z0-9_-]+)\s*\{([^}]*)\}/gi,
+        (classMatch, className, classProps) => {
+          // stroke 속성이 있으면 stroke-width 추가/변경
+          if (/stroke:\s*[^;'"\s]+/gi.test(classProps)) {
+            if (/stroke-width:\s*[^;'"\s]+/gi.test(classProps)) {
+              // 기존 stroke-width 변경
+              classProps = classProps.replace(
+                /stroke-width:\s*[^;'"\s]+/gi,
+                `stroke-width: ${strokeWidthStr}`
+              )
+            } else {
+              // stroke-width 추가
+              classProps = classProps.trim()
+              if (!classProps.endsWith(';')) {
+                classProps += ';'
+              }
+              classProps += ` stroke-width: ${strokeWidthStr};`
+            }
+          }
+          return `.${className}{${classProps}}`
+        }
+      )
+      
+      return match.replace(styleContent, newStyleContent)
+    }
+  )
+  
+  // 4. stroke 속성이 있지만 stroke-width가 없는 경우 추가 (모든 요소, style 속성 없는 경우)
+  // rect, circle, ellipse, line, polyline, polygon, path, g 모두 포함
+  // self-closing 태그 처리 개선
+  modifiedSvg = modifiedSvg.replace(
+    /<(rect|circle|ellipse|line|polyline|polygon|path|g)([^>]*?)(\/?)>/gi,
+    (match, tagName, attrs, selfClose) => {
+      // stroke 속성이 있고, stroke-width가 없고, style 속성이 없으면 stroke-width 추가
+      if (/stroke=/i.test(attrs) && !/stroke-width=/i.test(attrs) && !/style=/i.test(attrs)) {
+        attrs = attrs.trim() + (attrs.trim() ? ' ' : '') + `stroke-width="${strokeWidthStr}"`
+      }
+      return `<${tagName}${attrs ? ' ' + attrs : ''}${selfClose}>`
+    }
+  )
+  
+  return modifiedSvg
+}
+
+/**
+ * ICON 페이지용 SVG 속성 통합 변경 함수
+ * 색상, stroke-width, 크기를 한 번에 적용합니다.
+ * fill="none"을 명시적으로 보장합니다.
+ * 
+ * @param svgContent SVG 문자열
+ * @param color 색상 (hex 코드)
+ * @param strokeWidth stroke-width 값 (px)
+ * @param size 크기 (px)
+ * @returns 속성이 변경된 SVG 문자열
+ */
+export function changeIconSvgProperties(
+  svgContent: string,
+  color: string,
+  strokeWidth: number,
+  size: number
+): string {
+  let modifiedSvg = svgContent
+  
+  // 1. 색상 변경 (fill="none" 유지)
+  modifiedSvg = changeAllSvgColors(modifiedSvg, color)
+  
+  // 2. 크기를 먼저 변경 (stroke-width 계산을 위해)
+  modifiedSvg = resizeSvg(modifiedSvg, size, size, true)
+  
+  // 3. stroke-width 변경 (크기 변경 후 actualWidth가 올바르게 설정됨)
+  modifiedSvg = changeSvgStrokeWidth(modifiedSvg, strokeWidth)
+  
+  // 4. 모든 stroke 요소에 fill="none" 명시적 추가 (없는 경우만)
+  modifiedSvg = modifiedSvg.replace(
+    /<(rect|circle|ellipse|line|polyline|polygon|path|g)([^>]*?)>/gi,
+    (match, tagName, attrs) => {
+      // stroke가 있고 fill이 없으면 fill="none" 추가
+      if (/stroke=/i.test(attrs) && !/fill=/i.test(attrs)) {
+        attrs = attrs.trim() + (attrs.trim() ? ' ' : '') + 'fill="none"'
+      }
+      return `<${tagName}${attrs ? ' ' + attrs : ''}>`
     }
   )
   

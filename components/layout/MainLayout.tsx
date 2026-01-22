@@ -76,8 +76,13 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
     !pathname.startsWith('/admin') &&
     pathname.startsWith('/pdf-extractor'))
 
-  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, 또는 PDF Extractor 페이지인지 확인 (속성 패널이 있는 특수 페이지)
-  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage
+  // ICON 페이지인지 확인 (pathname 기반으로 우선 감지)
+  const isIconPage = Boolean(pathname && 
+    !pathname.startsWith('/admin') &&
+    pathname.startsWith('/icon'))
+
+  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, PDF Extractor, 또는 ICON 페이지인지 확인 (속성 패널이 있는 특수 페이지)
+  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage || isIconPage
 
   return (
     <div className="flex min-h-screen md:h-screen bg-background">
