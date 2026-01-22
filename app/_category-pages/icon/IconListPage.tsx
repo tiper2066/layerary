@@ -74,11 +74,30 @@ export function IconListPage({ category }: IconListPageProps) {
       return
     }
 
-    const query = searchQuery.toLowerCase()
-    const filtered = posts.filter((post) =>
-      post.title.toLowerCase().includes(query) ||
-      post.fileUrl?.toLowerCase().includes(query)
-    )
+    const query = searchQuery.toLowerCase().trim()
+    
+    // 파일명 추출 헬퍼 함수
+    const getFileName = (url: string | null | undefined): string => {
+      if (!url) return ''
+      // URL에서 파일명 추출 (확장자 포함)
+      const fileName = url.split('/').pop() || ''
+      // 확장자 제거한 파일명도 반환
+      const nameWithoutExt = fileName.replace(/\.(svg|png|jpg|jpeg)$/i, '')
+      return nameWithoutExt.toLowerCase()
+    }
+    
+    const filtered = posts.filter((post) => {
+      // 제목으로 검색
+      const titleMatch = post.title.toLowerCase().includes(query)
+      
+      // 파일명으로 검색 (확장자 포함/제외 모두)
+      const fileName = getFileName(post.fileUrl)
+      const fileMatch = fileName.includes(query) || 
+                       post.fileUrl?.toLowerCase().includes(query)
+      
+      return titleMatch || fileMatch
+    })
+    
     setFilteredPosts(filtered)
   }, [posts, searchQuery])
 
@@ -436,7 +455,7 @@ export function IconListPage({ category }: IconListPageProps) {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="SVG 파일명으로 검색..."
+                placeholder={`총 ${posts.length} icons 에서 아이콘 이름으로 검색...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"

@@ -301,8 +301,83 @@ export function changeAllSvgColors(
 ): string {
   let modifiedSvg = svgContent
   
-  // 1. 모든 요소에 fill 속성이 없고 stroke 속성이 있으면 fill="none" 추가
-  // 동시에 색상도 변경 (한 번에 처리)
+  // 1. 모든 fill 속성 변경 (fill="none"과 fill="url(...)" 제외)
+  // 먼저 전체 SVG에서 fill 속성을 찾아서 변경
+  modifiedSvg = modifiedSvg.replace(
+    /fill=["']([^"']+)["']/gi,
+    (match, fillValue) => {
+      // fill="none" 또는 fill="url(...)" 인 경우 그대로 유지
+      if (fillValue === 'none' || fillValue.startsWith('url(')) {
+        return match
+      }
+      // 그 외의 모든 fill 색상 변경
+      return `fill="${color}"`
+    }
+  )
+  
+  // 2. 모든 stroke 속성 변경 (stroke="none"과 stroke="url(...)" 제외)
+  modifiedSvg = modifiedSvg.replace(
+    /stroke=["']([^"']+)["']/gi,
+    (match, strokeValue) => {
+      // stroke="none" 또는 stroke="url(...)" 인 경우 그대로 유지
+      if (strokeValue === 'none' || strokeValue.startsWith('url(')) {
+        return match
+      }
+      // 그 외의 모든 stroke 색상 변경
+      return `stroke="${color}"`
+    }
+  )
+  
+  // 3. CSS 클래스 내부의 fill과 stroke 색상 변경 (<style> 태그)
+  modifiedSvg = modifiedSvg.replace(
+    /<style[^>]*>([\s\S]*?)<\/style>/gi,
+    (match, styleContent) => {
+      let newStyleContent = styleContent
+      
+      // fill 색상 변경
+      newStyleContent = newStyleContent.replace(
+        /fill:\s*([^;'"\s}]+)/gi,
+        (styleMatch, fillValue) => {
+          if (fillValue === 'none' || fillValue.startsWith('url(')) {
+            return styleMatch
+          }
+          return `fill: ${color}`
+        }
+      )
+      
+      // stroke 색상 변경
+      newStyleContent = newStyleContent.replace(
+        /stroke:\s*([^;'"\s}]+)/gi,
+        (styleMatch, strokeValue) => {
+          if (strokeValue === 'none' || strokeValue.startsWith('url(')) {
+            return styleMatch
+          }
+          return `stroke: ${color}`
+        }
+      )
+      
+      return match.replace(styleContent, newStyleContent)
+    }
+  )
+  
+  // 4. fill 속성이 없고 stroke도 없는 요소에 fill 속성 추가 (면으로 구성된 요소)
+  // rect, circle, ellipse, polygon, path 등 면을 가질 수 있는 요소들
+  modifiedSvg = modifiedSvg.replace(
+    /<(rect|circle|ellipse|polygon|path)([^>]*?)(\/?)>/gi,
+    (match, tagName, attrs, selfClose) => {
+      const hasFill = /fill=/i.test(attrs)
+      const hasStroke = /stroke=/i.test(attrs)
+      
+      // fill과 stroke가 모두 없으면 fill 속성 추가 (면으로 구성된 요소)
+      if (!hasFill && !hasStroke) {
+        attrs = attrs.trim() + (attrs.trim() ? ' ' : '') + `fill="${color}"`
+      }
+      
+      return `<${tagName}${attrs ? ' ' + attrs : ''}${selfClose}>`
+    }
+  )
+  
+  // 5. 모든 요소에 fill 속성이 없고 stroke 속성이 있으면 fill="none" 추가
   modifiedSvg = modifiedSvg.replace(
     /<(rect|circle|ellipse|line|polyline|polygon|path|g)([^>]*?)>/gi,
     (match, tagName, attrs) => {
@@ -314,46 +389,37 @@ export function changeAllSvgColors(
         attrs = attrs.trim() + (attrs.trim() ? ' ' : '') + 'fill="none"'
       }
       
-      // stroke가 있으면 stroke 색상 변경
-      if (hasStroke) {
-        attrs = attrs.replace(
-          /stroke=["']((?!url\(|none)[^"']+)["']/gi,
-          `stroke="${color}"`
-        )
-      }
-      
-      // stroke가 없고 fill만 있으면 fill 색상 변경
-      if (!hasStroke && hasFill) {
-        attrs = attrs.replace(
-          /fill=["']((?!url\(|none)[^"']+)["']/gi,
-          `fill="${color}"`
-        )
-      }
-      
       return `<${tagName}${attrs ? ' ' + attrs : ''}>`
     }
   )
   
-  // 2. style 속성 내부의 stroke와 fill 처리
+  // 6. style 속성 내부의 stroke와 fill 처리
   modifiedSvg = modifiedSvg.replace(
     /style=["']([^"']*)["']/gi,
     (match, styleContent) => {
       let newStyle = styleContent
-      const hasStrokeInStyle = /stroke:\s*[^;'"\s]+/gi.test(styleContent)
       
-      // stroke가 있으면 stroke만 변경
-      if (hasStrokeInStyle) {
-        newStyle = newStyle.replace(
-          /stroke:\s*(?!none)[^;'"\s]+/gi,
-          `stroke: ${color}`
-        )
-      } else {
-        // stroke가 없으면 fill 변경
-        newStyle = newStyle.replace(
-          /fill:\s*(?!none)[^;'"\s]+/gi,
-          `fill: ${color}`
-        )
-      }
+      // stroke 색상 변경 (stroke: none 제외)
+      newStyle = newStyle.replace(
+        /stroke:\s*([^;'"\s]+)/gi,
+        (styleMatch, strokeValue) => {
+          if (strokeValue === 'none' || strokeValue.startsWith('url(')) {
+            return styleMatch
+          }
+          return `stroke: ${color}`
+        }
+      )
+      
+      // fill 색상 변경 (fill: none 제외)
+      newStyle = newStyle.replace(
+        /fill:\s*([^;'"\s]+)/gi,
+        (styleMatch, fillValue) => {
+          if (fillValue === 'none' || fillValue.startsWith('url(')) {
+            return styleMatch
+          }
+          return `fill: ${color}`
+        }
+      )
       
       return `style="${newStyle}"`
     }
