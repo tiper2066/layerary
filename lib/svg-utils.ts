@@ -454,7 +454,7 @@ export function changeSvgStrokeWidth(
       // 각 클래스 내부의 stroke-width 변경/추가
       newStyleContent = newStyleContent.replace(
         /\.([a-zA-Z0-9_-]+)\s*\{([^}]*)\}/gi,
-        (classMatch, className, classProps) => {
+        (classMatch: string, className: string, classProps: string) => {
           // stroke 속성이 있으면 stroke-width 추가/변경
           if (/stroke:\s*[^;'"\s]+/gi.test(classProps)) {
             if (/stroke-width:\s*[^;'"\s]+/gi.test(classProps)) {
