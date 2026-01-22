@@ -337,7 +337,7 @@ export function changeAllSvgColors(
       // fill 색상 변경
       newStyleContent = newStyleContent.replace(
         /fill:\s*([^;'"\s}]+)/gi,
-        (styleMatch, fillValue) => {
+        (styleMatch: string, fillValue: string) => {
           if (fillValue === 'none' || fillValue.startsWith('url(')) {
             return styleMatch
           }
@@ -348,7 +348,7 @@ export function changeAllSvgColors(
       // stroke 색상 변경
       newStyleContent = newStyleContent.replace(
         /stroke:\s*([^;'"\s}]+)/gi,
-        (styleMatch, strokeValue) => {
+        (styleMatch: string, strokeValue: string) => {
           if (strokeValue === 'none' || strokeValue.startsWith('url(')) {
             return styleMatch
           }
