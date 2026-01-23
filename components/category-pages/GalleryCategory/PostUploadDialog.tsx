@@ -437,36 +437,40 @@ export function PostUploadDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="tool"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>TOOL</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="TOOL을 입력하세요" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>태그</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 디자인, 브랜딩)"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4 items-start">
+              <FormField
+                control={form.control}
+                name="tool"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>TOOL</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="TOOL을 입력하세요" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>태그</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="태그는 쉼표로 구분 입력 (예: 디자인, 브랜딩)"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />              
+            </div>
+
 
             <FormField
               control={form.control}
