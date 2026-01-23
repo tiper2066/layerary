@@ -476,7 +476,7 @@ export function WapplesUploadDialog({
                     <FormLabel>언어</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}ㄴ
+                      defaultValue={field.value}
                       disabled={submitting}
                     >
                       <FormControl>
