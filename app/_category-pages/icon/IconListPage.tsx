@@ -438,7 +438,7 @@ export function IconListPage({ category }: IconListPageProps) {
       {/* 좌측: 게시물 목록 */}
       <div className="flex-1 pr-[410px] overflow-y-auto">
         {/* 헤더 */}
-        <div className="flex-none px-8 pt-16 pb-4 border-b bg-neutral-50 dark:bg-neutral-900">
+        <div className="flex-none px-8 pt-16 pb-4 bg-neutral-50 dark:bg-neutral-900">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
