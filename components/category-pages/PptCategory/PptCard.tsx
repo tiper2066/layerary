@@ -183,12 +183,12 @@ export function PptCard({
         >
           {downloading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               다운로드 중...
             </>
           ) : (
             <>
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="h-4 w-4" />
               다운로드
             </>
           )}

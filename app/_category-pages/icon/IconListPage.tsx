@@ -443,7 +443,7 @@ export function IconListPage({ category }: IconListPageProps) {
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
               <Button onClick={() => setUploadDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 아이콘 추가
               </Button>
             )}
@@ -455,7 +455,7 @@ export function IconListPage({ category }: IconListPageProps) {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder={`총 ${posts.length} icons 에서 아이콘 이름으로 검색...`}
+                placeholder={`아이콘 이름으로 검색... (총 ${posts.length} icons)`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -471,12 +471,12 @@ export function IconListPage({ category }: IconListPageProps) {
               >
                 {selectedPostIds.size === filteredPosts.length ? (
                   <>
-                    <Square className="mr-2 h-4 w-4" />
+                    <Square className="h-4 w-4" />
                     전체 해제
                   </>
                 ) : (
                   <>
-                    <CheckSquare className="mr-2 h-4 w-4" />
+                    <CheckSquare className="h-4 w-4" />
                     전체 선택
                   </>
                 )}
@@ -485,21 +485,21 @@ export function IconListPage({ category }: IconListPageProps) {
 
 
             {/* 관리자용 삭제 버튼 */}
-            {isAdmin && selectedPostIds.size > 0 && (
+            {isAdmin && (
               <Button
                 variant="destructive"
                 onClick={handleDelete}
-                disabled={deleting}
+                disabled={deleting || selectedPostIds.size === 0}
               >
                 {deleting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     삭제 중...
                   </>
                 ) : (
                   <>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    삭제 ({selectedPostIds.size})
+                    <Trash2 className="h-4 w-4" />
+                    삭제 {selectedPostIds.size > 0 && `(${selectedPostIds.size})`}
                   </>
                 )}
               </Button>

@@ -394,7 +394,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
         {numPages > 0 && (
           <div className="space-y-3 pb-6 border-b">
             <Label className="text-sm font-semibold">페이지 목록</Label>
-            <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md">
+            <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md">
               {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
                 <div key={pageNum} className="flex items-center space-x-2">
                   <Checkbox

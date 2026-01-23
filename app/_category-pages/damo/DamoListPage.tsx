@@ -469,7 +469,7 @@ export function DamoListPage({ category }: DamoListPageProps) {
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
               <Button onClick={() => setUploadDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4" />
                 게시물 추가
               </Button>
             )}
@@ -513,7 +513,7 @@ export function DamoListPage({ category }: DamoListPageProps) {
               </p>
               {isAdmin && (
                 <Button onClick={() => setUploadDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4" />
                   첫 게시물 추가하기
                 </Button>
               )}

@@ -66,24 +66,10 @@ export function Header({ onMenuClick, isCiBiPage = false }: HeaderProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-        </div>
+        </div>        
 
         {/* 우측: 검색 바 및 사용자 메뉴 */}
-        <div className="flex items-center gap-1 flex-1 justify-end -mr-2">
-          {/* 검색 바 */}
-          <form onSubmit={handleSearch} className="hidden md:flex max-w-md w-1/4 min-w-[220px]">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="전체 리소스 검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-full"
-              />
-            </div>
-          </form>
-
+        <div className="flex items-center gap-1 justify-end">
           {/* 테마 토글 버튼 */}
           {mounted && (
             <Tooltip>
@@ -106,6 +92,20 @@ export function Header({ onMenuClick, isCiBiPage = false }: HeaderProps) {
               </TooltipContent>
             </Tooltip>
           )}
+
+          {/* 검색 바 */}
+          <form onSubmit={handleSearch} className="hidden md:flex max-w-md w-1/4 min-w-[220px]">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="전체 리소스 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 rounded-full"
+              />
+            </div>
+          </form>
 
           {/* 모바일 검색 버튼 */}
           <Button

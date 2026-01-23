@@ -129,7 +129,7 @@ export function PdfUploadZone({ onFileSelect, selectedFile, onFileRemove }: PdfU
                   id="pdf-file-input"
                 />
                 <label htmlFor="pdf-file-input">
-                  <Button type="button" variant="outline" asChild>
+                  <Button type="button" variant="outline" asChild className='hover:cursor-pointer'>
                     <span>PDF 파일 선택</span>
                   </Button>
                 </label>
