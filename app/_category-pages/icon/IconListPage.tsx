@@ -516,7 +516,7 @@ export function IconListPage({ category }: IconListPageProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-3">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-1">
               {filteredPosts.map((post) => (
                 <IconCard
                   key={post.id}

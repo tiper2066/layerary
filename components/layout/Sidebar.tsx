@@ -265,6 +265,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
               // Etc 카테고리는 하드코딩
               if (type === CategoryType.ETC) {
                 const isPdfExtractorActive = pathname === '/pdf-extractor'
+                const isChartGeneratorActive = pathname === '/chart-generator'
                 
                 return (
                   <div key={type} className="space-y-1 pr-4">
@@ -292,6 +293,18 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                       onClick={onLinkClick}
                     >
                       <span className="flex-1 text-sm">PDF Extractor</span>
+                    </Link>
+                    <Link
+                      href="/chart-generator"
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors',
+                        isChartGeneratorActive
+                          ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent'
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      )}
+                      onClick={onLinkClick}
+                    >
+                      <span className="flex-1 text-sm">Chart Generator</span>
                     </Link>
                   </div>
                 )

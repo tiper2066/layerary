@@ -86,8 +86,13 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
     !pathname.startsWith('/admin') &&
     pathname.startsWith('/icon'))
 
-  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, 웰컴보드, PDF Extractor, 또는 ICON 페이지인지 확인 (속성 패널이 있는 특수 페이지)
-  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isWelcomeBoardPage || isPdfExtractorPage || isIconPage
+  // Chart Generator 페이지인지 확인 (pathname 기반으로 우선 감지)
+  const isChartGeneratorPage = Boolean(pathname && 
+    !pathname.startsWith('/admin') &&
+    pathname.startsWith('/chart-generator'))
+
+  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, 웰컴보드, PDF Extractor, ICON, 또는 Chart Generator 페이지인지 확인 (속성 패널이 있는 특수 페이지)
+  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isWelcomeBoardPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage
 
   return (
     <div className="flex min-h-screen md:h-screen bg-background">
