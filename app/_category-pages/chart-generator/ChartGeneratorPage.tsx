@@ -25,6 +25,8 @@ export function ChartGeneratorPage() {
     valueLabelFontSize: 12,
     highResolution: false,
     showValueLabels: false,
+    valueLabelPosition: 'top',
+    valueLabelOffset: 5,
   })
   const [title, setTitle] = useState<string>('')
   const [description, setDescription] = useState<string>('')

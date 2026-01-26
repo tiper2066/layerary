@@ -113,7 +113,18 @@ export const ChartPreview = forwardRef<HTMLDivElement, ChartPreviewProps>(({
               radius={barRadius}
             >
               {settings.showValueLabels && (
-                <LabelList dataKey="value" position="top" fontSize={valueLabelFontSize} />
+                <LabelList 
+                  dataKey="value" 
+                  position={settings.valueLabelPosition || 'top'} 
+                  offset={settings.valueLabelOffset ?? 5}
+                  fontSize={valueLabelFontSize}
+                  fill={
+                    settings.valueLabelPosition === 'insideTop' || 
+                    settings.valueLabelPosition === 'inside' 
+                      ? '#ffffff' 
+                      : '#333333'
+                  }
+                />
               )}
               {chartData.map((entry, index) => (
                 <Cell
@@ -148,7 +159,12 @@ export const ChartPreview = forwardRef<HTMLDivElement, ChartPreviewProps>(({
               dot={chartTypeSettings.line.dotSize > 0 ? { r: chartTypeSettings.line.dotSize } : false}
             >
               {settings.showValueLabels && (
-                <LabelList dataKey="value" position="top" fontSize={valueLabelFontSize} />
+                <LabelList 
+                  dataKey="value" 
+                  position={settings.valueLabelPosition || 'top'} 
+                  offset={settings.valueLabelOffset ?? 5}
+                  fontSize={valueLabelFontSize} 
+                />
               )}
             </Line>
           </LineChart>
@@ -158,6 +174,7 @@ export const ChartPreview = forwardRef<HTMLDivElement, ChartPreviewProps>(({
         const pieSize = Math.min(settings.width, settings.height)
         const outerRadius = Math.max(50, pieSize / 2 - 60)
         const isLabelInside = chartTypeSettings.pie.labelPosition === 'inside'
+        const labelDistance = chartTypeSettings.pie.labelDistance ?? 20 // 반경 비율 (%)
         
         // 레이블 생성 함수
         const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius: or, value, percent }: {
@@ -172,10 +189,10 @@ export const ChartPreview = forwardRef<HTMLDivElement, ChartPreviewProps>(({
           if (!settings.showValueLabels) return null
           
           const RADIAN = Math.PI / 180
-          // 내부/외부 위치에 따른 반지름 계산
+          // 내부/외부 위치에 따른 반지름 계산 (labelDistance 적용)
           const radius = isLabelInside 
-            ? innerRadius + (or - innerRadius) * 0.5 
-            : or * 1.2
+            ? innerRadius + (or - innerRadius) * (labelDistance / 100) 
+            : or * (1 + labelDistance / 100)
           const x = cx + radius * Math.cos(-midAngle * RADIAN)
           const y = cy + radius * Math.sin(-midAngle * RADIAN)
           
@@ -258,7 +275,12 @@ export const ChartPreview = forwardRef<HTMLDivElement, ChartPreviewProps>(({
               fillOpacity={useGradient ? 1 : 0.6}
             >
               {settings.showValueLabels && (
-                <LabelList dataKey="value" position="top" fontSize={valueLabelFontSize} />
+                <LabelList 
+                  dataKey="value" 
+                  position={settings.valueLabelPosition || 'top'} 
+                  offset={settings.valueLabelOffset ?? 5}
+                  fontSize={valueLabelFontSize} 
+                />
               )}
             </Area>
           </AreaChart>

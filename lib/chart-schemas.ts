@@ -66,6 +66,9 @@ export const chartSettingsSchema = z.object({
   valueLabelFontSize: z.number().min(8).max(24).default(12),
   highResolution: z.boolean().default(false),
   showValueLabels: z.boolean().default(false),
+  // 값 레이블 위치 및 거리 설정 (막대, 선, 영역 그래프용)
+  valueLabelPosition: z.enum(['top', 'insideTop', 'inside']).default('top'),
+  valueLabelOffset: z.number().min(-20).max(30).default(5),
 })
 
 // 막대 그래프 개별 설정 스키마
@@ -85,6 +88,7 @@ export const lineChartSettingsSchema = z.object({
 export const pieChartSettingsSchema = z.object({
   labelPosition: z.enum(['outside', 'inside']).default('outside'),
   labelType: z.enum(['percent', 'value']).default('value'),
+  labelDistance: z.number().min(10).max(50).default(20), // 반경 비율 (%)
 })
 
 // 영역 그래프 개별 설정 스키마
@@ -150,6 +154,6 @@ export interface ChartTypeSettings {
 export const DEFAULT_CHART_TYPE_SETTINGS: ChartTypeSettings = {
   bar: { barSize: 40, barRadius: 'square' },
   line: { strokeWidth: 2, lineType: 'monotone', dotSize: 4 },
-  pie: { labelPosition: 'outside', labelType: 'value' },
+  pie: { labelPosition: 'outside', labelType: 'value', labelDistance: 20 },
   area: { strokeWidth: 2, lineType: 'monotone', fillType: 'solid' },
 }

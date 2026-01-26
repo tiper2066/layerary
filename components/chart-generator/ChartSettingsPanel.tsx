@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { HexColorPicker } from 'react-colorful'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { 
   ChartSettings, 
   ChartType, 
@@ -17,9 +33,22 @@ import {
   COLOR_PRESETS, 
   ColorPresetKey 
 } from '@/lib/chart-schemas'
-import { Plus, X, Palette, RotateCcw, BarChart3, TrendingUp, PieChart, AreaChart } from 'lucide-react'
+import { Plus, X, Palette, RotateCcw, BarChart3, TrendingUp, PieChart, AreaChart, Tag, Save, FolderOpen, Trash2, AlertCircle, Check } from 'lucide-react'
 
 import { ChartExportControls } from './ChartExportControls'
+
+// 저장된 프리셋 타입
+interface SavedChartPreset {
+  id: string
+  name: string
+  createdAt: string
+  chartType: ChartType
+  settings: ChartSettings
+  chartTypeSettings: ChartTypeSettings
+}
+
+// localStorage 키
+const STORAGE_KEY = 'chart-generator-presets'
 
 // 기본 설정값
 const DEFAULT_SETTINGS: ChartSettings = {
@@ -32,6 +61,8 @@ const DEFAULT_SETTINGS: ChartSettings = {
   valueLabelFontSize: 12,
   highResolution: false,
   showValueLabels: false,
+  valueLabelPosition: 'top',
+  valueLabelOffset: 5,
 }
 
 interface ChartSettingsPanelProps {
@@ -63,6 +94,98 @@ export function ChartSettingsPanel({
 }: ChartSettingsPanelProps) {
   const [colorPickerOpen, setColorPickerOpen] = useState<number | null>(null)
   const [hoveredColorIndex, setHoveredColorIndex] = useState<number | null>(null)
+  
+  // 프리셋 저장/불러오기 관련 상태
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false)
+  const [presetName, setPresetName] = useState('')
+  const [savedPresets, setSavedPresets] = useState<SavedChartPreset[]>([])
+  const [activePresetId, setActivePresetId] = useState<string | null>(null)
+
+  // localStorage에서 저장된 프리셋 불러오기
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        setSavedPresets(JSON.parse(stored))
+      }
+    } catch (error) {
+      console.error('프리셋 불러오기 오류:', error)
+    }
+  }, [])
+
+  // 프리셋 저장
+  const handleSavePreset = useCallback(() => {
+    if (!presetName.trim()) {
+      alert('프리셋 이름을 입력해주세요.')
+      return
+    }
+
+    const newPreset: SavedChartPreset = {
+      id: Date.now().toString(),
+      name: presetName.trim(),
+      createdAt: new Date().toISOString(),
+      chartType,
+      settings,
+      chartTypeSettings,
+    }
+
+    const updatedPresets = [...savedPresets, newPreset]
+    setSavedPresets(updatedPresets)
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets))
+      setSaveDialogOpen(false)
+      setPresetName('')
+      alert('설정이 저장되었습니다.')
+    } catch (error) {
+      console.error('프리셋 저장 오류:', error)
+      alert('저장 중 오류가 발생했습니다.')
+    }
+  }, [presetName, chartType, settings, chartTypeSettings, savedPresets])
+
+  // 프리셋 불러오기
+  const handleLoadPreset = useCallback((preset: SavedChartPreset) => {
+    onSettingsChange(preset.settings)
+    onChartTypeSettingsChange(preset.chartTypeSettings)
+    setActivePresetId(preset.id)
+  }, [onSettingsChange, onChartTypeSettingsChange])
+
+  // 프리셋 삭제
+  const handleDeletePreset = useCallback((presetId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    if (!confirm('이 프리셋을 삭제하시겠습니까?')) return
+
+    const updatedPresets = savedPresets.filter(p => p.id !== presetId)
+    setSavedPresets(updatedPresets)
+    
+    // 삭제된 프리셋이 활성 상태였다면 해제
+    if (activePresetId === presetId) {
+      setActivePresetId(null)
+    }
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets))
+    } catch (error) {
+      console.error('프리셋 삭제 오류:', error)
+    }
+  }, [savedPresets, activePresetId])
+
+  // 활성 프리셋 이름 가져오기
+  const activePresetName = useMemo(() => {
+    if (!activePresetId) return null
+    return savedPresets.find(p => p.id === activePresetId)?.name || null
+  }, [activePresetId, savedPresets])
+
+  // 차트 타입 아이콘
+  const getChartTypeIcon = (type: ChartType) => {
+    switch (type) {
+      case 'bar': return <BarChart3 className="h-4 w-4" />
+      case 'line': return <TrendingUp className="h-4 w-4" />
+      case 'pie': return <PieChart className="h-4 w-4" />
+      case 'area': return <AreaChart className="h-4 w-4" />
+    }
+  }
 
   // 현재 선택된 프리셋 감지
   const activePreset = useMemo(() => {
@@ -145,9 +268,136 @@ export function ChartSettingsPanel({
 
   return (
     <div className="w-[410px] h-full bg-background border-l overflow-y-auto p-6 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-4">차트 설정</h2>
+      {/* 헤더: 제목 + 저장/불러오기 버튼 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">차트 설정</h2>
+        <div className="flex items-center gap-1">
+          {/* 현재 활성 프리셋 이름 */}
+          {activePresetName && (
+            <span className="text-xs text-muted-foreground truncate max-w-[120px] mr-1">
+              {activePresetName}
+            </span>
+          )}
+          {/* 저장 버튼 */}
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setSaveDialogOpen(true)}
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>설정 저장</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* 불러오기 드롭다운 */}
+          <DropdownMenu>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>저장된 설정 불러오기</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>저장된 설정</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {savedPresets.length === 0 ? (
+                <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                  저장된 설정이 없습니다.
+                </div>
+              ) : (
+                savedPresets.map((preset) => (
+                  <DropdownMenuItem
+                    key={preset.id}
+                    className={`flex items-center justify-between cursor-pointer ${
+                      activePresetId === preset.id ? 'bg-accent' : ''
+                    }`}
+                    onClick={() => handleLoadPreset(preset)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {activePresetId === preset.id ? (
+                        <Check className="h-4 w-4 text-primary" />
+                      ) : (
+                        getChartTypeIcon(preset.chartType)
+                      )}
+                      <span className="truncate max-w-[150px]">{preset.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={(e) => handleDeletePreset(preset.id, e)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      {/* 저장 다이얼로그 */}
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>설정 저장</DialogTitle>
+            <DialogDescription>
+              현재 차트 설정을 저장합니다. 나중에 불러와서 재사용할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="preset-name">프리셋 이름</Label>
+              <Input
+                id="preset-name"
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                placeholder="예: 보고서용 막대 그래프"
+              />
+            </div>
+            <div className="flex items-start gap-2 p-3 bg-muted rounded-lg">
+              <AlertCircle className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                설정은 현재 브라우저의 로컬 저장소에 저장됩니다. 
+                다른 브라우저나 기기에서는 사용할 수 없으며, 
+                시크릿 모드에서는 저장되지 않을 수 있습니다.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setSaveDialogOpen(false)}>
+              취소
+            </Button>
+            <Button type="button" onClick={handleSavePreset}>
+              저장
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 제목 및 설명 */}
       <div className="space-y-4">
@@ -219,21 +469,8 @@ export function ChartSettingsPanel({
 
       {/* 폰트 크기 설정 */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">폰트 크기</Label>
-          {/* 값 레이블 표시 옵션 */}
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="showValueLabels"
-              checked={settings.showValueLabels ?? false}
-              onCheckedChange={(checked: boolean) => onSettingsChange({ ...settings, showValueLabels: checked })}
-            />
-            <Label htmlFor="showValueLabels" className="text-xs text-muted-foreground cursor-pointer">
-              값 레이블 표시
-            </Label>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2 pb-4">
+        <Label className="text-sm font-medium">폰트 크기</Label>
+        <div className="grid grid-cols-3 gap-2">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">항목명: {settings.labelFontSize || 12}px</Label>
             <input
@@ -271,6 +508,94 @@ export function ChartSettingsPanel({
             />
           </div>
         </div>
+      </div>
+
+      {/* 값 레이블 설정 */}
+      <div className="space-y-4">
+        {/* <div className="flex items-center gap-2">
+          <Tag className="h-4 w-4" />
+          <Label className="text-sm font-medium">값 레이블</Label>
+        </div> */}
+        
+        {/* 값 레이블 표시 옵션 */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="showValueLabels"
+            checked={settings.showValueLabels ?? false}
+            onCheckedChange={(checked: boolean) => onSettingsChange({ ...settings, showValueLabels: checked })}
+          />
+          <Label htmlFor="showValueLabels" className="text-sm cursor-pointer">
+            값 레이블 표시
+          </Label>
+        </div>
+
+        {/* 막대, 선, 영역 그래프용 위치 및 거리 설정 */}
+        {settings.showValueLabels && chartType !== 'pie' && (
+          <div className="space-y-3 pl-6">
+            {/* 위치 설정 */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">위치</Label>
+              <div className="flex gap-2">
+                {[
+                  { value: 'top', label: '상단' },
+                  { value: 'insideTop', label: chartType === 'bar' ? '내부 상단' : '하단' },
+                  { value: 'inside', label: chartType === 'bar' ? '내부 중앙' : '선 중앙' },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    variant={settings.valueLabelPosition === option.value ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => onSettingsChange({
+                      ...settings,
+                      valueLabelPosition: option.value as 'top' | 'insideTop' | 'inside'
+                    })}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            {/* 거리 설정 */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">거리: {settings.valueLabelOffset ?? 5}px</Label>
+              <input
+                type="range"
+                value={settings.valueLabelOffset ?? 5}
+                onChange={(e) => onSettingsChange({ ...settings, valueLabelOffset: Number(e.target.value) })}
+                min={-20}
+                max={30}
+                step={1}
+                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 원형 그래프용 거리 설정 */}
+        {settings.showValueLabels && chartType === 'pie' && (
+          <div className="space-y-3 pl-6">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                거리: {chartTypeSettings.pie.labelDistance ?? 20}%
+              </Label>
+              <input
+                type="range"
+                value={chartTypeSettings.pie.labelDistance ?? 20}
+                onChange={(e) => onChartTypeSettingsChange({
+                  ...chartTypeSettings,
+                  pie: { ...chartTypeSettings.pie, labelDistance: Number(e.target.value) }
+                })}
+                min={10}
+                max={50}
+                step={5}
+                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 차트 타입별 개별 설정 */}
