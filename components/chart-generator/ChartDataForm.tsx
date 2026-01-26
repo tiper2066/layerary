@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, RotateCcw } from 'lucide-react'
 import { ChartType, chartSchema } from '@/lib/chart-schemas'
 import { useEffect } from 'react'
 
@@ -85,20 +85,49 @@ export function ChartDataForm({ chartType, onChange, onXAxisLabelChange, onYAxis
     }
   }
 
+  // 데이터 초기화
+  const resetData = () => {
+    form.reset({
+      data: [
+        { name: '항목 1', value: '10' },
+        { name: '항목 2', value: '20' },
+        { name: '항목 3', value: '30' },
+        { name: '항목 4', value: '40' },
+      ],
+      xAxisLabel: '',
+      yAxisLabel: '',
+    })
+    // 축 레이블 초기화 콜백 호출
+    onXAxisLabelChange?.('')
+    onYAxisLabelChange?.('')
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium">데이터 입력</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addRow}
-          className="h-8"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          추가
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addRow}
+            className="h-8"
+          >
+            <Plus className="h-4 w-4" />
+            추가
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={resetData}
+            className="h-8"
+          >
+            <RotateCcw className="h-4 w-4" />
+            초기화
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

@@ -207,6 +207,7 @@ export function ChartSettingsPanel({
     onChartTypeSettingsChange(DEFAULT_CHART_TYPE_SETTINGS)
     onTitleChange('')
     onDescriptionChange('')
+    setActivePresetId(null)
   }, [onSettingsChange, onChartTypeSettingsChange, onTitleChange, onDescriptionChange])
 
   // 너비 변경 핸들러
