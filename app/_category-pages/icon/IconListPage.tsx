@@ -192,6 +192,20 @@ export function IconListPage({ category }: IconListPageProps) {
     }
   }, [searchParams, fetchPosts, category.slug, router])
 
+  // postId 파라미터 감지하여 게시물 자동 선택
+  useEffect(() => {
+    const postIdParam = searchParams.get('postId')
+    if (postIdParam && posts.length > 0) {
+      const post = posts.find((p) => p.id === postIdParam)
+      if (post) {
+        // 해당 게시물을 선택
+        setSelectedPostIds(new Set([postIdParam]))
+        // URL에서 postId 파라미터 제거
+        router.replace(`/${category.slug}`, { scroll: false })
+      }
+    }
+  }, [searchParams, posts, category.slug, router])
+
   // 페이지 변경 시 추가 로드
   useEffect(() => {
     if (page > 1 && !loading && !fetchInProgressRef.current && hasMore) {

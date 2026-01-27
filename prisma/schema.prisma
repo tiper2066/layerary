@@ -40,9 +40,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  posts        Post[]   @relation("PostAuthor")
-  updatedPosts Post[]   @relation("PostUpdater")
-  notices      Notice[]
+  posts                   Post[]   @relation("PostAuthor")
+  updatedPosts            Post[]   @relation("PostUpdater")
+  notices                 Notice[]
+  welcomeBoardTemplates   WelcomeBoardTemplate[]
 
   @@map("users")
 }
@@ -140,4 +141,25 @@ model Notice {
   updatedAt   DateTime @updatedAt
 
   @@map("notices")
+}
+
+// 웰컴보드 템플릿 모델
+model WelcomeBoardTemplate {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  thumbnailUrl  String?  // B2 썸네일 이미지 경로
+  backgroundUrl String   // B2 배경 이미지 경로
+  width         Int      @default(1920)
+  height        Int      @default(1080)
+  config        Json     // 텍스트/로고 요소 설정 JSON
+  status        String   @default("PUBLISHED") // PUBLISHED, DRAFT, ARCHIVED
+  
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("welcomeboard_templates")
 }

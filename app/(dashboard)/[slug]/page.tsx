@@ -10,7 +10,7 @@ import { IsignListPage } from '@/app/_category-pages/isign/IsignListPage'
 import { CloudbricListPage } from '@/app/_category-pages/cloudbric/CloudbricListPage'
 import { PptListPage } from '@/app/_category-pages/ppt/PptListPage'
 import { IconListPage } from '@/app/_category-pages/icon/IconListPage'
-import { WelcomeBoardListPage } from '@/app/_category-pages/welcomeboard/WelcomeBoardListPage'
+import { WelcomeBoardPage } from '@/app/_category-pages/welcomeboard/WelcomeBoardPage'
 
 // 카테고리 타입별 기본 pageType 반환
 function getDefaultPageType(categoryType: CategoryType): string {
@@ -66,7 +66,7 @@ export default async function CategoryPage({
       return <PptListPage category={category} />
 
     case 'welcomeboard':
-      return <WelcomeBoardListPage category={category} />
+      return <WelcomeBoardPage category={category} />
 
     case 'icon':
       return <IconListPage category={category} />
