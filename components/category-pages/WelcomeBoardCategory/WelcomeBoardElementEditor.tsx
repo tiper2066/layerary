@@ -1015,6 +1015,19 @@ export function WelcomeBoardElementEditor({
               <div className="space-y-4 pt-4 border-t">
                 <Label className="text-sm font-medium">텍스트 속성</Label>
                 
+                {/* 레이블 */}
+                <div className="space-y-1">
+                  <Label className="text-xs">레이블</Label>
+                  <Input
+                    value={selectedTextElements[0].label}
+                    onChange={(e) =>
+                      onUpdateTextElement(selectedTextElements[0].id, { label: e.target.value })
+                    }
+                    className="h-8 text-sm"
+                    placeholder="요소 이름"
+                  />
+                </div>
+
                 {/* 기본 텍스트 */}
                 <div className="space-y-1">
                   <Label className="text-xs">기본 텍스트</Label>
