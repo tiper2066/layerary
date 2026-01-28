@@ -179,7 +179,7 @@ export function WelcomeBoardPage({ category }: WelcomeBoardPageProps) {
   // 갤러리 모드
   return (
     <div className="w-full h-full flex flex-col overflow-y-auto">
-      <div className="px-8 pb-8">
+      <div className="px-8 pt-8 pb-8">
         {/* 헤더 */}
         <div className="flex justify-between items-center mb-6">
           <div>
