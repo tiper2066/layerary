@@ -91,8 +91,12 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
     !pathname.startsWith('/admin') &&
     pathname.startsWith('/chart-generator'))
 
-  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, 웰컴보드, PDF Extractor, ICON, 또는 Chart Generator 페이지인지 확인 (속성 패널이 있는 특수 페이지)
-  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isWelcomeBoardPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage
+  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, PDF Extractor, ICON, 또는 Chart Generator 페이지인지 확인 (속성 패널이 있는 특수 페이지)
+  // 웰컴보드는 에디터 모드일 때 자체 헤더를 사용하므로 제외
+  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage
+
+  // 헤더 너비 제한이 필요한 페이지 (우측 패널이 있는 페이지만)
+  const hasRightPanel = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage
 
   return (
     <div className="flex min-h-screen md:h-screen bg-background">
@@ -117,11 +121,11 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
         {!isGalleryDetailPage && (
           <Header 
             onMenuClick={() => setMobileMenuOpen(true)} 
-            isCiBiPage={isSpecialPage}
+            isCiBiPage={hasRightPanel}
           />
         )}
-        <main className={`flex-1 bg-background pt-16 md:pt-16 ${isSpecialPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
-          {isSpecialPage ? (
+        <main className={`flex-1 bg-background pt-16 md:pt-16 ${isSpecialPage || isWelcomeBoardPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
+          {isSpecialPage || isWelcomeBoardPage ? (
             children
           ) : (
             <div className="w-full px-8 pt-0 pb-10">

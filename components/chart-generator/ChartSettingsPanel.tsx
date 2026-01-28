@@ -272,15 +272,34 @@ export function ChartSettingsPanel({
       {/* 헤더: 제목 + 저장/불러오기 버튼 */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">차트 설정</h2>
-        <div className="flex items-center gap-1">
-          {/* 현재 활성 프리셋 이름 */}
-          {activePresetName && (
-            <span className="text-xs text-muted-foreground truncate max-w-[120px] mr-1">
-              {activePresetName}
-            </span>
-          )}
-          {/* 저장 버튼 */}
-          <TooltipProvider delayDuration={300}>
+        <TooltipProvider delayDuration={300}>
+          <div className="flex items-center gap-1">
+            {/* 현재 활성 프리셋 이름 */}
+            {activePresetName && (
+              <span className="text-xs text-muted-foreground truncate max-w-[100px] mr-1">
+                {activePresetName}
+              </span>
+            )}
+            
+            {/* 초기화 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={handleReset}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>설정 초기화</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* 저장 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -297,11 +316,9 @@ export function ChartSettingsPanel({
                 <p>설정 저장</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
 
-          {/* 불러오기 드롭다운 */}
-          <DropdownMenu>
-            <TooltipProvider delayDuration={300}>
+            {/* 불러오기 드롭다운 */}
+            <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
@@ -319,46 +336,46 @@ export function ChartSettingsPanel({
                   <p>저장된 설정 불러오기</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>저장된 설정</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {savedPresets.length === 0 ? (
-                <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                  저장된 설정이 없습니다.
-                </div>
-              ) : (
-                savedPresets.map((preset) => (
-                  <DropdownMenuItem
-                    key={preset.id}
-                    className={`flex items-center justify-between cursor-pointer ${
-                      activePresetId === preset.id ? 'bg-accent' : ''
-                    }`}
-                    onClick={() => handleLoadPreset(preset)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {activePresetId === preset.id ? (
-                        <Check className="h-4 w-4 text-primary" />
-                      ) : (
-                        getChartTypeIcon(preset.chartType)
-                      )}
-                      <span className="truncate max-w-[150px]">{preset.name}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={(e) => handleDeletePreset(preset.id, e)}
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>저장된 설정</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {savedPresets.length === 0 ? (
+                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    저장된 설정이 없습니다.
+                  </div>
+                ) : (
+                  savedPresets.map((preset) => (
+                    <DropdownMenuItem
+                      key={preset.id}
+                      className={`flex items-center justify-between cursor-pointer ${
+                        activePresetId === preset.id ? 'bg-accent' : ''
+                      }`}
+                      onClick={() => handleLoadPreset(preset)}
                     >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuItem>
-                ))
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                      <div className="flex items-center gap-2">
+                        {activePresetId === preset.id ? (
+                          <Check className="h-4 w-4 text-primary" />
+                        ) : (
+                          getChartTypeIcon(preset.chartType)
+                        )}
+                        <span className="truncate max-w-[150px]">{preset.name}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={(e) => handleDeletePreset(preset.id, e)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/* 저장 다이얼로그 */}
@@ -974,20 +991,6 @@ export function ChartSettingsPanel({
             ))}
           </div>
         </TooltipProvider>
-      </div>
-
-      {/* 설정 초기화 */}
-      <div className="pt-2 pb-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={handleReset}
-        >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          설정 초기화
-        </Button>
       </div>
 
       {/* 내보내기 컨트롤 */}

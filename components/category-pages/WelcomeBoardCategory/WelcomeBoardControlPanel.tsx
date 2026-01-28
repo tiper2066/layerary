@@ -4,8 +4,17 @@ import { useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Type, Image as ImageIcon, RotateCcw, Upload, X } from 'lucide-react'
-import type { WelcomeBoardTemplate, UserEditData, TemplateConfig } from '@/lib/welcomeboard-schemas'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Type, Image as ImageIcon, Upload, X, RotateCcw, Save, FolderOpen, Settings2, Check, Trash2 } from 'lucide-react'
+import type { WelcomeBoardTemplate, UserEditData, TemplateConfig, SavedWelcomeBoardPreset } from '@/lib/welcomeboard-schemas'
 
 interface WelcomeBoardControlPanelProps {
   template: WelcomeBoardTemplate
@@ -15,6 +24,14 @@ interface WelcomeBoardControlPanelProps {
   onLogoChange: (logoUrl: string | null) => void
   onElementSelect: (elementId: string | null) => void
   onReset: () => void
+  // 프리셋 관련 props
+  activePresetName: string | null
+  currentTemplatePresets: SavedWelcomeBoardPreset[]
+  activePresetId: string | null
+  onSavePreset: () => void
+  onLoadPreset: (preset: SavedWelcomeBoardPreset) => void
+  onDeletePreset: (presetId: string, e: React.MouseEvent) => void
+  onManagePresets: () => void
 }
 
 export function WelcomeBoardControlPanel({
@@ -25,6 +42,13 @@ export function WelcomeBoardControlPanel({
   onLogoChange,
   onElementSelect,
   onReset,
+  activePresetName,
+  currentTemplatePresets,
+  activePresetId,
+  onSavePreset,
+  onLoadPreset,
+  onDeletePreset,
+  onManagePresets,
 }: WelcomeBoardControlPanelProps) {
   const config = template.config as TemplateConfig
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -97,10 +121,121 @@ export function WelcomeBoardControlPanel({
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">편집 설정</h2>
-        <Button variant="outline" size="sm" onClick={onReset}>
-          <RotateCcw className="h-4 w-4 mr-1" />
-          초기화
-        </Button>
+        <TooltipProvider delayDuration={300}>
+          <div className="flex items-center gap-1">
+            {/* 현재 활성 프리셋 이름 */}
+            {activePresetName && (
+              <span className="text-xs text-muted-foreground truncate max-w-[100px] mr-1">
+                {activePresetName}
+              </span>
+            )}
+
+            {/* 초기화 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={onReset}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>템플릿 기본값으로 초기화</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* 저장 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={onSavePreset}
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>설정 저장</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* 불러오기 드롭다운 */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>저장된 설정 불러오기</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>저장된 설정</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {currentTemplatePresets.length === 0 ? (
+                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    저장된 설정이 없습니다.
+                  </div>
+                ) : (
+                  <>
+                    {currentTemplatePresets.map((preset) => (
+                      <DropdownMenuItem
+                        key={preset.id}
+                        className={`flex items-center justify-between cursor-pointer ${
+                          activePresetId === preset.id ? 'bg-accent' : ''
+                        }`}
+                        onClick={() => onLoadPreset(preset)}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {activePresetId === preset.id ? (
+                            <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                          ) : (
+                            <div className="h-4 w-4 flex-shrink-0" />
+                          )}
+                          <div className="flex flex-col min-w-0">
+                            <span className="truncate text-sm">{preset.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(preset.createdAt).toLocaleDateString('ko-KR')}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground flex-shrink-0"
+                          onClick={(e) => onDeletePreset(preset.id, e)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 cursor-pointer text-primary"
+                      onClick={onManagePresets}
+                    >
+                      <Settings2 className="h-4 w-4" />
+                      <span>저장된 설정 관리</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/* 텍스트 편집 섹션 */}

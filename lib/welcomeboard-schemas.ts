@@ -189,6 +189,22 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   },
 }
 
+// 저장된 프리셋 타입 (LocalStorage)
+export interface SavedWelcomeBoardPreset {
+  id: string
+  name: string
+  createdAt: string
+  templateId: string
+  templateName: string // 템플릿 이름 추가
+  config: TemplateConfig
+}
+
+// localStorage 키
+export const STORAGE_KEYS = {
+  PRESETS: 'welcomeboard-editor-presets',
+  AUTOSAVE: 'welcomeboard-editor-autosave',
+} as const
+
 // 파일명 생성 유틸리티
 export const generateFileName = (templateName: string, format: ExportFormat): string => {
   const now = new Date()
@@ -201,4 +217,106 @@ export const generateFileName = (templateName: string, format: ExportFormat): st
   const safeName = templateName.replace(/[^a-zA-Z0-9가-힣\s]/g, '').trim().replace(/\s+/g, '_')
   
   return `WelcomeBoard_${safeName}_${dateStr}.${format}`
+}
+
+// localStorage 유틸리티 함수들
+export const presetStorageUtils = {
+  // 모든 프리셋 가져오기
+  getAllPresets: (): SavedWelcomeBoardPreset[] => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.PRESETS)
+      return stored ? JSON.parse(stored) : []
+    } catch (error) {
+      console.error('프리셋 불러오기 오류:', error)
+      return []
+    }
+  },
+
+  // 특정 템플릿의 프리셋만 가져오기
+  getPresetsByTemplateId: (templateId: string): SavedWelcomeBoardPreset[] => {
+    const allPresets = presetStorageUtils.getAllPresets()
+    return allPresets.filter(preset => preset.templateId === templateId)
+  },
+
+  // 프리셋 저장
+  savePreset: (preset: SavedWelcomeBoardPreset): boolean => {
+    try {
+      const allPresets = presetStorageUtils.getAllPresets()
+      const updatedPresets = [...allPresets, preset]
+      localStorage.setItem(STORAGE_KEYS.PRESETS, JSON.stringify(updatedPresets))
+      return true
+    } catch (error) {
+      console.error('프리셋 저장 오류:', error)
+      return false
+    }
+  },
+
+  // 프리셋 삭제
+  deletePreset: (presetId: string): boolean => {
+    try {
+      const allPresets = presetStorageUtils.getAllPresets()
+      const updatedPresets = allPresets.filter(p => p.id !== presetId)
+      localStorage.setItem(STORAGE_KEYS.PRESETS, JSON.stringify(updatedPresets))
+      return true
+    } catch (error) {
+      console.error('프리셋 삭제 오류:', error)
+      return false
+    }
+  },
+
+  // 삭제된 템플릿의 프리셋 정리
+  cleanupOrphanedPresets: (existingTemplateIds: string[]): number => {
+    try {
+      const allPresets = presetStorageUtils.getAllPresets()
+      const validPresets = allPresets.filter(preset =>
+        existingTemplateIds.includes(preset.templateId)
+      )
+      const removedCount = allPresets.length - validPresets.length
+      
+      if (removedCount > 0) {
+        localStorage.setItem(STORAGE_KEYS.PRESETS, JSON.stringify(validPresets))
+      }
+      
+      return removedCount
+    } catch (error) {
+      console.error('프리셋 정리 오류:', error)
+      return 0
+    }
+  },
+
+  // 자동 저장
+  saveAutosave: (templateId: string, config: TemplateConfig): boolean => {
+    try {
+      const key = `${STORAGE_KEYS.AUTOSAVE}-${templateId}`
+      localStorage.setItem(key, JSON.stringify(config))
+      return true
+    } catch (error) {
+      console.error('자동 저장 오류:', error)
+      return false
+    }
+  },
+
+  // 자동 저장 불러오기
+  getAutosave: (templateId: string): TemplateConfig | null => {
+    try {
+      const key = `${STORAGE_KEYS.AUTOSAVE}-${templateId}`
+      const stored = localStorage.getItem(key)
+      return stored ? JSON.parse(stored) : null
+    } catch (error) {
+      console.error('자동 저장 불러오기 오류:', error)
+      return null
+    }
+  },
+
+  // 자동 저장 삭제
+  clearAutosave: (templateId: string): boolean => {
+    try {
+      const key = `${STORAGE_KEYS.AUTOSAVE}-${templateId}`
+      localStorage.removeItem(key)
+      return true
+    } catch (error) {
+      console.error('자동 저장 삭제 오류:', error)
+      return false
+    }
+  },
 }

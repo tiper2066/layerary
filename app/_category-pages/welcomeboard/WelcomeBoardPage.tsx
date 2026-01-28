@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import type { WelcomeBoardTemplate } from '@/lib/welcomeboard-schemas'
+import { presetStorageUtils } from '@/lib/welcomeboard-schemas'
 
 interface Category {
   id: string
@@ -76,6 +77,18 @@ export function WelcomeBoardPage({ category }: WelcomeBoardPageProps) {
   useEffect(() => {
     fetchTemplates()
   }, [fetchTemplates])
+
+  // 템플릿 로드 후 자동 정리 (삭제된 템플릿의 프리셋 제거)
+  useEffect(() => {
+    if (templates.length > 0) {
+      const existingTemplateIds = templates.map(t => t.id)
+      const removedCount = presetStorageUtils.cleanupOrphanedPresets(existingTemplateIds)
+      
+      if (removedCount > 0) {
+        console.log(`${removedCount}개의 오래된 프리셋이 자동 정리되었습니다.`)
+      }
+    }
+  }, [templates])
 
   // templateId 파라미터 감지하여 템플릿 자동 선택
   useEffect(() => {
@@ -165,8 +178,8 @@ export function WelcomeBoardPage({ category }: WelcomeBoardPageProps) {
 
   // 갤러리 모드
   return (
-    <div className="w-full h-full flex flex-col absolute inset-0 bg-neutral-50 dark:bg-neutral-900 overflow-y-auto">
-      <div className="px-8 pt-16 pb-8">
+    <div className="w-full h-full flex flex-col overflow-y-auto">
+      <div className="px-8 pb-8">
         {/* 헤더 */}
         <div className="flex justify-between items-center mb-6">
           <div>
