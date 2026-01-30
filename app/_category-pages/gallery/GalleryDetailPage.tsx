@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Loader2, Info } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
@@ -163,7 +164,7 @@ export function GalleryDetailPage({ category, postId }: GalleryDetailPageProps) 
       router.refresh() // 서버 컴포넌트 재렌더링
     } catch (error: any) {
       console.error('Error deleting post:', error)
-      alert(error.message || '게시물 삭제에 실패했습니다.')
+      toast.error(error.message || '게시물 삭제에 실패했습니다.')
       setDeleting(false) // 에러 시 로딩 상태 해제
     }
   }

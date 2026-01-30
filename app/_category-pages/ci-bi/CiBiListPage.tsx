@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { CiBiUploadDialog } from '@/components/category-pages/CiBiCategory/CiBiUploadDialog'
 import { CiBiCard } from '@/components/category-pages/CiBiCategory/CiBiCard'
@@ -21,6 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Category {
   id: string
@@ -421,7 +421,7 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
       document.body.removeChild(a)
     } catch (error) {
       console.error('[CiBiListPage] Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     }
   }
 
@@ -472,7 +472,7 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
       setDeletePostId(null)
     } catch (error) {
       console.error('Delete error:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }
@@ -500,7 +500,6 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
               <Button onClick={() => setUploadDialogOpen(true)}>
-                <Plus className="h-4 w-4" />
                 게시물 추가
               </Button>
             )}
@@ -544,7 +543,6 @@ export function CiBiListPage({ category }: CiBiListPageProps) {
               </p>
               {isAdmin && (
                 <Button onClick={() => setUploadDialogOpen(true)}>
-                  <Plus className="h-4 w-4" />
                   첫 게시물 추가하기
                 </Button>
               )}

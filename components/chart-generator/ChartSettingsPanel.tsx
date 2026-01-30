@@ -34,6 +34,8 @@ import {
   ColorPresetKey 
 } from '@/lib/chart-schemas'
 import { Plus, X, Palette, RotateCcw, BarChart3, TrendingUp, PieChart, AreaChart, Tag, Save, FolderOpen, Trash2, AlertCircle, Check } from 'lucide-react'
+import { toast } from 'sonner'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog-provider'
 
 import { ChartExportControls } from './ChartExportControls'
 
@@ -92,6 +94,7 @@ export function ChartSettingsPanel({
   onTitleChange,
   onDescriptionChange,
 }: ChartSettingsPanelProps) {
+  const { confirm } = useConfirmDialog()
   const [colorPickerOpen, setColorPickerOpen] = useState<number | null>(null)
   const [hoveredColorIndex, setHoveredColorIndex] = useState<number | null>(null)
   
@@ -116,7 +119,7 @@ export function ChartSettingsPanel({
   // 프리셋 저장
   const handleSavePreset = useCallback(() => {
     if (!presetName.trim()) {
-      alert('프리셋 이름을 입력해주세요.')
+      toast.error('프리셋 이름을 입력해주세요.')
       return
     }
 
@@ -136,10 +139,10 @@ export function ChartSettingsPanel({
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets))
       setSaveDialogOpen(false)
       setPresetName('')
-      alert('설정이 저장되었습니다.')
+      toast.success('설정이 저장되었습니다.')
     } catch (error) {
       console.error('프리셋 저장 오류:', error)
-      alert('저장 중 오류가 발생했습니다.')
+      toast.error('저장 중 오류가 발생했습니다.')
     }
   }, [presetName, chartType, settings, chartTypeSettings, savedPresets])
 
@@ -151,10 +154,10 @@ export function ChartSettingsPanel({
   }, [onSettingsChange, onChartTypeSettingsChange])
 
   // 프리셋 삭제
-  const handleDeletePreset = useCallback((presetId: string, e: React.MouseEvent) => {
+  const handleDeletePreset = useCallback(async (presetId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     
-    if (!confirm('이 프리셋을 삭제하시겠습니까?')) return
+    if (!(await confirm('이 프리셋을 삭제하시겠습니까?'))) return
 
     const updatedPresets = savedPresets.filter(p => p.id !== presetId)
     setSavedPresets(updatedPresets)
@@ -169,7 +172,7 @@ export function ChartSettingsPanel({
     } catch (error) {
       console.error('프리셋 삭제 오류:', error)
     }
-  }, [savedPresets, activePresetId])
+  }, [savedPresets, activePresetId, confirm])
 
   // 활성 프리셋 이름 가져오기
   const activePresetName = useMemo(() => {
@@ -487,7 +490,21 @@ export function ChartSettingsPanel({
 
       {/* 폰트 크기 설정 */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">폰트 크기</Label>
+        {/* 값 레이블 표시 옵션 */}
+        <div className="flex justify-between items-center gap-2">
+          <Label className="text-sm font-medium">폰트 크기</Label>
+          <div className='flex items-center gap-2'>
+            <Checkbox
+              id="showValueLabels"
+              checked={settings.showValueLabels ?? false}
+              onCheckedChange={(checked: boolean) => onSettingsChange({ ...settings, showValueLabels: checked })}
+            />
+            <Label htmlFor="showValueLabels" className="text-xs text-muted-foreground cursor-pointer">
+              값 레이블 표시
+            </Label>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-3 gap-2">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">항목명: {settings.labelFontSize || 12}px</Label>
@@ -530,22 +547,6 @@ export function ChartSettingsPanel({
 
       {/* 값 레이블 설정 */}
       <div className="space-y-4">
-        {/* <div className="flex items-center gap-2">
-          <Tag className="h-4 w-4" />
-          <Label className="text-sm font-medium">값 레이블</Label>
-        </div> */}
-        
-        {/* 값 레이블 표시 옵션 */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="showValueLabels"
-            checked={settings.showValueLabels ?? false}
-            onCheckedChange={(checked: boolean) => onSettingsChange({ ...settings, showValueLabels: checked })}
-          />
-          <Label htmlFor="showValueLabels" className="text-sm cursor-pointer">
-            값 레이블 표시
-          </Label>
-        </div>
 
         {/* 막대, 선, 영역 그래프용 위치 및 거리 설정 */}
         {settings.showValueLabels && chartType !== 'pie' && (
@@ -894,7 +895,7 @@ export function ChartSettingsPanel({
           <Palette className="h-4 w-4" />
           <Label className="text-sm font-medium">색상 프리셋</Label>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-4">
           {(Object.keys(COLOR_PRESETS) as ColorPresetKey[]).map((key) => (
             <Button
               key={key}
@@ -907,7 +908,7 @@ export function ChartSettingsPanel({
               onClick={() => handlePresetChange(key)}
             >
               <span className="text-xs font-medium">{COLOR_PRESETS[key].name}</span>
-              <div className="flex gap-0.5">
+              <div className="flex justify-center flex-wrap gap-0.5">
                 {COLOR_PRESETS[key].colors.map((color, idx) => (
                   <div
                     key={idx}
@@ -925,16 +926,22 @@ export function ChartSettingsPanel({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">개별 색상</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addColor}
-            className="h-8"
-          >
-            <Plus className="h-4 w-4" />
-            추가
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addColor}
+                className="h-7 w-7"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>색상 추가</p>
+            </TooltipContent>
+          </Tooltip>              
         </div>
 
         <TooltipProvider delayDuration={300}>
@@ -955,7 +962,7 @@ export function ChartSettingsPanel({
                       <PopoverTrigger asChild>
                         <button
                           type="button"
-                          className="w-[45px] h-[45px] rounded-lg border-2 border-border hover:border-primary/50 transition-all cursor-pointer"
+                          className="w-[35px] h-[35px] rounded-md border-1 border-border hover:border-primary/50 transition-all cursor-pointer"
                           style={{ backgroundColor: color }}
                           aria-label={`색상 선택: ${color}`}
                         />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import {
   Table,
@@ -288,7 +289,7 @@ export default function NoticesPage() {
       handleCloseDialog()
     } catch (error: any) {
       console.error('Error saving notice:', error)
-      alert(error.message || '공지사항 저장에 실패했습니다.')
+      toast.error(error.message || '공지사항 저장에 실패했습니다.')
     } finally {
       setSubmitting(false)
       setUploading(false)
@@ -318,7 +319,7 @@ export default function NoticesPage() {
       setDeletingNoticeId(null)
     } catch (error: any) {
       console.error('Error deleting notice:', error)
-      alert(error.message || '공지사항 삭제에 실패했습니다.')
+      toast.error(error.message || '공지사항 삭제에 실패했습니다.')
     }
   }
 
@@ -353,7 +354,7 @@ export default function NoticesPage() {
       document.body.removeChild(a)
     } catch (error: any) {
       console.error('Error downloading file:', error)
-      alert(error.message || '파일 다운로드에 실패했습니다.')
+      toast.error(error.message || '파일 다운로드에 실패했습니다.')
     } finally {
       setDownloadingFileId(null)
     }
@@ -362,7 +363,7 @@ export default function NoticesPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-end justify-between">
           <div>
             <h1 className="text-3xl font-bold">공지사항 관리</h1>
             <p className="text-muted-foreground mt-2">
@@ -370,7 +371,7 @@ export default function NoticesPage() {
             </p>
           </div>
           <Button disabled>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4" />
             공지사항 추가
           </Button>
         </div>
@@ -405,7 +406,7 @@ export default function NoticesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-bold">공지사항 관리</h1>
           <p className="text-muted-foreground mt-2">
@@ -413,7 +414,7 @@ export default function NoticesPage() {
           </p>
         </div>
         <Button onClick={handleOpenCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4" />
           공지사항 추가
         </Button>
       </div>

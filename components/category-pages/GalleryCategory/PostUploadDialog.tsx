@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2, X, File } from 'lucide-react'
+import { toast } from 'sonner'
 import Image from 'next/image'
 
 const postSchema = z.object({
@@ -181,13 +182,13 @@ export function PostUploadDialog({
 
     // 수정 모드가 아니고 새 파일이 없으면 에러
     if (!isEditMode && selectedFiles.length === 0) {
-      alert('최소 1개의 이미지를 선택해주세요.')
+      toast.error('최소 1개의 이미지를 선택해주세요.')
       return
     }
 
     // 수정 모드인데 기존 이미지도 없고 새 파일도 없으면 에러
     if (isEditMode && existingImages.length === 0 && selectedFiles.length === 0) {
-      alert('최소 1개의 이미지가 필요합니다.')
+      toast.error('최소 1개의 이미지가 필요합니다.')
       return
     }
 
@@ -362,7 +363,7 @@ export function PostUploadDialog({
       onClose()
     } catch (error: any) {
       console.error(`Error ${isEditMode ? 'updating' : 'creating'} post:`, error)
-      alert(error.message || `게시물 ${isEditMode ? '수정' : '생성'}에 실패했습니다.`)
+      toast.error(error.message || `게시물 ${isEditMode ? '수정' : '생성'}에 실패했습니다.`)
     } finally {
       setSubmitting(false)
       setUploading(false)

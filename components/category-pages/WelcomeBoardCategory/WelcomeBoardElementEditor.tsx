@@ -928,7 +928,6 @@ export function WelcomeBoardElementEditor({
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">요소 속성</h3>
               <Button variant="outline" size="sm" onClick={onAddTextElement}>
-                <Plus className="h-4 w-4 mr-1" />
                 텍스트 추가
               </Button>
             </div>
@@ -1198,7 +1197,6 @@ export function WelcomeBoardElementEditor({
                     setSelectedElementIds([])
                   }}
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
                   요소 삭제
                 </Button>
               </div>
@@ -1309,7 +1307,6 @@ export function WelcomeBoardElementEditor({
                   className="w-full"
                   onClick={handleDeleteSelected}
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
                   선택된 요소 삭제
                 </Button>
               </div>

@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { UserRole } from '@prisma/client'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { TableRowSkeleton } from '@/components/ui/table-row-skeleton'
 
 interface User {
@@ -96,7 +97,7 @@ export default function UsersPage() {
       )
     } catch (error: any) {
       console.error('Error updating role:', error)
-      alert(error.message || '역할 변경에 실패했습니다.')
+      toast.error(error.message || '역할 변경에 실패했습니다.')
     } finally {
       setUpdating((prev) => {
         const newSet = new Set(prev)

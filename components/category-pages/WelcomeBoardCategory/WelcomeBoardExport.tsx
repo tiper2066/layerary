@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Download, FileImage, FileText, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import type { WelcomeBoardTemplate, UserEditData, ExportFormat, TemplateConfig } from '@/lib/welcomeboard-schemas'
@@ -230,7 +231,7 @@ export function WelcomeBoardExport({
       document.body.removeChild(link)
     } catch (error) {
       console.error('PNG download error:', error)
-      alert('PNG 다운로드 중 오류가 발생했습니다.')
+      toast.error('PNG 다운로드 중 오류가 발생했습니다.')
     } finally {
       setExporting(null)
     }
@@ -254,7 +255,7 @@ export function WelcomeBoardExport({
       document.body.removeChild(link)
     } catch (error) {
       console.error('JPG download error:', error)
-      alert('JPG 다운로드 중 오류가 발생했습니다.')
+      toast.error('JPG 다운로드 중 오류가 발생했습니다.')
     } finally {
       setExporting(null)
     }
@@ -285,7 +286,7 @@ export function WelcomeBoardExport({
       pdf.save(generateFileName(template.name, 'pdf'))
     } catch (error) {
       console.error('PDF download error:', error)
-      alert('PDF 다운로드 중 오류가 발생했습니다.')
+      toast.error('PDF 다운로드 중 오류가 발생했습니다.')
     } finally {
       setExporting(null)
     }
@@ -316,44 +317,38 @@ export function WelcomeBoardExport({
       {/* 다운로드 버튼 그룹 */}
       <div className="grid grid-cols-3 gap-2">
         <Button
-          variant="outline"
+          // variant="outline"
           onClick={downloadPNG}
           disabled={isExporting}
-          className="flex-col h-auto py-4"
+          className="flex-col h-auto py-3"
         >
           {exporting === 'png' ? (
             <Loader2 className="h-6 w-6 animate-spin mb-1" />
-          ) : (
-            <FileImage className="h-6 w-6 mb-1" />
-          )}
+          ) : ""}
           <span className="text-xs">PNG</span>
         </Button>
 
         <Button
-          variant="outline"
+          // variant="outline"
           onClick={downloadJPG}
           disabled={isExporting}
-          className="flex-col h-auto py-4"
+          className="flex-col h-auto py-3"
         >
           {exporting === 'jpg' ? (
             <Loader2 className="h-6 w-6 animate-spin mb-1" />
-          ) : (
-            <FileImage className="h-6 w-6 mb-1" />
-          )}
+          ) : ""}
           <span className="text-xs">JPG</span>
         </Button>
 
         <Button
-          variant="outline"
+          // variant="outline"
           onClick={downloadPDF}
           disabled={isExporting}
-          className="flex-col h-auto py-4"
+          className="flex-col h-auto py-3"
         >
           {exporting === 'pdf' ? (
             <Loader2 className="h-6 w-6 animate-spin mb-1" />
-          ) : (
-            <FileText className="h-6 w-6 mb-1" />
-          )}
+          ) : ""}
           <span className="text-xs">PDF</span>
         </Button>
       </div>

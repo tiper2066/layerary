@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Download, Upload, Trash2, Loader2, FileArchive } from 'lucide-react'
+import { Loader2, FileArchive } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useSession } from 'next-auth/react'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog-provider'
 
 interface ZipInfo {
   url: string
@@ -17,6 +19,7 @@ interface PptZipSectionProps {
 
 export function PptZipSection({ categorySlug }: PptZipSectionProps) {
   const { data: session } = useSession()
+  const { confirm } = useConfirmDialog()
   const isAdmin = session?.user?.role === 'ADMIN'
   const [zipInfo, setZipInfo] = useState<ZipInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,13 +58,13 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
       file.name.toLowerCase().endsWith('.zip')
 
     if (!isZipFile) {
-      alert('ZIP 파일만 업로드할 수 있습니다.')
+      toast.error('ZIP 파일만 업로드할 수 있습니다.')
       return
     }
 
     // 파일 크기 검증 (100MB)
     if (file.size > 100 * 1024 * 1024) {
-      alert('파일 크기는 100MB를 초과할 수 없습니다.')
+      toast.error('파일 크기는 100MB를 초과할 수 없습니다.')
       return
     }
 
@@ -82,10 +85,10 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
 
       const data = await response.json()
       setZipInfo(data.zipInfo)
-      alert('ZIP 파일이 업로드되었습니다.')
+      toast.success('ZIP 파일이 업로드되었습니다.')
     } catch (error: any) {
       console.error('Upload error:', error)
-      alert(error.message || '업로드 중 오류가 발생했습니다.')
+      toast.error(error.message || '업로드 중 오류가 발생했습니다.')
     } finally {
       setUploading(false)
       // input 초기화
@@ -95,7 +98,7 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
 
   // ZIP 파일 삭제
   const handleDelete = async () => {
-    if (!confirm('ZIP 파일을 삭제하시겠습니까?')) return
+    if (!(await confirm('ZIP 파일을 삭제하시겠습니까?'))) return
 
     try {
       setDeleting(true)
@@ -109,10 +112,10 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
       }
 
       setZipInfo(null)
-      alert('ZIP 파일이 삭제되었습니다.')
+      toast.success('ZIP 파일이 삭제되었습니다.')
     } catch (error: any) {
       console.error('Delete error:', error)
-      alert(error.message || '삭제 중 오류가 발생했습니다.')
+      toast.error(error.message || '삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }
@@ -140,7 +143,7 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
       document.body.removeChild(a)
     } catch (error) {
       console.error('Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     } finally {
       setDownloading(false)
     }
@@ -192,7 +195,6 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
                 </>
               ) : (
                 <>
-                  <Download className="h-4 w-4" />
                   다운로드
                 </>
               )}
@@ -212,7 +214,6 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
                   </>
                 ) : (
                   <>
-                    <Trash2 className="h-4 w-4" />
                     삭제
                   </>
                 )}
@@ -252,7 +253,6 @@ export function PptZipSection({ categorySlug }: PptZipSectionProps) {
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
                     ZIP 파일 업로드
                   </>
                 )}

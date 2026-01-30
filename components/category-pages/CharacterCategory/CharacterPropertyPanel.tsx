@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Download, RotateCcw, Link as LinkIcon, Loader2 } from 'lucide-react'
+import { RotateCcw, Link as LinkIcon, Loader2 } from 'lucide-react'
 
 interface Post {
   id: string
@@ -387,7 +387,6 @@ export function CharacterPropertyPanel({
                   </>
                 ) : (
                   <>
-                    <Download className="mr-2 h-4 w-4" />
                     다운로드
                   </>
                 )}

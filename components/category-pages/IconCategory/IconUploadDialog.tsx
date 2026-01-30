@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { File, X, Loader2, Upload } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface IconUploadDialogProps {
   open: boolean
@@ -58,7 +59,7 @@ export function IconUploadDialog({
 
   const handleSubmit = async () => {
     if (selectedFiles.length === 0) {
-      alert('최소 1개의 SVG 파일을 선택해주세요.')
+      toast.error('최소 1개의 SVG 파일을 선택해주세요.')
       return
     }
 
@@ -82,7 +83,7 @@ export function IconUploadDialog({
       }
 
       const result = await response.json()
-      alert(`${result.posts.length}개의 아이콘이 업로드되었습니다.`)
+      toast.success(`${result.posts.length}개의 아이콘이 업로드되었습니다.`)
       
       // 초기화
       setSelectedFiles([])
@@ -94,7 +95,7 @@ export function IconUploadDialog({
       onClose()
     } catch (error: any) {
       console.error('Upload error:', error)
-      alert(error.message || '업로드 중 오류가 발생했습니다.')
+      toast.error(error.message || '업로드 중 오류가 발생했습니다.')
     } finally {
       setUploading(false)
     }
@@ -202,7 +203,6 @@ export function IconUploadDialog({
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
                 업로드
               </>
             )}

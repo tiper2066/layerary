@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Category {
   id: string
@@ -289,7 +290,7 @@ export function WelcomeBoardListPage({ category }: WelcomeBoardListPageProps) {
       document.body.removeChild(a)
     } catch (error) {
       console.error('[WelcomeBoardListPage] Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     }
   }
 
@@ -333,7 +334,7 @@ export function WelcomeBoardListPage({ category }: WelcomeBoardListPageProps) {
       setDeletePostId(null)
     } catch (error) {
       console.error('Delete error:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }

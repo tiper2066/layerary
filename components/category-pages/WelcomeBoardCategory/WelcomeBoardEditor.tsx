@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ArrowLeft, ZoomIn, ZoomOut, Save, FolderOpen, RotateCcw, Trash2, Check, Settings2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog-provider'
 import { WelcomeBoardCanvas } from './WelcomeBoardCanvas'
 import { WelcomeBoardControlPanel } from './WelcomeBoardControlPanel'
 import { WelcomeBoardExport } from './WelcomeBoardExport'
@@ -39,6 +41,7 @@ interface WelcomeBoardEditorProps {
 }
 
 export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps) {
+  const { confirm } = useConfirmDialog()
   const canvasRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   
@@ -103,7 +106,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
   // 프리셋 저장
   const handleSavePreset = useCallback(() => {
     if (!presetName.trim()) {
-      alert('프리셋 이름을 입력해주세요.')
+      toast.error('프리셋 이름을 입력해주세요.')
       return
     }
 
@@ -123,9 +126,9 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
       setActivePresetId(newPreset.id)
       setSaveDialogOpen(false)
       setPresetName('')
-      alert('설정이 저장되었습니다.')
+      toast.success('설정이 저장되었습니다.')
     } else {
-      alert('저장 중 오류가 발생했습니다.')
+      toast.error('저장 중 오류가 발생했습니다.')
     }
   }, [presetName, template.id, template.name, currentConfig])
 
@@ -144,10 +147,10 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
   }, [])
 
   // 프리셋 삭제
-  const handleDeletePreset = useCallback((presetId: string, e: React.MouseEvent) => {
+  const handleDeletePreset = useCallback(async (presetId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     
-    if (!confirm('이 프리셋을 삭제하시겠습니까?')) return
+    if (!(await confirm('이 프리셋을 삭제하시겠습니까?'))) return
 
     const success = presetStorageUtils.deletePreset(presetId)
     
@@ -157,7 +160,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
         setActivePresetId(null)
       }
     }
-  }, [activePresetId])
+  }, [activePresetId, confirm])
 
   // 활성 프리셋 이름 가져오기
   const activePresetName = useMemo(() => {
@@ -232,8 +235,8 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
   }, [])
 
   // 초기화 핸들러
-  const handleReset = useCallback(() => {
-    if (!confirm('템플릿 기본값으로 초기화하시겠습니까?')) return
+  const handleReset = useCallback(async () => {
+    if (!(await confirm('템플릿 기본값으로 초기화하시겠습니까?'))) return
     
     const config = template.config as TemplateConfig
     const initialTextValues: Record<string, string> = {}
@@ -246,7 +249,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
     })
     setActiveElementId(null)
     setActivePresetId(null)
-  }, [template.config])
+  }, [template.config, confirm])
 
   return (
     <div className="w-full h-full flex absolute inset-0 bg-neutral-50 dark:bg-neutral-900 z-50">
@@ -255,10 +258,14 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
         <div className="h-full flex flex-col pt-8">
           {/* 헤더 */}
           <div className="px-8 pt-4 pb-4 flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={onBack}>
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              목록으로
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={onBack}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>목록으로</TooltipContent>
+            </Tooltip>
             <div className="flex-1 text-center">
               <h2 className="text-lg font-semibold">{template.name}</h2>
               {template.description && (
@@ -449,8 +456,8 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => {
-                              if (confirm('이 프리셋을 삭제하시겠습니까?')) {
+                            onClick={async () => {
+                              if (await confirm('이 프리셋을 삭제하시겠습니까?')) {
                                 const success = presetStorageUtils.deletePreset(preset.id)
                                 if (success) {
                                   setSavedPresets(prev => prev.filter(p => p.id !== preset.id))

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -155,7 +156,7 @@ export function PptUploadDialog({
       file.name.toLowerCase().endsWith('.pptx')
 
     if (!isPptFile) {
-      alert('PPT 또는 PPTX 파일만 업로드할 수 있습니다.')
+      toast.error('PPT 또는 PPTX 파일만 업로드할 수 있습니다.')
       return
     }
 
@@ -173,13 +174,13 @@ export function PptUploadDialog({
       file.type === 'image/png'
 
     if (!isImageFile) {
-      alert('PNG 또는 JPG 파일만 업로드할 수 있습니다.')
+      toast.error('PNG 또는 JPG 파일만 업로드할 수 있습니다.')
       return
     }
 
     // 파일 크기 검증 (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('썸네일 이미지 크기는 5MB를 초과할 수 없습니다.')
+      toast.error('썸네일 이미지 크기는 5MB를 초과할 수 없습니다.')
       return
     }
 
@@ -211,13 +212,13 @@ export function PptUploadDialog({
 
     // 수정 모드가 아니고 새 파일이 없으면 에러
     if (!isEditMode && !selectedFile) {
-      alert('PPT 파일을 선택해주세요.')
+      toast.error('PPT 파일을 선택해주세요.')
       return
     }
 
     // 수정 모드인데 기존 파일도 없고 새 파일도 없으면 에러
     if (isEditMode && !existingFile && !selectedFile) {
-      alert('PPT 파일이 필요합니다.')
+      toast.error('PPT 파일이 필요합니다.')
       return
     }
 
@@ -386,7 +387,7 @@ export function PptUploadDialog({
             const error = await thumbnailResponse.json()
             console.error('썸네일 업로드 실패:', error)
             // 에러를 throw하지 않고 경고만 표시 (게시물은 이미 생성됨)
-            alert(`썸네일 업로드에 실패했습니다: ${error.error || '알 수 없는 오류'}`)
+            toast.error(`썸네일 업로드에 실패했습니다: ${error.error || '알 수 없는 오류'}`)
           } else {
             const { thumbnailUrl } = await thumbnailResponse.json()
             // 썸네일 URL 업데이트 (기존 게시물의 title 포함 - 필수 필드)
@@ -405,7 +406,7 @@ export function PptUploadDialog({
               const error = await updateResponse.json()
               console.error('썸네일 URL 업데이트 실패:', error)
               // 에러를 throw하지 않고 경고만 표시
-              alert(`썸네일 URL 업데이트에 실패했습니다: ${error.error || '알 수 없는 오류'}`)
+              toast.error(`썸네일 URL 업데이트에 실패했습니다: ${error.error || '알 수 없는 오류'}`)
             }
           }
         }
@@ -421,7 +422,7 @@ export function PptUploadDialog({
       setExistingThumbnailUrl(null)
     } catch (error: any) {
       console.error('Upload error:', error)
-      alert(error.message || '게시물 업로드 중 오류가 발생했습니다.')
+      toast.error(error.message || '게시물 업로드 중 오류가 발생했습니다.')
     } finally {
       setUploading(false)
       setSubmitting(false)

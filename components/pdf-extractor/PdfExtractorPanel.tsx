@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PDFDocument } from 'pdf-lib'
 import dynamic from 'next/dynamic'
-import { Download, Loader2, CheckSquare, Square, Eye } from 'lucide-react'
+import { Loader2, CheckSquare, Square } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 // PdfPageCounter를 dynamic import로 로드 (SSR 비활성화)
 const PdfPageCounter = dynamic(
@@ -158,7 +160,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
   // 미리보기용 PDF 생성
   const handlePreview = useCallback(async () => {
     if (!pdfFile || selectedPages.size === 0) {
-      alert('추출할 페이지를 선택해주세요.')
+      toast.error('추출할 페이지를 선택해주세요.')
       return
     }
 
@@ -191,7 +193,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
       setPreviewPdfUrl(url)
     } catch (error) {
       console.error('PDF 미리보기 생성 오류:', error)
-      alert('PDF 미리보기를 생성하는데 실패했습니다.')
+      toast.error('PDF 미리보기를 생성하는데 실패했습니다.')
       setPreviewOpen(false)
     } finally {
       setPreviewLoading(false)
@@ -216,7 +218,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
 
   const handleExtract = useCallback(async () => {
     if (!pdfFile || selectedPages.size === 0) {
-      alert('추출할 페이지를 선택해주세요.')
+      toast.error('추출할 페이지를 선택해주세요.')
       return
     }
 
@@ -277,7 +279,7 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
       URL.revokeObjectURL(url)
     } catch (error) {
       console.error('PDF 추출 오류:', error)
-      alert('PDF 추출 중 오류가 발생했습니다.')
+      toast.error('PDF 추출 중 오류가 발생했습니다.')
     } finally {
       setExtracting(false)
     }
@@ -309,9 +311,18 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
 
         {/* 페이지 범위 설정 */}
         <div className="space-y-4 pb-6 border-b">
-          {/* 파일 이름 표시 */}
-          <div>
-            <p className="text-xl font-bold">{pdfFile.name.split('.')[0]}</p>
+          {/* 파일 이름 표시 (맨 뒤 .pdf 확장자 제거, 중간 점은 유지. 길면 말줄임 + 툴팁) */}
+          <div className="min-w-0">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-xl font-bold truncate cursor-default">
+                  {pdfFile.name.replace(/\.pdf$/i, '')}
+                </p>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[320px]">
+                <p className="break-all">{pdfFile.name.replace(/\.pdf$/i, '')}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           <div>
@@ -431,7 +442,6 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
               </>
             ) : (
               <>
-                <Eye className="mr-2 h-4 w-4" />
                 미리보기
               </>
             )}
@@ -450,7 +460,6 @@ export function PdfExtractorPanel({ pdfFile, numPages, setNumPages }: PdfExtract
               </>
             ) : (
               <>
-                <Download className="mr-2 h-4 w-4" />
                 PDF 추출 및 다운로드
               </>
             )}

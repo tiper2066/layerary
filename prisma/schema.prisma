@@ -44,6 +44,7 @@ model User {
   updatedPosts            Post[]   @relation("PostUpdater")
   notices                 Notice[]
   welcomeBoardTemplates   WelcomeBoardTemplate[]
+  diagrams                Diagram[] @relation("DiagramAuthor")
 
   @@map("users")
 }
@@ -162,4 +163,35 @@ model WelcomeBoardTemplate {
   updatedAt     DateTime @updatedAt
 
   @@map("welcomeboard_templates")
+}
+
+// 다이어그램 모델
+model Diagram {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  thumbnailUrl  String?  // B2 썸네일 이미지 경로
+  canvasData    Json     // Konva 캔버스 상태 (도형, 텍스트 등)
+  width         Int      @default(1920)
+  height        Int      @default(1080)
+  
+  authorId      String
+  author        User     @relation("DiagramAuthor", fields: [authorId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("diagrams")
+}
+
+// 다이어그램 ZIP 파일 설정 (관리자 업로드, 사용자 다운로드) - 단일 행
+model DiagramZipConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique @default("default")
+  zipFileUrl  String?
+  zipFileName String?
+  zipFileSize Int?
+  updatedAt   DateTime @updatedAt
+
+  @@map("diagram_zip_config")
 }

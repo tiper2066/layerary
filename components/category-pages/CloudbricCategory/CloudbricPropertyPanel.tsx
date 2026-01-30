@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Download, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -94,7 +94,6 @@ export function CloudbricPropertyPanel({
                 </>
               ) : (
                 <>
-                  <Download className="mr-2 h-4 w-4" />
                   다운로드
                 </>
               )}

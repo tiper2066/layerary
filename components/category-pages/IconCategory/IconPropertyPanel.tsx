@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { RotateCcw, Download, Loader2 } from 'lucide-react'
+import { RotateCcw, Loader2 } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface IconPropertyPanelProps {
   color: string
@@ -73,10 +74,32 @@ export function IconPropertyPanel({
       <div className="px-8 pt-14 pb-8 space-y-6">
         {/* 제목 */}
         <div className="space-y-2 pb-6 border-b">
-          <h2 className="text-xl font-bold">아이콘 속성</h2>
-          <p className="text-sm text-muted-foreground">
-            아이콘의 색상, 선 두께, 크기를 조정할 수 있습니다.
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold">아이콘 속성</h2>
+              <p className="text-sm text-muted-foreground">
+                아이콘의 색상, 선 두께, 크기를 조정할 수 있습니다.
+              </p>
+            </div>
+              {/* 리셋 버튼 */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="pb-4">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleReset}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>기본값으로 리셋</p>
+                </TooltipContent>
+              </Tooltip>
+          </div>
+
         </div>
 
         {/* 색상 선택 */}
@@ -154,6 +177,16 @@ export function IconPropertyPanel({
         <div className="space-y-3 pb-6">
           <Label className='text-xs text-muted-foreground'>FORMAT</Label>
           <div className="space-y-2">
+            {/* 아이콘 선택 없을 경우 표시 */}
+            {!isSingleSelected && !isMultipleSelected && (
+                <div className='pb-4'>
+                  <p className='text-xs font-light text-muted-foreground'>
+                    아이콘을 선택하세요.
+                  </p>
+                </div>
+              )
+            }
+
             {/* 포맷 선택 버튼 - 단일 선택일 때만 표시 */}
             {isSingleSelected && (
               <>
@@ -220,18 +253,6 @@ export function IconPropertyPanel({
               </div>
             )}
 
-            {/* 리셋 버튼 */}
-            <div className="pt-4 pb-8">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleReset}
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                기본값으로 리셋
-              </Button>
-            </div>
-
             <div className='pt-10 border-t'>
               <Button
                 className="w-full"
@@ -256,7 +277,6 @@ export function IconPropertyPanel({
                   </>
                 ) : (
                   <>
-                    <Download className="mr-2 h-4 w-4" />
                     {isMultipleSelected ? `다운로드 (${selectedCount})` : '다운로드'}
                   </>
                 )}

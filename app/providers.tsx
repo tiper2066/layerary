@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
+import { Toaster } from 'sonner'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from 'next-themes'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { ConfirmDialogProvider } from '@/components/ui/confirm-dialog-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -32,7 +34,25 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider delayDuration={300}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <ConfirmDialogProvider>
+            {children}
+            <Toaster
+              position="top-center"
+              richColors
+              closeButton
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  borderRadius: '8px',
+                  border: '1px solid hsl(var(--border))',
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                },
+              }}
+            />
+          </ConfirmDialogProvider>
+        </SessionProvider>
       </TooltipProvider>
     </ThemeProvider>
   )

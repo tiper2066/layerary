@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { format } from 'date-fns'
@@ -93,7 +93,6 @@ export function PptPropertyPanel({ post, onDownload }: PptPropertyPanelProps) {
                 </>
               ) : (
                 <>
-                  <Download className="mr-2 h-4 w-4" />
                   다운로드
                 </>
               )}

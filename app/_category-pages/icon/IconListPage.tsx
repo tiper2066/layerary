@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Download, Loader2, Search, Trash2, CheckSquare, Square } from 'lucide-react'
+import { Loader2, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 import { IconUploadDialog } from '@/components/category-pages/IconCategory/IconUploadDialog'
 import { IconCard } from '@/components/category-pages/IconCategory/IconCard'
@@ -239,7 +240,7 @@ export function IconListPage({ category }: IconListPageProps) {
   // 선택된 아이콘 삭제
   const handleDelete = async () => {
     if (selectedPostIds.size === 0) {
-      alert('삭제할 아이콘을 선택해주세요.')
+      toast.error('삭제할 아이콘을 선택해주세요.')
       return
     }
 
@@ -281,13 +282,13 @@ export function IconListPage({ category }: IconListPageProps) {
       setDeleteDialogOpen(false)
 
       if (failCount > 0) {
-        alert(`${successCount}개 삭제 성공, ${failCount}개 삭제 실패`)
+        toast.warning(`${successCount}개 삭제 성공, ${failCount}개 삭제 실패`)
       } else {
-        alert(`${successCount}개의 아이콘이 삭제되었습니다.`)
+        toast.success(`${successCount}개의 아이콘이 삭제되었습니다.`)
       }
     } catch (error) {
       console.error('Delete error:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }
@@ -303,7 +304,7 @@ export function IconListPage({ category }: IconListPageProps) {
   // 속성 패널용 다운로드 (단일/다중 모두 처리)
   const handlePropertyPanelDownload = async (format: 'png' | 'jpg' | 'svg') => {
     if (selectedPostIds.size === 0) {
-      alert('다운로드할 아이콘을 선택해주세요.')
+      toast.error('다운로드할 아이콘을 선택해주세요.')
       return
     }
 
@@ -316,7 +317,7 @@ export function IconListPage({ category }: IconListPageProps) {
       if (selectedPosts.length === 1) {
         const post = selectedPosts[0]
         if (!post.fileUrl || !post.id) {
-          alert('다운로드할 파일이 없습니다.')
+          toast.error('다운로드할 파일이 없습니다.')
           setDownloading(false)
           return
         }
@@ -347,7 +348,7 @@ export function IconListPage({ category }: IconListPageProps) {
             URL.revokeObjectURL(url)
           } catch (error) {
             console.error(`Error downloading ${post.title}:`, error)
-            alert('다운로드 중 오류가 발생했습니다.')
+            toast.error('다운로드 중 오류가 발생했습니다.')
           }
         } else {
           // PNG/JPG 포맷인 경우 API 호출
@@ -384,7 +385,7 @@ export function IconListPage({ category }: IconListPageProps) {
             document.body.removeChild(a)
           } catch (error) {
             console.error('[IconListPage] Download error:', error)
-            alert('다운로드 중 오류가 발생했습니다.')
+            toast.error('다운로드 중 오류가 발생했습니다.')
           }
         }
       } else {
@@ -429,7 +430,7 @@ export function IconListPage({ category }: IconListPageProps) {
       }
     } catch (error) {
       console.error('Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     } finally {
       setDownloading(false)
     }
@@ -457,7 +458,6 @@ export function IconListPage({ category }: IconListPageProps) {
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
               <Button onClick={() => setUploadDialogOpen(true)}>
-                <Plus className="h-4 w-4" />
                 아이콘 추가
               </Button>
             )}
@@ -485,12 +485,10 @@ export function IconListPage({ category }: IconListPageProps) {
               >
                 {selectedPostIds.size === filteredPosts.length ? (
                   <>
-                    <Square className="h-4 w-4" />
                     전체 해제
                   </>
                 ) : (
                   <>
-                    <CheckSquare className="h-4 w-4" />
                     전체 선택
                   </>
                 )}
@@ -512,7 +510,6 @@ export function IconListPage({ category }: IconListPageProps) {
                   </>
                 ) : (
                   <>
-                    <Trash2 className="h-4 w-4" />
                     삭제 {selectedPostIds.size > 0 && `(${selectedPostIds.size})`}
                   </>
                 )}

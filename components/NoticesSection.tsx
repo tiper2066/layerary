@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { File, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Attachment {
   url: string
@@ -66,7 +67,7 @@ export function NoticesSection({ notices: initialNotices }: NoticesSectionProps)
       setIsDetailDialogOpen(true)
     } catch (error) {
       console.error('Error fetching notice:', error)
-      alert('공지사항을 불러오는데 실패했습니다.')
+      toast.error('공지사항을 불러오는데 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -103,7 +104,7 @@ export function NoticesSection({ notices: initialNotices }: NoticesSectionProps)
       document.body.removeChild(a)
     } catch (error: any) {
       console.error('Error downloading file:', error)
-      alert(error.message || '파일 다운로드에 실패했습니다.')
+      toast.error(error.message || '파일 다운로드에 실패했습니다.')
     } finally {
       setDownloadingFileId(null)
     }

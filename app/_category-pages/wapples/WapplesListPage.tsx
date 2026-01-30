@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { WapplesUploadDialog } from '@/components/category-pages/WapplesCategory/WapplesUploadDialog'
 import { WapplesCard } from '@/components/category-pages/WapplesCategory/WapplesCard'
@@ -21,6 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Category {
   id: string
@@ -362,7 +362,7 @@ export function WapplesListPage({ category }: WapplesListPageProps) {
       document.body.removeChild(a)
     } catch (error) {
       console.error('[WapplesListPage] Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     }
   }
 
@@ -413,7 +413,7 @@ export function WapplesListPage({ category }: WapplesListPageProps) {
       setDeletePostId(null)
     } catch (error) {
       console.error('Delete error:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }
@@ -467,7 +467,6 @@ export function WapplesListPage({ category }: WapplesListPageProps) {
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
               <Button onClick={() => setUploadDialogOpen(true)}>
-                <Plus className="h-4 w-4" />
                 게시물 추가
               </Button>
             )}
@@ -511,7 +510,6 @@ export function WapplesListPage({ category }: WapplesListPageProps) {
               </p>
               {isAdmin && (
                 <Button onClick={() => setUploadDialogOpen(true)}>
-                  <Plus className="h-4 w-4" />
                   첫 게시물 추가하기
                 </Button>
               )}

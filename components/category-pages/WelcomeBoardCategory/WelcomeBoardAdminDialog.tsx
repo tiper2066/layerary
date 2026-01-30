@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import { WelcomeBoardElementEditor } from './WelcomeBoardElementEditor'
 import type { WelcomeBoardTemplate, TemplateConfig, TextElement, LogoArea } from '@/lib/welcomeboard-schemas'
 import { DEFAULT_TEMPLATE_CONFIG } from '@/lib/welcomeboard-schemas'
@@ -95,12 +96,12 @@ export function WelcomeBoardAdminDialog({
   const handleBackgroundSelect = useCallback(
     (file: File) => {
       if (!file.type.startsWith('image/')) {
-        alert('이미지 파일만 업로드 가능합니다.')
+        toast.error('이미지 파일만 업로드 가능합니다.')
         return
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        alert('파일 크기는 10MB 이하여야 합니다.')
+        toast.error('파일 크기는 10MB 이하여야 합니다.')
         return
       }
 
@@ -274,13 +275,13 @@ export function WelcomeBoardAdminDialog({
   // 폼 제출
   const handleSubmit = useCallback(async () => {
     if (!name.trim()) {
-      alert('템플릿 이름을 입력해주세요.')
+      toast.error('템플릿 이름을 입력해주세요.')
       return
     }
 
     // 새 파일이 선택되지 않았고 기존 URL도 없는 경우
     if (!backgroundFile && !backgroundUrl) {
-      alert('배경 이미지를 업로드해주세요.')
+      toast.error('배경 이미지를 업로드해주세요.')
       return
     }
 
@@ -329,7 +330,7 @@ export function WelcomeBoardAdminDialog({
       onClose()
     } catch (error) {
       console.error('Save template error:', error)
-      alert(error instanceof Error ? error.message : '템플릿 저장 중 오류가 발생했습니다.')
+      toast.error(error instanceof Error ? error.message : '템플릿 저장 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

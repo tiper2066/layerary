@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { File, Upload, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
@@ -42,7 +43,7 @@ export function PdfUploadZone({ onFileSelect, selectedFile, onFileRemove }: PdfU
     if (pdfFile) {
       onFileSelect(pdfFile)
     } else {
-      alert('PDF 파일만 업로드할 수 있습니다.')
+      toast.error('PDF 파일만 업로드할 수 있습니다.')
     }
   }, [onFileSelect])
 
@@ -52,7 +53,7 @@ export function PdfUploadZone({ onFileSelect, selectedFile, onFileRemove }: PdfU
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         onFileSelect(file)
       } else {
-        alert('PDF 파일만 업로드할 수 있습니다.')
+        toast.error('PDF 파일만 업로드할 수 있습니다.')
       }
     }
     // Reset input to allow selecting the same file again

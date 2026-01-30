@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Trash2, RotateCcw } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { ChartType, chartSchema } from '@/lib/chart-schemas'
 import { useEffect } from 'react'
 
@@ -114,8 +114,7 @@ export function ChartDataForm({ chartType, onChange, onXAxisLabelChange, onYAxis
             onClick={addRow}
             className="h-8"
           >
-            <Plus className="h-4 w-4" />
-            추가
+            항목 추가
           </Button>
           <Button
             type="button"
@@ -124,7 +123,6 @@ export function ChartDataForm({ chartType, onChange, onXAxisLabelChange, onYAxis
             onClick={resetData}
             className="h-8"
           >
-            <RotateCcw className="h-4 w-4" />
             초기화
           </Button>
         </div>

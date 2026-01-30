@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -189,7 +190,7 @@ export function WapplesUploadDialog({
       )
 
       if (pdfFiles.length !== files.length) {
-        alert('PDF 파일만 업로드할 수 있습니다.')
+        toast.error('PDF 파일만 업로드할 수 있습니다.')
       }
 
       setSelectedFiles(pdfFiles)
@@ -213,13 +214,13 @@ export function WapplesUploadDialog({
 
     // 수정 모드가 아니고 새 파일이 없으면 에러
     if (!isEditMode && selectedFiles.length === 0) {
-      alert('PDF 파일을 선택해주세요.')
+      toast.error('PDF 파일을 선택해주세요.')
       return
     }
 
     // 수정 모드인데 기존 파일도 없고 새 파일도 없으면 에러
     if (isEditMode && existingFiles.length === 0 && selectedFiles.length === 0) {
-      alert('최소 1개의 PDF 파일이 필요합니다.')
+      toast.error('최소 1개의 PDF 파일이 필요합니다.')
       return
     }
 
@@ -377,7 +378,7 @@ export function WapplesUploadDialog({
       setExistingFiles([])
     } catch (error: any) {
       console.error('Upload error:', error)
-      alert(error.message || '게시물 업로드 중 오류가 발생했습니다.')
+      toast.error(error.message || '게시물 업로드 중 오류가 발생했습니다.')
     } finally {
       setUploading(false)
       setSubmitting(false)

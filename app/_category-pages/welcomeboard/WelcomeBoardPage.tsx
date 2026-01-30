@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Plus, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { WelcomeBoardGallery } from '@/components/category-pages/WelcomeBoardCategory/WelcomeBoardGallery'
 import { WelcomeBoardEditor } from '@/components/category-pages/WelcomeBoardCategory/WelcomeBoardEditor'
 import { WelcomeBoardAdminDialog } from '@/components/category-pages/WelcomeBoardCategory/WelcomeBoardAdminDialog'
@@ -148,7 +149,7 @@ export function WelcomeBoardPage({ category }: WelcomeBoardPageProps) {
       setDeletingTemplateId(null)
     } catch (error) {
       console.error('Delete error:', error)
-      alert('템플릿 삭제 중 오류가 발생했습니다.')
+      toast.error('템플릿 삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }
@@ -181,7 +182,7 @@ export function WelcomeBoardPage({ category }: WelcomeBoardPageProps) {
     <div className="w-full h-full flex flex-col overflow-y-auto">
       <div className="px-8 pt-8 pb-8">
         {/* 헤더 */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-end mb-6">
           <div>
             <h1 className="text-3xl font-bold">{category.name}</h1>
             <p className="text-muted-foreground mt-2">
@@ -190,7 +191,6 @@ export function WelcomeBoardPage({ category }: WelcomeBoardPageProps) {
           </div>
           {isAdmin && (
             <Button onClick={() => setAdminDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
               템플릿 추가
             </Button>
           )}

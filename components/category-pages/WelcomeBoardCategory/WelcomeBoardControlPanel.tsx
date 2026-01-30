@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Type, Image as ImageIcon, Upload, X, RotateCcw, Save, FolderOpen, Settings2, Check, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { WelcomeBoardTemplate, UserEditData, TemplateConfig, SavedWelcomeBoardPreset } from '@/lib/welcomeboard-schemas'
 
 interface WelcomeBoardControlPanelProps {
@@ -60,13 +61,13 @@ export function WelcomeBoardControlPanel({
       if (file) {
         // 파일 타입 검증
         if (!file.type.startsWith('image/')) {
-          alert('이미지 파일만 업로드 가능합니다.')
+          toast.error('이미지 파일만 업로드 가능합니다.')
           return
         }
 
         // 파일 크기 검증 (최대 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert('파일 크기는 5MB 이하여야 합니다.')
+          toast.error('파일 크기는 5MB 이하여야 합니다.')
           return
         }
 
@@ -87,12 +88,12 @@ export function WelcomeBoardControlPanel({
       const file = event.dataTransfer.files?.[0]
       if (file) {
         if (!file.type.startsWith('image/')) {
-          alert('이미지 파일만 업로드 가능합니다.')
+          toast.error('이미지 파일만 업로드 가능합니다.')
           return
         }
 
         if (file.size > 5 * 1024 * 1024) {
-          alert('파일 크기는 5MB 이하여야 합니다.')
+          toast.error('파일 크기는 5MB 이하여야 합니다.')
           return
         }
 

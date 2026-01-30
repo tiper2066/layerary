@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { CharacterUploadDialog } from '@/components/category-pages/CharacterCategory/CharacterUploadDialog'
 import { CharacterCard } from '@/components/category-pages/CharacterCategory/CharacterCard'
@@ -21,6 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Category {
   id: string
@@ -387,7 +387,7 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
       document.body.removeChild(a)
     } catch (error) {
       console.error('[CharacterListPage] Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     }
   }
 
@@ -438,7 +438,7 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
       setDeletePostId(null)
     } catch (error) {
       console.error('Delete error:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     } finally {
       setDeleting(false)
     }
@@ -466,7 +466,6 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
             <h1 className="text-3xl font-bold">{category.name}</h1>
             {isAdmin && (
               <Button onClick={() => setUploadDialogOpen(true)}>
-                <Plus className="h-4 w-4" />
                 게시물 추가
               </Button>
             )}
@@ -478,7 +477,7 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedFilter === filter
                     ? 'text-primary font-semibold hover:bg-muted'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -510,7 +509,6 @@ export function CharacterListPage({ category }: CharacterListPageProps) {
               </p>
               {isAdmin && (
                 <Button onClick={() => setUploadDialogOpen(true)}>
-                  <Plus className="h-4 w-4" />
                   첫 게시물 추가하기
                 </Button>
               )}

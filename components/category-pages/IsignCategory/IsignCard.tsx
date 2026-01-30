@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Trash2, Eye, Download, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -92,7 +93,7 @@ export function IsignCard({
       document.body.removeChild(a)
     } catch (error) {
       console.error('Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     } finally {
       setDownloading(false)
     }
@@ -136,7 +137,6 @@ export function IsignCard({
             onClick={handlePreview}
             disabled={!post.fileUrl}
           >
-            <Eye className="h-4 w-4" />
             미리보기
           </Button>
 
@@ -155,7 +155,6 @@ export function IsignCard({
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" />
                 다운로드
               </>
             )}

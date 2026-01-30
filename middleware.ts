@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const session = await auth()
   const { pathname } = request.nextUrl
 
-  // 홈 페이지는 항상 접근 가능
+  // 루트 경로는 항상 접근 가능 (리다이렉트 처리됨)
   if (pathname === '/') {
     return NextResponse.next()
   }
@@ -27,18 +27,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 로그인하지 않은 사용자는 홈으로 리다이렉트
-  if (!session) {
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
   // 관리자 라우트는 관리자만 접근 가능
   if (pathname.startsWith('/admin')) {
-    if (session.user.role !== 'ADMIN') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
 
+  // 그 외의 모든 페이지는 로그인 여부와 관계없이 접근 가능
   return NextResponse.next()
 }
 

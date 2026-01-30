@@ -187,7 +187,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
       case CategoryType.ADMIN:
         return 'ADMIN'
       case CategoryType.ETC:
-        return 'Etc.'
+        return 'LABs'
       default:
         return ''
     }
@@ -242,7 +242,11 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
     >
       {/* 상단: LAYERARY 제목 */}
       <div className="p-6">
-        <Link href="/" className="flex items-center" onClick={onLinkClick}>
+        <Link 
+          href={session?.user?.role === 'ADMIN' ? '/admin/home' : '/'} 
+          className="flex items-center" 
+          onClick={onLinkClick}
+        >
           <ThemeLogo
             width={160}
             height={40}

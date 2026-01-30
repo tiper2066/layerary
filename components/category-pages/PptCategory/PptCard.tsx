@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Pencil, Trash2, Download, Loader2, FileArchive } from 'lucide-react'
+import { Pencil, Trash2, Loader2, FileArchive } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -118,7 +119,7 @@ export function PptCard({
       document.body.removeChild(a)
     } catch (error) {
       console.error('Download error:', error)
-      alert('다운로드 중 오류가 발생했습니다.')
+      toast.error('다운로드 중 오류가 발생했습니다.')
     } finally {
       setDownloading(false)
     }
@@ -188,7 +189,6 @@ export function PptCard({
             </>
           ) : (
             <>
-              <Download className="h-4 w-4" />
               다운로드
             </>
           )}
