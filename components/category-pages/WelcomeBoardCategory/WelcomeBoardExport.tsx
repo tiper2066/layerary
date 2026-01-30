@@ -155,7 +155,12 @@ export function WelcomeBoardExport({
         logoContainer.style.height = `${config.logoArea.height}px`
         logoContainer.style.display = 'flex'
         logoContainer.style.alignItems = 'center'
-        logoContainer.style.justifyContent = 'center'
+        logoContainer.style.justifyContent =
+          (userEditData.logoAlign ?? 'center') === 'left'
+            ? 'flex-start'
+            : (userEditData.logoAlign ?? 'center') === 'right'
+              ? 'flex-end'
+              : 'center'
         logoContainer.style.zIndex = '10'
 
         const logoImg = document.createElement('img')
@@ -164,6 +169,12 @@ export function WelcomeBoardExport({
         logoImg.style.maxWidth = '100%'
         logoImg.style.maxHeight = '100%'
         logoImg.style.objectFit = 'contain'
+        logoImg.style.objectPosition =
+          (userEditData.logoAlign ?? 'center') === 'left'
+            ? 'left'
+            : (userEditData.logoAlign ?? 'center') === 'right'
+              ? 'right'
+              : 'center'
         logoContainer.appendChild(logoImg)
         exportCanvas.appendChild(logoContainer)
       }
@@ -210,7 +221,7 @@ export function WelcomeBoardExport({
         document.body.removeChild(container)
       }
     },
-    [template, config, textValues, userEditData.logoUrl, highResolution]
+    [template, config, textValues, userEditData.logoUrl, userEditData.logoAlign, highResolution]
   )
 
   // PNG 다운로드

@@ -155,7 +155,7 @@ export const WelcomeBoardCanvas = forwardRef<HTMLDivElement, WelcomeBoardCanvasP
         {/* 로고 영역 레이어 (z-10) */}
         {config.logoArea && (
           <div
-            className={`absolute z-10 flex items-center justify-center transition-all ${
+            className={`absolute z-10 flex items-center transition-all ${
               showEditHighlight && !userEditData.logoUrl
                 ? 'border-2 border-dashed border-gray-400 bg-white/30 cursor-pointer hover:ring-2 hover:ring-penta-blue/50'
                 : ''
@@ -166,6 +166,12 @@ export const WelcomeBoardCanvas = forwardRef<HTMLDivElement, WelcomeBoardCanvasP
               transform: 'translate(-50%, -50%)',
               width: config.logoArea.width * scale,
               height: config.logoArea.height * scale,
+              justifyContent:
+                (userEditData.logoAlign ?? 'center') === 'left'
+                  ? 'flex-start'
+                  : (userEditData.logoAlign ?? 'center') === 'right'
+                    ? 'flex-end'
+                    : 'center',
             }}
             onClick={() => {
               if (showEditHighlight && onElementClick) {
@@ -180,6 +186,14 @@ export const WelcomeBoardCanvas = forwardRef<HTMLDivElement, WelcomeBoardCanvasP
                 fill
                 sizes={`${config.logoArea.width}px`}
                 className="object-contain"
+                style={{
+                  objectPosition:
+                    (userEditData.logoAlign ?? 'center') === 'left'
+                      ? 'left'
+                      : (userEditData.logoAlign ?? 'center') === 'right'
+                        ? 'right'
+                        : 'center',
+                }}
                 crossOrigin="anonymous"
               />
             ) : (

@@ -58,6 +58,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
     return {
       textValues: initialTextValues,
       logoUrl: null,
+      logoAlign: 'center' as const,
     }
   })
 
@@ -117,6 +118,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
       templateId: template.id,
       templateName: template.name, // 템플릿 이름 추가
       config: currentConfig,
+      logoAlign: userEditData.logoAlign ?? 'center',
     }
 
     const success = presetStorageUtils.savePreset(newPreset)
@@ -130,7 +132,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
     } else {
       toast.error('저장 중 오류가 발생했습니다.')
     }
-  }, [presetName, template.id, template.name, currentConfig])
+  }, [presetName, template.id, template.name, currentConfig, userEditData.logoAlign])
 
   // 프리셋 불러오기
   const handleLoadPreset = useCallback((preset: SavedWelcomeBoardPreset) => {
@@ -142,6 +144,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
     setUserEditData(prev => ({
       ...prev,
       textValues: newTextValues,
+      logoAlign: preset.logoAlign ?? 'center',
     }))
     setActivePresetId(preset.id)
   }, [])
@@ -229,6 +232,14 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
     }))
   }, [])
 
+  // 로고 정렬 변경 핸들러
+  const handleLogoAlignChange = useCallback((logoAlign: 'left' | 'center' | 'right') => {
+    setUserEditData((prev) => ({
+      ...prev,
+      logoAlign,
+    }))
+  }, [])
+
   // 요소 클릭 핸들러
   const handleElementClick = useCallback((elementId: string) => {
     setActiveElementId(elementId)
@@ -246,6 +257,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
     setUserEditData({
       textValues: initialTextValues,
       logoUrl: null,
+      logoAlign: 'center',
     })
     setActiveElementId(null)
     setActivePresetId(null)
@@ -341,6 +353,7 @@ export function WelcomeBoardEditor({ template, onBack }: WelcomeBoardEditorProps
             activeElementId={activeElementId}
             onTextChange={handleTextChange}
             onLogoChange={handleLogoChange}
+            onLogoAlignChange={handleLogoAlignChange}
             onElementSelect={setActiveElementId}
             onReset={handleReset}
             // 프리셋 관련 props

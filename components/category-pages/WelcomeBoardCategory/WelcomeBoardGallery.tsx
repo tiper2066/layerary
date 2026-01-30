@@ -32,6 +32,7 @@ export function WelcomeBoardGallery({
   const defaultUserEditData: UserEditData = useMemo(() => ({
     textValues: {},
     logoUrl: null,
+    logoAlign: 'center',
   }), [])
 
   // Masonry 레이아웃을 위한 상태

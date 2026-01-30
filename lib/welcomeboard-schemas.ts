@@ -46,10 +46,15 @@ export const createTemplateSchema = z.object({
 // 웰컴보드 템플릿 수정 스키마
 export const updateTemplateSchema = createTemplateSchema.partial()
 
+// 로고 정렬 타입 (로고 영역 내 좌/중앙/우)
+export const logoAlignSchema = z.enum(['left', 'center', 'right']).default('center')
+export type LogoAlign = z.infer<typeof logoAlignSchema>
+
 // 사용자 편집 데이터 스키마 (텍스트 값과 로고)
 export const userEditDataSchema = z.object({
   textValues: z.record(z.string(), z.string()), // { elementId: userValue }
   logoUrl: z.string().url().optional().nullable(),
+  logoAlign: logoAlignSchema.optional(),
 })
 
 // 내보내기 포맷
@@ -197,6 +202,7 @@ export interface SavedWelcomeBoardPreset {
   templateId: string
   templateName: string // 템플릿 이름 추가
   config: TemplateConfig
+  logoAlign?: LogoAlign // 방문사 로고 정렬 (좌/중앙/우)
 }
 
 // localStorage 키

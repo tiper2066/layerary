@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Type, Image as ImageIcon, Upload, X, RotateCcw, Save, FolderOpen, Settings2, Check, Trash2 } from 'lucide-react'
+import { Type, Image as ImageIcon, Upload, X, RotateCcw, Save, FolderOpen, Settings2, Check, Trash2, AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { toast } from 'sonner'
 import type { WelcomeBoardTemplate, UserEditData, TemplateConfig, SavedWelcomeBoardPreset } from '@/lib/welcomeboard-schemas'
 
@@ -23,6 +23,7 @@ interface WelcomeBoardControlPanelProps {
   activeElementId: string | null
   onTextChange: (elementId: string, value: string) => void
   onLogoChange: (logoUrl: string | null) => void
+  onLogoAlignChange: (align: 'left' | 'center' | 'right') => void
   onElementSelect: (elementId: string | null) => void
   onReset: () => void
   // 프리셋 관련 props
@@ -41,6 +42,7 @@ export function WelcomeBoardControlPanel({
   activeElementId,
   onTextChange,
   onLogoChange,
+  onLogoAlignChange,
   onElementSelect,
   onReset,
   activePresetName,
@@ -292,24 +294,73 @@ export function WelcomeBoardControlPanel({
           </div>
 
           {userEditData.logoUrl ? (
-            <div className="relative">
-              <div className="relative aspect-[2.5/1] bg-muted rounded-lg overflow-hidden border">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={userEditData.logoUrl}
-                  alt="업로드된 로고"
-                  className="w-full h-full object-contain p-4"
-                />
+            <div className="space-y-3">
+              <div className="relative">
+                <div className="relative aspect-[2.5/1] bg-muted rounded-lg overflow-hidden border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={userEditData.logoUrl}
+                    alt="업로드된 로고"
+                    className="w-full h-full object-contain p-4"
+                  />
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2 h-7 w-7 p-0"
+                  onClick={handleRemoveLogo}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="absolute top-2 right-2 h-7 w-7 p-0"
-                onClick={handleRemoveLogo}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+              {/* 로고 정렬 버튼 */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground mr-2">정렬:</span>
+                  <div className="flex rounded-md border p-0.5">
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={(userEditData.logoAlign ?? 'center') === 'left' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => onLogoAlignChange('left')}
+                          >
+                            <AlignLeft className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>좌측 정렬</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={(userEditData.logoAlign ?? 'center') === 'center' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => onLogoAlignChange('center')}
+                          >
+                            <AlignCenter className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>중앙 정렬</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={(userEditData.logoAlign ?? 'center') === 'right' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => onLogoAlignChange('right')}
+                          >
+                            <AlignRight className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>우측 정렬</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              </div>
           ) : (
             <div
               className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
@@ -346,8 +397,8 @@ export function WelcomeBoardControlPanel({
       {/* 안내 메시지 */}
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-xs text-muted-foreground">
-          미리보기 영역의 텍스트나 로고 영역을 클릭하여 편집할 수 있습니다.
-          편집이 완료되면 아래 내보내기 버튼을 사용하여 이미지 또는 PDF로 저장하세요.
+          미리보기 화면이나 속성 패널에서 요소를 선택하고 텍스트나 로고 추가 및 정렬을 변경할 수 있습니다.<br />
+          설정 변경이 완료되면 아래 내보내기 버튼을 사용하여 이미지 또는 PDF로 저장하세요.
         </p>
       </div>
     </div>
