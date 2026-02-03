@@ -44,6 +44,15 @@ npx prisma migrate resolve --applied 20260130000000_add_diagram_zip_config
 - Supabase는 프록시(Connection Pooler) 방식 사용 시 `connection_limit=1` 파라미터가 `lib/prisma.ts`에 자동 적용됩니다.
 - `DIRECT_URL`은 마이그레이션 실행 시 사용됩니다 (Transaction 모드 연결).
 
+### 4. Supabase Storage - eDM 버킷
+
+eDM 이미지는 Supabase Storage를 사용합니다. 다음 버킷을 생성해야 합니다:
+
+1. Supabase Dashboard → **Storage** → **New bucket**
+2. 버킷 이름: `edms`
+3. **Public bucket** 체크 (이메일 등에서 직접 URL 접근 가능)
+4. **Create bucket** 클릭
+
 ## 📁 최근 변경 사항 요약
 
 ### 다이어그램 페이지

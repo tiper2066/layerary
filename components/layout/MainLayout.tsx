@@ -91,9 +91,14 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
     !pathname.startsWith('/admin') &&
     pathname.startsWith('/chart-generator'))
 
-  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, PDF Extractor, ICON, 또는 Chart Generator 페이지인지 확인 (속성 패널이 있는 특수 페이지)
+  // eDM 편집 페이지인지 확인 (전체 화면 에디터, 헤더 숨김)
+  const isEdmEditorPage = Boolean(pathname && 
+    pathname.startsWith('/edm/') &&
+    (pathname === '/edm/editor' || /^\/edm\/[^/]+$/.test(pathname)))
+
+  // CI/BI, 캐릭터, WAPPLES, D.AMO, iSIGN, Cloudbric, PPT, PDF Extractor, ICON, Chart Generator, eDM 편집 페이지인지 확인
   // 웰컴보드는 에디터 모드일 때 자체 헤더를 사용하므로 제외
-  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage
+  const isSpecialPage = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage || isEdmEditorPage
 
   // 헤더 너비 제한이 필요한 페이지 (우측 패널이 있는 페이지만)
   const hasRightPanel = isCiBiPage || isCharacterPage || isWapplesPage || isDamoPage || isIsignPage || isCloudbricPage || isPptPage || isPdfExtractorPage || isIconPage || isChartGeneratorPage
@@ -118,13 +123,13 @@ export function MainLayout({ children, categories }: MainLayoutProps) {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="flex flex-col flex-1 min-w-0 md:overflow-hidden">
-        {!isGalleryDetailPage && (
+        {!isGalleryDetailPage && !isEdmEditorPage && (
           <Header 
             onMenuClick={() => setMobileMenuOpen(true)} 
             isCiBiPage={hasRightPanel}
           />
         )}
-        <main className={`flex-1 bg-background pt-16 md:pt-16 ${isSpecialPage || isWelcomeBoardPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
+        <main className={`flex-1 bg-background ${isEdmEditorPage ? 'p-0 overflow-hidden relative' : 'pt-16 md:pt-16'} ${isSpecialPage || isWelcomeBoardPage ? 'p-0 overflow-hidden relative' : 'overflow-y-auto'}`}>
           {isSpecialPage || isWelcomeBoardPage ? (
             children
           ) : (

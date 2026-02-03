@@ -268,6 +268,7 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
 
               // Etc 카테고리는 하드코딩
               if (type === CategoryType.ETC) {
+                const isEdmActive = pathname === '/edm' || pathname.startsWith('/edm/')
                 const isPdfExtractorActive = pathname === '/pdf-extractor'
                 const isChartGeneratorActive = pathname === '/chart-generator'
                 
@@ -277,14 +278,16 @@ export function Sidebar({ categories, className, onLinkClick }: SidebarProps) {
                       {getCategoryLabel(type)}
                     </div>
                     <Link
-                      href="https://img-edm-code-generator.vercel.app/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                      href="/edm"
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors',
+                        isEdmActive
+                          ? 'text-[var(--penta-indigo)] dark:text-penta-sky bg-accent'
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      )}
                       onClick={onLinkClick}
                     >
-                      <span className="flex-1 text-sm">eDM</span> 
-                      <SquareArrowOutUpRight className="h-4 w-4 flex-shrink-0 ml-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                      <span className="flex-1 text-sm">eDM</span>
                     </Link>
                     <Link
                       href="/pdf-extractor"

@@ -45,6 +45,7 @@ model User {
   notices                 Notice[]
   welcomeBoardTemplates   WelcomeBoardTemplate[]
   diagrams                Diagram[] @relation("DiagramAuthor")
+  edms                    Edm[]     @relation("EdmAuthor")
 
   @@map("users")
 }
@@ -182,6 +183,29 @@ model Diagram {
   updatedAt     DateTime @updatedAt
 
   @@map("diagrams")
+}
+
+// eDM 모델
+model Edm {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  thumbnailUrl  String?  // Supabase Storage 썸네일 이미지 URL
+  imageWidth    Int      // 원본 이미지 너비
+  imageHeight   Int      // 원본 이미지 높이
+  gridConfig    Json     // { rows: number[], cols: number[], mergedCells: MergedCell[] }
+  cellLinks     Json     // { "row-col": "https://..." }
+  cellImages    Json     // { "row-col": "Supabase Storage URL" } - 저장 시 업로드된 셀 이미지
+  htmlCode      String?  // 생성된 HTML
+  alignment     String   @default("left") // left | center | right
+
+  authorId      String
+  author        User     @relation("EdmAuthor", fields: [authorId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("edms")
 }
 
 // 다이어그램 ZIP 파일 설정 (관리자 업로드, 사용자 다운로드) - 단일 행
